@@ -401,14 +401,16 @@ function MapPage() {
     setCurrentPage((page) => Math.min(page, totalPages));
   }, [totalPages]);
 
-  // 선택된 매물이 현재 페이지에 없으면 자동으로 그 매물이 있는 페이지로 이동
+  // selectedId 가 바뀌면(주로 마커 클릭) 해당 매물이 있는 페이지로 자동 이동.
+  // activePage를 의존성에 넣으면 사용자가 직접 페이지 클릭해도 selectedId가 가리키는
+  // 옛 페이지로 되돌려져서 페이지 이동이 막힘 → 함수형 update만 사용하고 deps에서 제외.
   useEffect(() => {
     if (!selectedId || !filteredProperties.length) return;
     const idx = filteredProperties.findIndex((p) => p.id === selectedId);
     if (idx === -1) return;
     const targetPage = Math.floor(idx / MAP_ITEMS_PER_PAGE) + 1;
-    if (targetPage !== activePage) setCurrentPage(targetPage);
-  }, [selectedId, filteredProperties, activePage]);
+    setCurrentPage((current) => (current === targetPage ? current : targetPage));
+  }, [selectedId, filteredProperties]);
 
   // 페이지 첫 진입 시 — selectedId가 비어 있으면 현재 페이지 첫 매물 선택
   useEffect(() => {

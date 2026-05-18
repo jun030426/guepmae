@@ -1824,49 +1824,19 @@ body {
   letter-spacing: 0.02em;
 }
 
-.map-filter-room-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-}
-
-.map-filter-room-row select {
-  flex: 1 1 auto;
-  width: 100%;
-  min-width: 0;
-  height: 38px; /* 욕실 스테퍼와 동일 높이 */
-  padding: 0 10px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  font-size: 13px;
-  color: var(--color-text);
-  font-family: inherit;
-  cursor: pointer;
-  text-align: center;
-  text-align-last: center;
-}
-
-.map-filter-room-dash {
-  color: var(--color-text-muted);
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-/* 욕실 스테퍼 */
-.map-filter-bath-stepper {
+/* 방 / 욕실 — 같은 스테퍼 UI 공유 */
+.map-filter-stepper {
   display: grid;
   grid-template-columns: 32px 1fr 32px;
   align-items: stretch;
-  height: 38px; /* 방 select와 동일 높이 */
+  height: 38px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-bg);
   overflow: hidden;
 }
 
-.map-filter-bath-stepper button {
+.map-filter-stepper button {
   display: grid;
   place-items: center;
   border: 0;
@@ -1878,16 +1848,16 @@ body {
   transition: background 0.12s ease;
 }
 
-.map-filter-bath-stepper button:hover:not(:disabled) {
+.map-filter-stepper button:hover:not(:disabled) {
   background: #f4f5f7;
 }
 
-.map-filter-bath-stepper button:disabled {
+.map-filter-stepper button:disabled {
   color: #c8c8c8;
   cursor: not-allowed;
 }
 
-.map-filter-bath-stepper span {
+.map-filter-stepper span {
   display: grid;
   place-items: center;
   font-size: 13px;

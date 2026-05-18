@@ -7,7 +7,7 @@ import { formatPrice } from '../utils/priceUtils.js';
 import { getPrimaryPropertyPhoto } from '../utils/propertyMedia.js';
 
 const MAP_ITEMS_PER_PAGE = 10;
-const ROOM_OPTIONS = ['전체', '1', '2', '3', '4'];
+const MAX_ROOMS = 4;
 const DISCOUNT_OPTIONS = [
   { value: 5, label: '5% 이상' },
   { value: 7, label: '7% 이상' },
@@ -32,7 +32,7 @@ const MAX_BATHS = 3;
 const initialFilters = {
   budgetMin: BUDGET_MIN,
   budgetMax: BUDGET_MAX,
-  minRooms: '전체',
+  minRooms: 0, // 0 = 전체
   minBaths: 0, // 0 = 전체
   pyeongMin: PYEONG_MIN,
   pyeongMax: PYEONG_MAX,
@@ -200,6 +200,10 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 
   const reset = () => onChange(initialFilters);
 
+  const roomLabel = filters.minRooms === 0 ? '전체' : `${filters.minRooms}+`;
+  const decRoom = () => update({ minRooms: Math.max(0, filters.minRooms - 1) });
+  const incRoom = () => update({ minRooms: Math.min(MAX_ROOMS, filters.minRooms + 1) });
+
   const bathLabel = filters.minBaths === 0 ? '전체' : `${filters.minBaths}+`;
   const decBath = () => update({ minBaths: Math.max(0, filters.minBaths - 1) });
   const incBath = () => update({ minBaths: Math.min(MAX_BATHS, filters.minBaths + 1) });
@@ -207,7 +211,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
   // 적용된 필터 개수 (초기값과 다른 항목)
   const activeFilterCount = [
     filters.budgetMin !== BUDGET_MIN || filters.budgetMax !== BUDGET_MAX,
-    filters.minRooms !== '전체',
+    filters.minRooms !== 0,
     filters.minBaths !== 0,
     filters.pyeongMin !== PYEONG_MIN || filters.pyeongMax !== PYEONG_MAX,
     filters.unitBucket !== 'all',
@@ -256,28 +260,34 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
             />
           </fieldset>
 
-          {/* 방 + 욕실 — 회색 박스 묶음 */}
+          {/* 방 + 욕실 — 같은 스테퍼 형태로 통일 */}
           <div className="map-filter-room-box">
             <div className="map-filter-room-col">
               <label className="map-filter-room-label">방</label>
-              <div className="map-filter-room-row">
-                <select
-                  value={filters.minRooms}
-                  onChange={(event) => update({ minRooms: event.target.value })}
-                  aria-label="최소 방"
+              <div className="map-filter-stepper">
+                <button
+                  type="button"
+                  onClick={decRoom}
+                  disabled={filters.minRooms === 0}
+                  aria-label="방 줄이기"
                 >
-                  {ROOM_OPTIONS.map((v) => (
-                    <option key={v} value={v}>
-                      {v === '전체' ? '전체' : `${v}+`}
-                    </option>
-                  ))}
-                </select>
+                  <Minus size={14} />
+                </button>
+                <span>{roomLabel}</span>
+                <button
+                  type="button"
+                  onClick={incRoom}
+                  disabled={filters.minRooms === MAX_ROOMS}
+                  aria-label="방 늘리기"
+                >
+                  <Plus size={14} />
+                </button>
               </div>
             </div>
 
             <div className="map-filter-room-col">
               <label className="map-filter-room-label">욕실</label>
-              <div className="map-filter-bath-stepper">
+              <div className="map-filter-stepper">
                 <button
                   type="button"
                   onClick={decBath}
@@ -373,12 +383,11 @@ function MapPage() {
     const minP = filters.budgetMin <= BUDGET_MIN ? 0 : filters.budgetMin * 100000000;
     const maxP =
       filters.budgetMax >= BUDGET_MAX ? Infinity : filters.budgetMax * 100000000;
-    const minRoomsNum = filters.minRooms === '전체' ? 0 : Number(filters.minRooms);
     const unitOption = UNIT_COUNT_OPTIONS.find((o) => o.value === filters.unitBucket);
 
     return urgentProperties.filter((p) => {
       if (p.price < minP || p.price > maxP) return false;
-      if (p.rooms < minRoomsNum) return false;
+      if (filters.minRooms > 0 && p.rooms < filters.minRooms) return false;
       if (filters.minBaths > 0 && p.bathrooms < filters.minBaths) return false;
       const pyeong = (p.supplyArea ?? p.area ?? 0) / 3.3;
       if (filters.pyeongMin > PYEONG_MIN && pyeong < filters.pyeongMin) return false;

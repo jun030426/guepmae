@@ -9,7 +9,6 @@ import { useProperties } from '../hooks/useProperties.js';
 
 const initialFilters = {
   region: '전체',
-  propertyType: '전체',
   priceRange: 'all',
   areaRange: 'all',
   discountRate: '5',
@@ -50,7 +49,6 @@ function Properties() {
         return (
           (!keyword || keywordTarget.includes(keyword)) &&
           (filters.region === '전체' || property.region.includes(filters.region)) &&
-          (filters.propertyType === '전체' || property.propertyType === filters.propertyType) &&
           matchesPriceRange(property.price, filters.priceRange) &&
           matchesAreaRange(property.area, filters.areaRange) &&
           property.discountRate >= Number(filters.discountRate) &&

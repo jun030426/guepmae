@@ -1,7 +1,6 @@
 import { SlidersHorizontal } from 'lucide-react';
 
 const regionOptions = ['전체', '서울', '경기', '인천', '광주', '부산'];
-const typeOptions = ['전체', '아파트', '오피스텔', '빌라'];
 const priceOptions = [
   { label: '전체', value: 'all' },
   { label: '5억 이하', value: 'under-500m' },
@@ -48,17 +47,6 @@ function PropertyFilter({ filters, onFilterChange, sort, onSortChange }) {
           지역
           <select name="region" value={filters.region} onChange={updateFilter}>
             {regionOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label>
-          매물 유형
-          <select name="propertyType" value={filters.propertyType} onChange={updateFilter}>
-            {typeOptions.map((option) => (
               <option key={option} value={option}>
                 {option}
               </option>

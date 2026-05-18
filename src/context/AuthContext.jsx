@@ -114,12 +114,13 @@ export function AuthProvider({ children }) {
       throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
     }
 
+    // Supabase 이메일 템플릿이 {{ .Token }} 으로 설정되면 사용자에겐 6자리 코드만 가고
+    // emailRedirectTo 는 무시됨. 그래도 호환성을 위해 지정만 해둠.
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        // 이메일 인증 링크 클릭 후 돌아올 URL — verified=true 쿼리로 인증 완료 화면 분기
-        emailRedirectTo: `${window.location.origin}/login?verified=true`,
+        emailRedirectTo: `${window.location.origin}/login`,
         data: {
           full_name: fullName,
           phone,
@@ -142,6 +143,30 @@ export function AuthProvider({ children }) {
     return { user: data.user, profile: null, needsEmailConfirmation: true };
   };
 
+  // 회원가입 OTP 검증 — 사용자가 메일에서 받은 6자리 인증번호를 입력하면 호출.
+  // 성공 시 자동 로그인 + 프로필 로드까지 완료.
+  const verifySignupOtp = async ({ email, token }) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email',
+    });
+
+    if (error) throw error;
+
+    setSession(data.session);
+    const nextProfile = data.user ? await loadProfile(data.user.id) : null;
+    return {
+      user: data.user,
+      profile: nextProfile,
+      redirectPath: getRedirectPath(nextProfile),
+    };
+  };
+
   const resendVerification = async (email) => {
     if (!isSupabaseConfigured) {
       throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
@@ -150,9 +175,6 @@ export function AuthProvider({ children }) {
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/login?verified=true`,
-      },
     });
 
     if (error) {
@@ -217,6 +239,7 @@ export function AuthProvider({ children }) {
       isAgent: profile?.role === 'agent',
       signIn,
       signUp,
+      verifySignupOtp,
       signOut,
       resendVerification,
       signInWithProvider,

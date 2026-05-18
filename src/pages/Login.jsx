@@ -52,11 +52,13 @@ function Login() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState(null);
+  const [otpInput, setOtpInput] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [resendStatus, setResendStatus] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, isConfigured, signIn, signUp, resendVerification, getRedirectPath, profile } = useAuth();
+  const { isAuthenticated, isConfigured, signIn, signUp, verifySignupOtp, resendVerification, getRedirectPath, profile } = useAuth();
 
   const fromPath = location.state?.from?.pathname;
   const canSubmitSignup = useMemo(
@@ -167,7 +169,7 @@ function Login() {
 
     try {
       await resendVerification(pendingVerificationEmail);
-      setResendStatus('인증 메일을 다시 보냈습니다. 메일함을 확인해주세요.');
+      setResendStatus('인증번호를 다시 보냈습니다. 메일함을 확인해주세요.');
     } catch (resendError) {
       setError(getFriendlyAuthError(resendError));
     } finally {
@@ -175,8 +177,32 @@ function Login() {
     }
   };
 
+  const handleVerifyOtp = async (event) => {
+    event.preventDefault();
+    if (!pendingVerificationEmail) return;
+    const token = otpInput.trim();
+    if (token.length !== 6) {
+      setError('6자리 인증번호를 정확히 입력해주세요.');
+      return;
+    }
+    setError('');
+    setResendStatus('');
+    setIsVerifying(true);
+
+    try {
+      const result = await verifySignupOtp({ email: pendingVerificationEmail, token });
+      // 인증 성공 → 자동 로그인 → AuthContext useEffect 가 리다이렉트 처리
+      navigate(fromPath || result.redirectPath, { replace: true });
+    } catch (verifyError) {
+      setError(getFriendlyAuthError(verifyError) || '인증번호가 올바르지 않거나 만료되었습니다.');
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const handleBackToLogin = () => {
     setPendingVerificationEmail(null);
+    setOtpInput('');
     setResendStatus('');
     setError('');
     setStatus('');
@@ -196,31 +222,50 @@ function Login() {
         )}
 
         {pendingVerificationEmail ? (
-          <div className="verification-pending">
+          <form className="verification-pending" onSubmit={handleVerifyOtp}>
             <div className="verification-pending-icon" aria-hidden="true">
               <MailCheck size={36} />
             </div>
-            <h1>이메일을 확인해주세요</h1>
+            <h1>인증번호를 입력해주세요</h1>
             <p className="verification-pending-target">
-              <strong>{pendingVerificationEmail}</strong> 로 인증 메일을 보냈습니다.
+              <strong>{pendingVerificationEmail}</strong> 로 6자리 인증번호를 보냈습니다.
             </p>
             <p className="verification-pending-body">
-              메일에 있는 <strong>인증 링크를 클릭</strong>하시면 가입이 완료됩니다.
-              그 후 이 화면으로 다시 돌아와 로그인하실 수 있습니다.
+              메일에 적힌 <strong>6자리 인증번호</strong>를 아래 입력하면 가입이 완료됩니다.
             </p>
+
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              autoComplete="one-time-code"
+              autoFocus
+              className="otp-input"
+              placeholder="000000"
+              value={otpInput}
+              onChange={(event) => setOtpInput(event.target.value.replace(/\D/g, ''))}
+            />
+
             <ul className="verification-pending-hint">
               <li>메일이 안 보이면 스팸함 또는 프로모션함을 확인해주세요.</li>
-              <li>인증 링크는 24시간 동안만 유효합니다.</li>
+              <li>인증번호는 5분간 유효합니다.</li>
             </ul>
 
             <div className="verification-pending-actions">
               <button
-                type="button"
+                type="submit"
                 className="auth-submit-button"
+                disabled={isVerifying || otpInput.length !== 6 || !isConfigured}
+              >
+                {isVerifying ? '인증 중...' : '인증 완료'}
+              </button>
+              <button
+                type="button"
+                className="auth-text-button"
                 onClick={handleResend}
                 disabled={isResending || !isConfigured}
               >
-                {isResending ? '메일 재전송 중...' : '인증 메일 다시 보내기'}
+                {isResending ? '재전송 중...' : '인증번호 다시 받기'}
               </button>
               <button type="button" className="auth-text-button" onClick={handleBackToLogin}>
                 로그인 화면으로 돌아가기
@@ -228,7 +273,7 @@ function Login() {
             </div>
 
             {resendStatus && <p className="form-status">{resendStatus}</p>}
-          </div>
+          </form>
         ) : mode === 'start' ? (
           <>
             <div className="auth-intro">

@@ -1931,6 +1931,18 @@ body {
   pointer-events: none;
   padding: 0;
   margin: 0;
+  border: 0;
+  outline: none;
+}
+
+.dual-range-slider input[type='range']:focus,
+.dual-range-slider input[type='range']:focus-visible {
+  outline: none;
+}
+
+/* Firefox 핸들 focus 시 점선 outline 제거 */
+.dual-range-slider input[type='range']::-moz-focus-outer {
+  border: 0;
 }
 
 .dual-range-slider input[type='range']::-webkit-slider-thumb {

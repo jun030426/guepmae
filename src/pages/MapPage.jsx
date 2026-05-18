@@ -1,12 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, SlidersHorizontal, X } from 'lucide-react';
 import MapView from '../components/MapView.jsx';
 import { useProperties } from '../hooks/useProperties.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { getPrimaryPropertyPhoto } from '../utils/propertyMedia.js';
 
 const MAP_ITEMS_PER_PAGE = 10;
+const PROPERTY_TYPE_OPTIONS = ['아파트', '오피스텔', '빌라', '단독주택'];
+const ROOM_OPTIONS = ['전체', '1', '2', '3', '4'];
+const BATHROOM_OPTIONS = ['전체', '1', '2', '3'];
+const DISCOUNT_OPTIONS = [
+  { value: 5, label: '5% 이상' },
+  { value: 7, label: '7% 이상' },
+  { value: 10, label: '10% 이상' },
+];
+
+const initialFilters = {
+  minPrice: '',  // 억 단위
+  maxPrice: '',  // 억 단위
+  propertyTypes: [],
+  minRooms: '전체',
+  minBathrooms: '전체',
+  minDiscount: 5,
+  verifiedOnly: false,
+};
 
 function getPaginationItems(currentPage, totalPages) {
   if (totalPages <= 7) {
@@ -68,36 +86,205 @@ function MapListCard({ property, selected, onSelect, registerRef }) {
   );
 }
 
+function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount }) {
+  const updateField = (key) => (event) => {
+    onChange({ ...filters, [key]: event.target.value });
+  };
+
+  const togglePropertyType = (type) => {
+    const next = filters.propertyTypes.includes(type)
+      ? filters.propertyTypes.filter((t) => t !== type)
+      : [...filters.propertyTypes, type];
+    onChange({ ...filters, propertyTypes: next });
+  };
+
+  const reset = () => onChange(initialFilters);
+
+  return (
+    <div className={`map-filter-bar ${expanded ? 'is-expanded' : ''}`}>
+      <div className="map-filter-summary">
+        <div className="map-filter-price-input">
+          <input
+            type="number"
+            inputMode="numeric"
+            placeholder="최소"
+            value={filters.minPrice}
+            onChange={updateField('minPrice')}
+            min={0}
+            aria-label="최소 가격 (억)"
+          />
+          <span>억</span>
+        </div>
+        <span className="map-filter-dash">-</span>
+        <div className="map-filter-price-input">
+          <input
+            type="number"
+            inputMode="numeric"
+            placeholder="최대"
+            value={filters.maxPrice}
+            onChange={updateField('maxPrice')}
+            min={0}
+            aria-label="최대 가격 (억)"
+          />
+          <span>억</span>
+        </div>
+        <button
+          type="button"
+          className="map-filter-toggle"
+          onClick={() => setExpanded(!expanded)}
+          aria-expanded={expanded}
+        >
+          {expanded ? (
+            <>
+              <X size={15} />
+              <span>필터 닫기</span>
+            </>
+          ) : (
+            <>
+              <SlidersHorizontal size={15} />
+              <span>필터</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="map-filter-detail" role="region" aria-label="상세 필터">
+          <fieldset>
+            <legend>매물 유형</legend>
+            <div className="map-filter-checks">
+              {PROPERTY_TYPE_OPTIONS.map((type) => (
+                <label key={type}>
+                  <input
+                    type="checkbox"
+                    checked={filters.propertyTypes.includes(type)}
+                    onChange={() => togglePropertyType(type)}
+                  />
+                  {type}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="map-filter-row-2col">
+            <fieldset>
+              <legend>최소 방</legend>
+              <select value={filters.minRooms} onChange={updateField('minRooms')}>
+                {ROOM_OPTIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {value === '전체' ? '전체' : `${value}+`}
+                  </option>
+                ))}
+              </select>
+            </fieldset>
+
+            <fieldset>
+              <legend>최소 욕실</legend>
+              <select value={filters.minBathrooms} onChange={updateField('minBathrooms')}>
+                {BATHROOM_OPTIONS.map((value) => (
+                  <option key={value} value={value}>
+                    {value === '전체' ? '전체' : `${value}+`}
+                  </option>
+                ))}
+              </select>
+            </fieldset>
+          </div>
+
+          <fieldset>
+            <legend>최소 할인율</legend>
+            <div className="map-filter-chips">
+              {DISCOUNT_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`map-filter-chip ${filters.minDiscount === option.value ? 'active' : ''}`}
+                  onClick={() => onChange({ ...filters, minDiscount: option.value })}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <label className="map-filter-verified">
+            <input
+              type="checkbox"
+              checked={filters.verifiedOnly}
+              onChange={(event) => onChange({ ...filters, verifiedOnly: event.target.checked })}
+            />
+            검증된 매물만 보기
+          </label>
+
+          <div className="map-filter-actions">
+            <button type="button" className="map-filter-reset" onClick={reset}>
+              초기화
+            </button>
+            <button
+              type="button"
+              className="map-filter-apply"
+              onClick={() => setExpanded(false)}
+            >
+              {resultCount}건 결과 보기
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MapPage() {
   const { properties: urgentProperties } = useProperties({ urgentOnly: true });
+  const [filters, setFilters] = useState(initialFilters);
+  const [filterExpanded, setFilterExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedId, setSelectedId] = useState(null);
   const cardRefsMap = useRef(new Map());
 
-  const totalPages = Math.max(1, Math.ceil(urgentProperties.length / MAP_ITEMS_PER_PAGE));
+  const filteredProperties = useMemo(() => {
+    const minP = filters.minPrice === '' ? 0 : Number(filters.minPrice) * 100000000;
+    const maxP = filters.maxPrice === '' ? Infinity : Number(filters.maxPrice) * 100000000;
+
+    return urgentProperties.filter((p) => {
+      if (p.price < minP || p.price > maxP) return false;
+      if (filters.propertyTypes.length && !filters.propertyTypes.includes(p.propertyType)) return false;
+      if (filters.minRooms !== '전체' && p.rooms < Number(filters.minRooms)) return false;
+      if (filters.minBathrooms !== '전체' && p.bathrooms < Number(filters.minBathrooms)) return false;
+      if (p.discountRate < filters.minDiscount) return false;
+      if (filters.verifiedOnly && !p.verified) return false;
+      return true;
+    });
+  }, [urgentProperties, filters]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProperties.length / MAP_ITEMS_PER_PAGE));
   const activePage = Math.min(currentPage, totalPages);
-  const visibleStart = urgentProperties.length === 0 ? 0 : (activePage - 1) * MAP_ITEMS_PER_PAGE + 1;
-  const visibleEnd = Math.min(activePage * MAP_ITEMS_PER_PAGE, urgentProperties.length);
+  const visibleStart = filteredProperties.length === 0 ? 0 : (activePage - 1) * MAP_ITEMS_PER_PAGE + 1;
+  const visibleEnd = Math.min(activePage * MAP_ITEMS_PER_PAGE, filteredProperties.length);
   const pageItems = useMemo(() => getPaginationItems(activePage, totalPages), [activePage, totalPages]);
 
   const mapProperties = useMemo(() => {
     const startIndex = (activePage - 1) * MAP_ITEMS_PER_PAGE;
-    return urgentProperties.slice(startIndex, startIndex + MAP_ITEMS_PER_PAGE);
-  }, [activePage, urgentProperties]);
+    return filteredProperties.slice(startIndex, startIndex + MAP_ITEMS_PER_PAGE);
+  }, [activePage, filteredProperties]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   useEffect(() => {
     setCurrentPage((page) => Math.min(page, totalPages));
   }, [totalPages]);
 
-  // 페이지 변경 시 첫 번째 매물 자동 선택
   useEffect(() => {
-    if (!mapProperties.length) return;
+    if (!mapProperties.length) {
+      setSelectedId(null);
+      return;
+    }
     if (!mapProperties.find((property) => property.id === selectedId)) {
       setSelectedId(mapProperties[0].id);
     }
   }, [mapProperties, selectedId]);
 
-  // 선택된 카드를 패널 안에서 자동 스크롤
   useEffect(() => {
     if (!selectedId) return;
     const node = cardRefsMap.current.get(selectedId);
@@ -124,20 +311,27 @@ function MapPage() {
               <h2>지도 내 급매</h2>
             </div>
             <span className="map-list-count">
-              {visibleStart}-{visibleEnd} / {urgentProperties.length}건
+              {visibleStart}-{visibleEnd} / {filteredProperties.length}건
             </span>
           </div>
 
           <div className="map-card-list">
-            {mapProperties.map((property) => (
-              <MapListCard
-                key={property.id}
-                property={property}
-                selected={property.id === selectedId}
-                onSelect={setSelectedId}
-                registerRef={registerCardRef(property.id)}
-              />
-            ))}
+            {mapProperties.length > 0 ? (
+              mapProperties.map((property) => (
+                <MapListCard
+                  key={property.id}
+                  property={property}
+                  selected={property.id === selectedId}
+                  onSelect={setSelectedId}
+                  registerRef={registerCardRef(property.id)}
+                />
+              ))
+            ) : (
+              <div className="map-card-empty">
+                <p>조건에 맞는 매물이 없습니다.</p>
+                <p>필터를 조금 넓혀 다시 확인해보세요.</p>
+              </div>
+            )}
           </div>
 
           {totalPages > 1 && (
@@ -183,11 +377,20 @@ function MapPage() {
           )}
         </aside>
 
-        <MapView
-          properties={mapProperties}
-          selectedId={selectedId}
-          onSelect={setSelectedId}
-        />
+        <div className="map-canvas-area">
+          <MapFilterBar
+            filters={filters}
+            onChange={setFilters}
+            expanded={filterExpanded}
+            setExpanded={setFilterExpanded}
+            resultCount={filteredProperties.length}
+          />
+          <MapView
+            properties={mapProperties}
+            selectedId={selectedId}
+            onSelect={setSelectedId}
+          />
+        </div>
       </section>
     </div>
   );

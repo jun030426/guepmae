@@ -160,6 +160,26 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // OAuth 로그인 — Google, Kakao 등 Supabase에서 활성화된 provider 사용
+  // 가입과 로그인이 동일한 함수 호출 (Supabase가 자동 분기). 첫 가입은 handle_new_user 트리거가 profile 생성
+  const signInWithProvider = async (provider) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+    }
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        // OAuth 콜백 후 사용자가 돌아올 URL — /login 도착 후 useEffect가 redirectPath로 자동 이동
+        redirectTo: `${window.location.origin}/login`,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+  };
+
   const signOut = async () => {
     if (!isSupabaseConfigured) {
       setSession(null);
@@ -191,6 +211,7 @@ export function AuthProvider({ children }) {
       signUp,
       signOut,
       resendVerification,
+      signInWithProvider,
       refreshProfile: () => (session?.user ? loadProfile(session.user.id) : null),
       getRedirectPath,
     }),

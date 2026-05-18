@@ -1087,6 +1087,58 @@ body {
   pointer-events: none;
 }
 
+/* ----------------------------- Auth: 소셜 로그인 버튼 ----------------------------- */
+.social-login-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin: var(--space-2) 0;
+}
+
+.social-login-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 46px;
+  border-radius: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0 16px;
+  letter-spacing: 0.01em;
+}
+
+.social-login-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.social-login-button.google {
+  background: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+}
+
+.social-login-button.google:hover:not(:disabled) {
+  background: var(--color-bg-soft);
+}
+
+.social-login-button.kakao {
+  background: #FEE500;
+  color: #181600;
+  border: 1px solid #FEE500;
+}
+
+.social-login-button.kakao:hover:not(:disabled) {
+  background: #F0D900;
+  border-color: #F0D900;
+}
+
 /* ----------------------------- Auth: 이메일 인증 대기 패널 ----------------------------- */
 .verification-pending {
   display: flex;

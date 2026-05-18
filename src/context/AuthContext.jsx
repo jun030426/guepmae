@@ -167,12 +167,20 @@ export function AuthProvider({ children }) {
       throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
     }
 
+    const options = {
+      // OAuth 콜백 후 사용자가 돌아올 URL — /login 도착 후 useEffect가 redirectPath로 자동 이동
+      redirectTo: `${window.location.origin}/login`,
+    };
+
+    // Kakao는 account_email scope가 "비즈 앱" 등록 후에만 가능.
+    // 비즈 앱이 아닌 일반 앱이면 nickname + profile_image 만 요청 (이메일 제외).
+    if (provider === 'kakao') {
+      options.scopes = 'profile_nickname profile_image';
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        // OAuth 콜백 후 사용자가 돌아올 URL — /login 도착 후 useEffect가 redirectPath로 자동 이동
-        redirectTo: `${window.location.origin}/login`,
-      },
+      options,
     });
 
     if (error) {

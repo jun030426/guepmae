@@ -401,14 +401,20 @@ function MapPage() {
     setCurrentPage((page) => Math.min(page, totalPages));
   }, [totalPages]);
 
+  // 선택된 매물이 현재 페이지에 없으면 자동으로 그 매물이 있는 페이지로 이동
   useEffect(() => {
-    if (!mapProperties.length) {
-      setSelectedId(null);
-      return;
-    }
-    if (!mapProperties.find((property) => property.id === selectedId)) {
-      setSelectedId(mapProperties[0].id);
-    }
+    if (!selectedId || !filteredProperties.length) return;
+    const idx = filteredProperties.findIndex((p) => p.id === selectedId);
+    if (idx === -1) return;
+    const targetPage = Math.floor(idx / MAP_ITEMS_PER_PAGE) + 1;
+    if (targetPage !== activePage) setCurrentPage(targetPage);
+  }, [selectedId, filteredProperties, activePage]);
+
+  // 페이지 첫 진입 시 — selectedId가 비어 있으면 현재 페이지 첫 매물 선택
+  useEffect(() => {
+    if (selectedId) return;
+    if (!mapProperties.length) return;
+    setSelectedId(mapProperties[0].id);
   }, [mapProperties, selectedId]);
 
   useEffect(() => {
@@ -512,7 +518,7 @@ function MapPage() {
         </aside>
 
         <MapView
-          properties={mapProperties}
+          properties={filteredProperties}
           selectedId={selectedId}
           onSelect={setSelectedId}
         />

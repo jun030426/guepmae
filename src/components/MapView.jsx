@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
 import { formatPrice } from '../utils/priceUtils.js';
@@ -171,6 +172,7 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
   const streetViewRef = useRef(null);
   const streetViewServiceRef = useRef(null);
   const markerRefs = useRef(new Map());
+  const clustererRef = useRef(null);
   const infoWindowRef = useRef(null);
   const selectedIdRef = useRef(selectedId);
   const [status, setStatus] = useState('idle');
@@ -194,7 +196,9 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
     let cancelled = false;
     setStatus('loading');
 
-    // 기존 마커/인포 정리
+    // 기존 마커/클러스터/인포 정리
+    clustererRef.current?.clearMarkers();
+    clustererRef.current = null;
     markerRefs.current.forEach((marker) => marker.setMap(null));
     markerRefs.current.clear();
     infoWindowRef.current?.close();
@@ -222,6 +226,7 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
         const infoWindow = new googleMaps.InfoWindow({ disableAutoPan: false });
         const bounds = new googleMaps.LatLngBounds();
 
+        const markersArr = [];
         mappedProperties.forEach((property) => {
           const position = { lat: property.coordinates.lat, lng: property.coordinates.lng };
           const tone = getMarkerTone(property.discountRate);
@@ -232,9 +237,9 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
             active,
           );
 
+          // clusterer가 마커의 map을 직접 관리하므로 여기선 map을 지정하지 않음
           const marker = new googleMaps.Marker({
             position,
-            map,
             title: property.title,
             icon: {
               url: iconUrl,
@@ -246,10 +251,45 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
           bounds.extend(position);
           marker.addListener('click', () => onSelect(property.id));
           markerRefs.current.set(property.id, marker);
+          markersArr.push(marker);
         });
 
+        // 마커가 많을 때 줌 아웃 시 군집 표시 (검정 원 + 카운트)
+        clustererRef.current = new MarkerClusterer({
+          map,
+          markers: markersArr,
+          renderer: {
+            render: ({ count, position }) =>
+              new googleMaps.Marker({
+                position,
+                label: {
+                  text: String(count),
+                  color: '#ffffff',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                },
+                icon: {
+                  url:
+                    'data:image/svg+xml;charset=UTF-8,' +
+                    encodeURIComponent(
+                      `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="#0f0f0f" stroke="#ffffff" stroke-width="2"/></svg>`,
+                    ),
+                  scaledSize: new googleMaps.Size(44, 44),
+                  anchor: new googleMaps.Point(22, 22),
+                },
+                zIndex: 1000 + count,
+              }),
+          },
+        });
+
+        // 초기 뷰 — 마커가 많으면 너무 멀리 줌아웃되지 않게 max zoom 캡
         if (mappedProperties.length > 1) {
           map.fitBounds(bounds, { top: 60, right: 60, bottom: 60, left: 60 });
+          // fitBounds 끝난 다음 한번만 줌 캡 적용
+          const listener = googleMaps.event.addListenerOnce(map, 'idle', () => {
+            if (map.getZoom() > 12) map.setZoom(12);
+          });
+          void listener;
         }
 
         mapRef.current = map;
@@ -269,6 +309,8 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
 
     return () => {
       cancelled = true;
+      clustererRef.current?.clearMarkers();
+      clustererRef.current = null;
       markerRefs.current.forEach((marker) => marker.setMap(null));
       markerRefs.current.clear();
       infoWindowRef.current?.close();

@@ -401,10 +401,13 @@ function MapPage() {
     setCurrentPage((page) => Math.min(page, totalPages));
   }, [totalPages]);
 
-  // selectedId 가 바뀌면(주로 마커 클릭) 해당 매물이 있는 페이지로 자동 이동.
-  // activePage를 의존성에 넣으면 사용자가 직접 페이지 클릭해도 selectedId가 가리키는
-  // 옛 페이지로 되돌려져서 페이지 이동이 막힘 → 함수형 update만 사용하고 deps에서 제외.
+  // selectedId 가 "실제로 바뀐" 경우(주로 마커 클릭)에만 해당 매물이 있는 페이지로 자동 이동.
+  // ref로 직전 selectedId를 추적해서 filteredProperties만 바뀐 케이스(예: Supabase 비동기 로드)
+  // 에서는 발동하지 않도록 함. (예전엔 fallback→supabase 정렬 차이로 9페이지로 점프했음)
+  const lastSelectedIdRef = useRef(null);
   useEffect(() => {
+    if (selectedId === lastSelectedIdRef.current) return;
+    lastSelectedIdRef.current = selectedId;
     if (!selectedId || !filteredProperties.length) return;
     const idx = filteredProperties.findIndex((p) => p.id === selectedId);
     if (idx === -1) return;

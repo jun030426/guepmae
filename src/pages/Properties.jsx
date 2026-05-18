@@ -71,6 +71,11 @@ function Properties() {
     setCurrentPage(1);
   }, [filters, keyword, sort]);
 
+  // 페이지 이동 시 최상단으로 스크롤 — 사용자가 새 페이지를 한눈에 볼 수 있게
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
+
   const totalPages = Math.max(1, Math.ceil(filteredProperties.length / ITEMS_PER_PAGE));
   const activePage = Math.min(currentPage, totalPages);
   const pagedProperties = useMemo(() => {

@@ -1,11 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, MapPin, ShieldCheck, TrendingDown } from 'lucide-react';
 import UrgentBadge from './UrgentBadge.jsx';
-import { calculateUrgentScore, formatPrice } from '../utils/priceUtils.js';
+import { formatPrice } from '../utils/priceUtils.js';
 import { getPrimaryPropertyPhoto } from '../utils/propertyMedia.js';
 
 function PropertyCard({ property, compact = false }) {
-  const urgentScore = property.urgentScore ?? calculateUrgentScore(property);
   const primaryPhoto = getPrimaryPropertyPhoto(property);
 
   return (
@@ -57,10 +56,6 @@ function PropertyCard({ property, compact = false }) {
           <div className="discount-metric">
             <TrendingDown size={17} />
             <span>{property.discountRate}% 저렴</span>
-          </div>
-          <div>
-            <span>급매지수</span>
-            <strong>{urgentScore}</strong>
           </div>
           <div>
             <span>최근 실거래일</span>

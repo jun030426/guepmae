@@ -75,7 +75,7 @@ function Home() {
             <SectionTitle
               eyebrow="추천 급매"
               title="오늘의 검증 급매"
-              description="가격 차이, 최근 확인일, 급매지수를 함께 보고 비교하세요."
+              description="가격 차이와 최근 확인일을 함께 보고 비교하세요."
             />
             <Link to="/properties" className="text-arrow-link">
               전체 보기

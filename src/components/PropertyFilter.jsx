@@ -23,7 +23,6 @@ const discountOptions = [
 ];
 const sortOptions = [
   { label: '할인율 높은 순', value: 'discount-desc' },
-  { label: '급매지수 높은 순', value: 'score-desc' },
   { label: '최근 등록순', value: 'recent-desc' },
   { label: '가격 낮은 순', value: 'price-asc' },
 ];

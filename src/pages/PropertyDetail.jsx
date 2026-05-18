@@ -143,7 +143,6 @@ function PropertyDetail() {
   const highlightItems = [
     ['기준 실거래가', formatPrice(property.actualTransactionPrice)],
     ['가격 차이', formatPrice(property.actualTransactionPrice - property.price)],
-    ['급매지수', `${property.urgentScore}점`],
   ];
 
   const openHouseItems = [

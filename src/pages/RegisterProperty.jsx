@@ -188,10 +188,6 @@ function RegisterProperty() {
                   <span>차액</span>
                   <strong>{formatPrice(result.priceGap)}</strong>
                 </div>
-                <div>
-                  <span>급매지수</span>
-                  <strong>{result.urgentScore}</strong>
-                </div>
               </div>
               <p>
                 5% 이상이면 급매 등록 검토가 가능하며, 데이터 부족 시 동일 생활권 유사 면적 기준을 함께 안내합니다.

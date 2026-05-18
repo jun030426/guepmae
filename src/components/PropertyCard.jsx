@@ -20,7 +20,6 @@ function PropertyCard({ property, compact = false }) {
               loading="lazy"
             />
           )}
-          <span>{property.imageLabel}</span>
         </div>
       </Link>
 

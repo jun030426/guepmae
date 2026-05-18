@@ -548,10 +548,9 @@ body {
 /* ----------------------------- Map page — full viewport split view ----------------------------- */
 /* /map 라우트에서만 사용. body 전체는 고정되고 .map-card-list 만 독립 스크롤. */
 
-/* 전체 풀스크린(/map) — fixed 헤더 바로 아래로 붙임. main을 margin으로 내리고 height로 정확히 채워서
-   global.css의 .map-page padding-top과 이중으로 밀리지 않게 함. */
+/* 전체 풀스크린(/map) — header는 sticky라서 문서 흐름 안에서 자기 높이를 차지함.
+   main에 margin/padding을 또 주면 이중 보정이 되어 갭이 생기므로 height만 잡아준다. */
 .main-fullscreen {
-  margin-top: var(--header-height);
   height: calc(100vh - var(--header-height));
   overflow: hidden;
 }
@@ -559,7 +558,7 @@ body {
 .map-page {
   width: 100%;
   height: 100%;
-  padding-top: 0; /* global.css에서 헤더 보정용으로 넣은 패딩을 main-fullscreen이 대신 처리하므로 제거 */
+  padding-top: 0; /* global.css 의 헤더 보정용 패딩 무효화 */
   overflow: hidden;
   position: relative;
 }

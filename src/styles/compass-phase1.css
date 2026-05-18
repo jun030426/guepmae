@@ -1241,31 +1241,63 @@ body {
   margin-top: var(--space-3);
 }
 
-/* ----------------------------- 홈 — 생활권 카드 가운데 정렬 ----------------------------- */
-/* global.css(line 4076~)에서 .neighborhood-card 를 grid-template-columns: 1fr 로 재정의 중.
-   확실하게 텍스트 컨테이너만 center 정렬되도록 자식 div 전체를 flex column 으로 묶고 가운데로. */
-.neighborhood-card {
+/* ----------------------------- 홈 — 생활권 섹션 다크 테마 ----------------------------- */
+/* 섹션 전체 다크 배경 + 흰 텍스트 — Compass 다크 섹션 톤 */
+.lifestyle-section {
+  background: #1a1a1a !important;
+  color: #ffffff;
+}
+
+.lifestyle-section .section-title.center .section-eyebrow {
+  color: #9a9a9a;
+}
+
+.lifestyle-section .section-title h2 {
+  color: #ffffff;
+}
+
+.lifestyle-section .section-title p {
+  color: #b8b8b8;
+}
+
+/* 카드도 다크 톤으로 — 흰 카드는 어색하므로 짙은 카드로 */
+.lifestyle-section .neighborhood-card {
+  border: 1px solid #2c2c2c;
+  background: #111111;
   text-align: center;
 }
 
-.neighborhood-card > div:last-child {
+.lifestyle-section .neighborhood-visual {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.55)),
+    linear-gradient(120deg, #3a3a3a, #1f1f1f);
+}
+
+.lifestyle-section .neighborhood-card > div:last-child {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
 }
 
-.neighborhood-card h3,
-.neighborhood-card p {
-  text-align: center;
+.lifestyle-section .neighborhood-card h3 {
+  color: #ffffff;
   width: 100%;
+  text-align: center;
 }
 
-.neighborhood-card span {
+.lifestyle-section .neighborhood-card p {
+  color: #b0b0b0;
+  width: 100%;
+  text-align: center;
+}
+
+.lifestyle-section .neighborhood-card span {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  color: #ffffff;
 }
 
 /* ----------------------------- AI Teaser ----------------------------- */

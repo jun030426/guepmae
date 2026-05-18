@@ -1,4 +1,3 @@
-import { properties as fallbackProperties } from '../data/properties.js';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
 
 function toNumber(value, fallback = 0) {
@@ -50,6 +49,7 @@ function normalizeProperty(row) {
     moveInDate: row.move_in_date ?? '',
     rooms: toNumber(row.rooms),
     bathrooms: toNumber(row.bathrooms),
+    unitCount: toNumber(row.unit_count),
     agent: { ...defaultAgent, ...(row.agent ?? {}) },
     lifestyle: { ...defaultLifestyle, ...(row.lifestyle ?? {}) },
     priceHistory,
@@ -58,7 +58,7 @@ function normalizeProperty(row) {
 
 export async function fetchProperties() {
   if (!isSupabaseConfigured) {
-    return fallbackProperties;
+    return [];
   }
 
   const { data, error } = await supabase
@@ -70,16 +70,12 @@ export async function fetchProperties() {
     throw error;
   }
 
-  if (!data?.length) {
-    return fallbackProperties;
-  }
-
-  return data.map(normalizeProperty);
+  return (data ?? []).map(normalizeProperty);
 }
 
 export async function fetchPropertyById(id) {
   if (!isSupabaseConfigured) {
-    return fallbackProperties.find((property) => property.id === id) ?? null;
+    return null;
   }
 
   const { data, error } = await supabase
@@ -94,5 +90,3 @@ export async function fetchPropertyById(id) {
 
   return data ? normalizeProperty(data) : null;
 }
-
-export { fallbackProperties };

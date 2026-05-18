@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   ArrowRight,
   BarChart3,
@@ -18,8 +19,8 @@ import { Link } from 'react-router-dom';
 import HeroSearch from '../components/HeroSearch.jsx';
 import PropertyCard from '../components/PropertyCard.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
-import { monthlyUrgentTrend } from '../data/properties.js';
 import { useProperties } from '../hooks/useProperties.js';
+import { fetchHomeUrgentTrend } from '../services/reportData.js';
 
 const neighborhoods = [
   {
@@ -64,6 +65,19 @@ const popularRegionGroups = [
 function Home() {
   const { properties: urgentProperties } = useProperties({ urgentOnly: true });
   const verifiedDeals = urgentProperties.filter((property) => property.verified).slice(0, 6);
+  const [monthlyUrgentTrend, setMonthlyUrgentTrend] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchHomeUrgentTrend()
+      .then((data) => {
+        if (active) setMonthlyUrgentTrend(data);
+      })
+      .catch((err) => console.warn('home trend fetch failed', err));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="home-page">

@@ -54,8 +54,7 @@ function Report() {
   const [monthlyTrend, setMonthlyTrend] = useState([]);
   const [areaBreakdown, setAreaBreakdown] = useState([]);
   const [topComplexes, setTopComplexes] = useState([]);
-
-  const dataSource = getDataSource();
+  const [dataSource, setDataSource] = useState({ name: '국토교통부 실거래가', lastUpdated: '-', disclosureLag: '데이터 로딩 중', totalTrades: 0 });
 
   useEffect(() => {
     let active = true;
@@ -65,13 +64,15 @@ function Report() {
       fetchMonthlyTrend(12),
       fetchAreaTypeBreakdown(),
       fetchTopUrgentComplexes(10),
-    ]).then(([nextInsights, nextRegional, nextMonthly, nextArea, nextTop]) => {
+      getDataSource(),
+    ]).then(([nextInsights, nextRegional, nextMonthly, nextArea, nextTop, nextSource]) => {
       if (!active) return;
       setInsights(nextInsights);
       setRegionalRows(nextRegional);
       setMonthlyTrend(nextMonthly);
       setAreaBreakdown(nextArea);
       setTopComplexes(nextTop);
+      if (nextSource) setDataSource(nextSource);
     });
     return () => {
       active = false;

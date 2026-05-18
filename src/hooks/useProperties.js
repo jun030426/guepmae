@@ -1,20 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  fallbackProperties,
   fetchProperties,
   fetchPropertyById,
 } from '../services/propertiesRepository.js';
 import { isSupabaseConfigured } from '../lib/supabaseClient.js';
 
-const fallbackSource = isSupabaseConfigured ? 'loading' : 'fallback';
-
-function getFallbackProperty(id) {
-  return fallbackProperties.find((property) => property.id === id) ?? null;
-}
+const initialSource = isSupabaseConfigured ? 'loading' : 'empty';
 
 export function useProperties({ urgentOnly = false } = {}) {
-  const [properties, setProperties] = useState(fallbackProperties);
-  const [source, setSource] = useState(fallbackSource);
+  const [properties, setProperties] = useState([]);
+  const [source, setSource] = useState(initialSource);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -32,9 +27,9 @@ export function useProperties({ urgentOnly = false } = {}) {
       })
       .catch((fetchError) => {
         if (!active) return;
-        console.warn('Supabase properties fetch failed. Falling back to local data.', fetchError);
+        console.warn('Supabase properties fetch failed.', fetchError);
         setError(fetchError);
-        setSource('fallback');
+        setSource('error');
       });
 
     return () => {
@@ -59,15 +54,15 @@ export function useProperties({ urgentOnly = false } = {}) {
 }
 
 export function useProperty(id) {
-  const [property, setProperty] = useState(() => getFallbackProperty(id));
-  const [source, setSource] = useState(fallbackSource);
+  const [property, setProperty] = useState(null);
+  const [source, setSource] = useState(initialSource);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    setProperty(getFallbackProperty(id));
+    setProperty(null);
 
     if (!isSupabaseConfigured) {
-      setSource('fallback');
+      setSource('empty');
       return undefined;
     }
 
@@ -77,15 +72,15 @@ export function useProperty(id) {
     fetchPropertyById(id)
       .then((nextProperty) => {
         if (!active) return;
-        setProperty(nextProperty ?? getFallbackProperty(id));
-        setSource(nextProperty ? 'supabase' : 'fallback');
+        setProperty(nextProperty);
+        setSource(nextProperty ? 'supabase' : 'empty');
       })
       .catch((fetchError) => {
         if (!active) return;
-        console.warn('Supabase property fetch failed. Falling back to local data.', fetchError);
+        console.warn('Supabase property fetch failed.', fetchError);
         setError(fetchError);
-        setProperty(getFallbackProperty(id));
-        setSource('fallback');
+        setProperty(null);
+        setSource('error');
       });
 
     return () => {

@@ -1,62 +1,90 @@
 /*
- * reportData.js — Report 페이지가 사용하는 데이터 서빙 레이어
+ * reportData.js — /report + 홈 차트가 사용하는 시장 통계 서빙 레이어
  *
- * 우선순위:
- *   1) src/data/marketData.json (scripts/import-trades-csv.mjs 결과물, 실데이터)
- *   2) src/data/marketData.js의 mock 데이터 (스크립트 미실행 시 폴백)
+ * 데이터 소스: Supabase `market_snapshots` 테이블 (key/value).
+ * 첫 호출 시 모든 키를 한 번에 가져와 모듈 캐시에 보관 → 이후 호출은 메모리 hit.
  *
- * 추후 Supabase ETL이 가동되면 이 파일 안에서 fetch 또는 supabase.from() 으로 교체.
+ * 갱신: scripts/build-market-snapshots-seed-sql.mjs 로 SQL 만들고 Supabase에 paste.
  */
 
-import * as mockData from '../data/marketData.js';
+import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
 
-// Vite가 JSON을 정적 import 하지 못해도 에러나지 않도록 try-catch (실제 import는 동기지만 try로 감쌀 수 있게 require 패턴 흉내)
-let realData = null;
-try {
-  // Vite 동적 import — JSON이 있으면 가져오고, 없으면 catch로 빠짐
-  // import.meta.glob을 쓰면 빌드 타임에 존재 여부 결정 가능
-  const modules = import.meta.glob('../data/marketData.json', { eager: true });
-  const matched = Object.values(modules)[0];
-  if (matched) {
-    realData = matched.default ?? matched;
+let cache = null;
+let inflight = null;
+
+const EMPTY = {
+  regional: [],
+  monthly: [],
+  area_type: [],
+  top_urgent: [],
+  insights: [],
+  metadata: { generatedAt: null, totalTrades: 0 },
+  home_trend: [],
+};
+
+async function loadAll() {
+  if (cache) return cache;
+  if (inflight) return inflight;
+
+  if (!isSupabaseConfigured) {
+    cache = EMPTY;
+    return cache;
   }
-} catch {
-  realData = null;
+
+  inflight = (async () => {
+    const { data, error } = await supabase.from('market_snapshots').select('key, data');
+    if (error) {
+      console.warn('[reportData] Supabase fetch failed, using empty state.', error);
+      cache = EMPTY;
+      return cache;
+    }
+    const result = { ...EMPTY };
+    (data ?? []).forEach((row) => {
+      result[row.key] = row.data;
+    });
+    cache = result;
+    return cache;
+  })();
+
+  try {
+    return await inflight;
+  } finally {
+    inflight = null;
+  }
 }
 
-const source = realData ?? mockData;
-
-function resolveWithDelay(value, delay = 0) {
-  if (delay <= 0) return Promise.resolve(value);
-  return new Promise((resolve) => setTimeout(() => resolve(value), delay));
+export async function fetchRegionalSnapshots() {
+  const all = await loadAll();
+  return all.regional ?? [];
 }
 
-export function fetchRegionalSnapshots() {
-  return resolveWithDelay(source.regionalSnapshots);
+export async function fetchMonthlyTrend(months = 12) {
+  const all = await loadAll();
+  const trend = all.monthly ?? [];
+  return trend.slice(-months);
 }
 
-export function fetchMonthlyTrend(months = 12) {
-  const trend = source.monthlyMarketTrend ?? [];
-  return resolveWithDelay(trend.slice(-months));
+export async function fetchAreaTypeBreakdown() {
+  const all = await loadAll();
+  return all.area_type ?? [];
 }
 
-export function fetchAreaTypeBreakdown() {
-  return resolveWithDelay(source.areaTypeBreakdown);
+export async function fetchTopUrgentComplexes(limit = 10) {
+  const all = await loadAll();
+  return (all.top_urgent ?? []).slice(0, limit);
 }
 
-export function fetchTopUrgentComplexes(limit = 10) {
-  const items = source.topUrgentComplexes ?? [];
-  return resolveWithDelay(items.slice(0, limit));
+export async function fetchMarketInsights() {
+  const all = await loadAll();
+  return all.insights ?? [];
 }
 
-export function fetchMarketInsights() {
-  return resolveWithDelay(source.marketInsights);
+export async function fetchHomeUrgentTrend() {
+  const all = await loadAll();
+  return all.home_trend ?? [];
 }
 
-export function getDataSource() {
-  return source.dataSource;
-}
-
-export function isUsingRealData() {
-  return realData !== null;
+export async function getDataSource() {
+  const all = await loadAll();
+  return all.metadata ?? null;
 }

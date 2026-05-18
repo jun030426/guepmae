@@ -1,30 +1,61 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MapPin, SlidersHorizontal, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Minus, Plus, SlidersHorizontal, X } from 'lucide-react';
 import MapView from '../components/MapView.jsx';
 import { useProperties } from '../hooks/useProperties.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { getPrimaryPropertyPhoto } from '../utils/propertyMedia.js';
 
 const MAP_ITEMS_PER_PAGE = 10;
-const PROPERTY_TYPE_OPTIONS = ['아파트', '오피스텔', '빌라', '단독주택'];
 const ROOM_OPTIONS = ['전체', '1', '2', '3', '4'];
-const BATHROOM_OPTIONS = ['전체', '1', '2', '3'];
 const DISCOUNT_OPTIONS = [
   { value: 5, label: '5% 이상' },
   { value: 7, label: '7% 이상' },
   { value: 10, label: '10% 이상' },
 ];
+const UNIT_COUNT_OPTIONS = [
+  { value: 'all', label: '전체', test: () => true },
+  { value: 'lt100', label: '100세대 미만', test: (n) => n < 100 },
+  { value: 'gte100', label: '100세대 이상', test: (n) => n >= 100 },
+  { value: 'gte500', label: '500세대 이상', test: (n) => n >= 500 },
+  { value: 'gte1000', label: '1000세대 이상', test: (n) => n >= 1000 },
+];
 
-const MAX_BUDGET_EOK = 50; // 슬라이더 상한 (억). MAX_BUDGET_EOK 이상이면 "전체"로 간주
+const MAX_BUDGET_EOK = 50;
+const PYEONG_MIN = 0;
+const PYEONG_MAX = 80;
+const MAX_BATHS = 3;
+
 const initialFilters = {
-  maxBudget: MAX_BUDGET_EOK, // 억 단위 — 최대값이면 가격 제한 없음
-  propertyTypes: [],
+  maxBudget: MAX_BUDGET_EOK,
   minRooms: '전체',
-  minBathrooms: '전체',
+  maxRooms: '전체',
+  minBaths: 0, // 0 = 전체
+  pyeongMin: PYEONG_MIN,
+  pyeongMax: PYEONG_MAX,
+  unitBucket: 'all',
   minDiscount: 5,
-  verifiedOnly: false,
 };
+
+// 단지 세대수 — mock 데이터 (id 기반 매핑). 추후 properties 테이블에 unit_count 컬럼 추가 시 제거.
+const UNIT_COUNT_BY_ID = {
+  'gm-001': 1450,
+  'gm-002': 880,
+  'gm-003': 1280,
+  'gm-004': 1620,
+  'gm-005': 1180,
+  'gm-006': 720,
+  'gm-007': 380,
+  'gm-008': 540,
+  'gm-009': 96,
+  'gm-010': 240,
+  'gm-011': 78,
+  'gm-012': 1980,
+  'gm-013': 1340,
+};
+function getUnitCount(property) {
+  return UNIT_COUNT_BY_ID[property.id] ?? 500;
+}
 
 function getPaginationItems(currentPage, totalPages) {
   if (totalPages <= 7) {
@@ -86,23 +117,85 @@ function MapListCard({ property, selected, onSelect, registerRef }) {
   );
 }
 
-function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount }) {
-  const updateField = (key) => (event) => {
-    onChange({ ...filters, [key]: event.target.value });
+// 듀얼 핸들 슬라이더 — 한 트랙 위에 두 input[type=range] 겹치고 핸들만 인터랙티브.
+function DualRangeSlider({ min, max, valueMin, valueMax, onChange, unit }) {
+  const range = max - min;
+  const minPct = range === 0 ? 0 : ((valueMin - min) / range) * 100;
+  const maxPct = range === 0 ? 100 : ((valueMax - min) / range) * 100;
+
+  const updateMin = (event) => {
+    const v = Math.min(Number(event.target.value), valueMax);
+    onChange({ min: v, max: valueMax });
+  };
+  const updateMax = (event) => {
+    const v = Math.max(Number(event.target.value), valueMin);
+    onChange({ min: valueMin, max: v });
   };
 
-  const togglePropertyType = (type) => {
-    const next = filters.propertyTypes.includes(type)
-      ? filters.propertyTypes.filter((t) => t !== type)
-      : [...filters.propertyTypes, type];
-    onChange({ ...filters, propertyTypes: next });
+  const formatValue = (v) => {
+    if (v === min) return '최소';
+    if (v === max) return '최대';
+    return `${v}${unit}`;
   };
+
+  // 핸들 너비 16px 보정 — 핸들 중심이 양쪽 끝에서 8px씩 안쪽으로 이동하므로 버블도 동일 보정
+  const minOffsetPx = 8 - (minPct / 100) * 16;
+  const maxOffsetPx = 8 - (maxPct / 100) * 16;
+
+  return (
+    <div className="dual-range">
+      <div className="dual-range-track" />
+      <div
+        className="dual-range-fill"
+        style={{
+          left: `calc(${minPct}% + ${minOffsetPx}px)`,
+          width: `calc(${maxPct - minPct}% + ${maxOffsetPx - minOffsetPx}px)`,
+        }}
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={valueMin}
+        onChange={updateMin}
+        aria-label="최소"
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        value={valueMax}
+        onChange={updateMax}
+        aria-label="최대"
+      />
+      <div
+        className="dual-range-bubble"
+        style={{ left: `calc(${minPct}% + ${minOffsetPx}px)` }}
+      >
+        {formatValue(valueMin)}
+      </div>
+      <div
+        className="dual-range-bubble"
+        style={{ left: `calc(${maxPct}% + ${maxOffsetPx}px)` }}
+      >
+        {formatValue(valueMax)}
+      </div>
+    </div>
+  );
+}
+
+function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount }) {
+  const update = (patch) => onChange({ ...filters, ...patch });
 
   const reset = () => onChange(initialFilters);
 
   const budgetLabel =
     filters.maxBudget >= MAX_BUDGET_EOK ? '전체' : `${filters.maxBudget}억 이하`;
   const budgetPercent = (filters.maxBudget / MAX_BUDGET_EOK) * 100;
+
+  const bathLabel = filters.minBaths === 0 ? '전체' : `${filters.minBaths}+`;
+  const decBath = () => update({ minBaths: Math.max(0, filters.minBaths - 1) });
+  const incBath = () => update({ minBaths: Math.min(MAX_BATHS, filters.minBaths + 1) });
 
   return (
     <div className={`map-filter-bar ${expanded ? 'is-expanded' : ''}`}>
@@ -118,9 +211,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
             max={MAX_BUDGET_EOK}
             step={1}
             value={filters.maxBudget}
-            onChange={(event) =>
-              onChange({ ...filters, maxBudget: Number(event.target.value) })
-            }
+            onChange={(event) => update({ maxBudget: Number(event.target.value) })}
             className="map-filter-budget-slider"
             style={{ '--fill': `${budgetPercent}%` }}
             aria-label="최대 예산 (억)"
@@ -148,80 +239,113 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 
       {expanded && (
         <div className="map-filter-detail" role="region" aria-label="상세 필터">
-          <fieldset>
-            <legend>매물 유형</legend>
-            <div className="map-filter-checks">
-              {PROPERTY_TYPE_OPTIONS.map((type) => (
-                <label key={type}>
-                  <input
-                    type="checkbox"
-                    checked={filters.propertyTypes.includes(type)}
-                    onChange={() => togglePropertyType(type)}
-                  />
-                  {type}
-                </label>
-              ))}
+          {/* 방 + 욕실 — 회색 박스 묶음 */}
+          <div className="map-filter-room-box">
+            <div className="map-filter-room-col">
+              <label className="map-filter-room-label">방</label>
+              <div className="map-filter-room-row">
+                <select
+                  value={filters.minRooms}
+                  onChange={(event) => update({ minRooms: event.target.value })}
+                  aria-label="최소 방"
+                >
+                  {ROOM_OPTIONS.map((v) => (
+                    <option key={v} value={v}>
+                      {v === '전체' ? '최소' : `${v}+`}
+                    </option>
+                  ))}
+                </select>
+                <span className="map-filter-room-dash">-</span>
+                <select
+                  value={filters.maxRooms}
+                  onChange={(event) => update({ maxRooms: event.target.value })}
+                  aria-label="최대 방"
+                >
+                  {ROOM_OPTIONS.map((v) => (
+                    <option key={v} value={v}>
+                      {v === '전체' ? '최대' : `${v}+`}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-          </fieldset>
 
-          <div className="map-filter-row-2col">
-            <fieldset>
-              <legend>최소 방</legend>
-              <select value={filters.minRooms} onChange={updateField('minRooms')}>
-                {ROOM_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value === '전체' ? '전체' : `${value}+`}
-                  </option>
-                ))}
-              </select>
-            </fieldset>
-
-            <fieldset>
-              <legend>최소 욕실</legend>
-              <select value={filters.minBathrooms} onChange={updateField('minBathrooms')}>
-                {BATHROOM_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value === '전체' ? '전체' : `${value}+`}
-                  </option>
-                ))}
-              </select>
-            </fieldset>
+            <div className="map-filter-room-col">
+              <label className="map-filter-room-label">욕실</label>
+              <div className="map-filter-bath-stepper">
+                <button
+                  type="button"
+                  onClick={decBath}
+                  disabled={filters.minBaths === 0}
+                  aria-label="욕실 줄이기"
+                >
+                  <Minus size={14} />
+                </button>
+                <span>{bathLabel}</span>
+                <button
+                  type="button"
+                  onClick={incBath}
+                  disabled={filters.minBaths === MAX_BATHS}
+                  aria-label="욕실 늘리기"
+                >
+                  <Plus size={14} />
+                </button>
+              </div>
+            </div>
           </div>
 
+          {/* 평형 듀얼 슬라이더 */}
+          <fieldset className="map-filter-area">
+            <legend>평형(공급면적)</legend>
+            <DualRangeSlider
+              min={PYEONG_MIN}
+              max={PYEONG_MAX}
+              valueMin={filters.pyeongMin}
+              valueMax={filters.pyeongMax}
+              onChange={({ min: a, max: b }) => update({ pyeongMin: a, pyeongMax: b })}
+              unit="평"
+            />
+          </fieldset>
+
+          {/* 세대수 */}
           <fieldset>
-            <legend>최소 할인율</legend>
+            <legend>세대수</legend>
             <div className="map-filter-chips">
-              {DISCOUNT_OPTIONS.map((option) => (
+              {UNIT_COUNT_OPTIONS.map((opt) => (
                 <button
-                  key={option.value}
+                  key={opt.value}
                   type="button"
-                  className={`map-filter-chip ${filters.minDiscount === option.value ? 'active' : ''}`}
-                  onClick={() => onChange({ ...filters, minDiscount: option.value })}
+                  className={`map-filter-chip ${filters.unitBucket === opt.value ? 'active' : ''}`}
+                  onClick={() => update({ unitBucket: opt.value })}
                 >
-                  {option.label}
+                  {opt.label}
                 </button>
               ))}
             </div>
           </fieldset>
 
-          <label className="map-filter-verified">
-            <input
-              type="checkbox"
-              checked={filters.verifiedOnly}
-              onChange={(event) => onChange({ ...filters, verifiedOnly: event.target.checked })}
-            />
-            검증된 매물만 보기
-          </label>
+          {/* 최소 할인율 */}
+          <fieldset>
+            <legend>최소 할인율</legend>
+            <div className="map-filter-chips">
+              {DISCOUNT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`map-filter-chip ${filters.minDiscount === opt.value ? 'active' : ''}`}
+                  onClick={() => update({ minDiscount: opt.value })}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
 
           <div className="map-filter-actions">
             <button type="button" className="map-filter-reset" onClick={reset}>
               초기화
             </button>
-            <button
-              type="button"
-              className="map-filter-apply"
-              onClick={() => setExpanded(false)}
-            >
+            <button type="button" className="map-filter-apply" onClick={() => setExpanded(false)}>
               {resultCount}건 결과 보기
             </button>
           </div>
@@ -242,14 +366,20 @@ function MapPage() {
   const filteredProperties = useMemo(() => {
     const maxP =
       filters.maxBudget >= MAX_BUDGET_EOK ? Infinity : filters.maxBudget * 100000000;
+    const minRoomsNum = filters.minRooms === '전체' ? 0 : Number(filters.minRooms);
+    const maxRoomsNum = filters.maxRooms === '전체' ? Infinity : Number(filters.maxRooms);
+    const unitOption = UNIT_COUNT_OPTIONS.find((o) => o.value === filters.unitBucket);
 
     return urgentProperties.filter((p) => {
       if (p.price > maxP) return false;
-      if (filters.propertyTypes.length && !filters.propertyTypes.includes(p.propertyType)) return false;
-      if (filters.minRooms !== '전체' && p.rooms < Number(filters.minRooms)) return false;
-      if (filters.minBathrooms !== '전체' && p.bathrooms < Number(filters.minBathrooms)) return false;
+      if (p.rooms < minRoomsNum) return false;
+      if (p.rooms > maxRoomsNum) return false;
+      if (filters.minBaths > 0 && p.bathrooms < filters.minBaths) return false;
+      const pyeong = (p.supplyArea ?? p.area ?? 0) / 3.3;
+      if (filters.pyeongMin > PYEONG_MIN && pyeong < filters.pyeongMin) return false;
+      if (filters.pyeongMax < PYEONG_MAX && pyeong > filters.pyeongMax) return false;
+      if (unitOption && !unitOption.test(getUnitCount(p))) return false;
       if (p.discountRate < filters.minDiscount) return false;
-      if (filters.verifiedOnly && !p.verified) return false;
       return true;
     });
   }, [urgentProperties, filters]);

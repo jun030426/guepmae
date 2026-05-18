@@ -16,9 +16,9 @@ const DISCOUNT_OPTIONS = [
   { value: 10, label: '10% 이상' },
 ];
 
+const MAX_BUDGET_EOK = 50; // 슬라이더 상한 (억). MAX_BUDGET_EOK 이상이면 "전체"로 간주
 const initialFilters = {
-  minPrice: '',  // 억 단위
-  maxPrice: '',  // 억 단위
+  maxBudget: MAX_BUDGET_EOK, // 억 단위 — 최대값이면 가격 제한 없음
   propertyTypes: [],
   minRooms: '전체',
   minBathrooms: '전체',
@@ -100,33 +100,31 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 
   const reset = () => onChange(initialFilters);
 
+  const budgetLabel =
+    filters.maxBudget >= MAX_BUDGET_EOK ? '전체' : `${filters.maxBudget}억 이하`;
+  const budgetPercent = (filters.maxBudget / MAX_BUDGET_EOK) * 100;
+
   return (
     <div className={`map-filter-bar ${expanded ? 'is-expanded' : ''}`}>
       <div className="map-filter-summary">
-        <div className="map-filter-price-input">
+        <div className="map-filter-budget">
+          <div className="map-filter-budget-row">
+            <span className="map-filter-budget-label">최대 예산</span>
+            <span className="map-filter-budget-value">{budgetLabel}</span>
+          </div>
           <input
-            type="number"
-            inputMode="numeric"
-            placeholder="최소"
-            value={filters.minPrice}
-            onChange={updateField('minPrice')}
-            min={0}
-            aria-label="최소 가격 (억)"
+            type="range"
+            min={1}
+            max={MAX_BUDGET_EOK}
+            step={1}
+            value={filters.maxBudget}
+            onChange={(event) =>
+              onChange({ ...filters, maxBudget: Number(event.target.value) })
+            }
+            className="map-filter-budget-slider"
+            style={{ '--fill': `${budgetPercent}%` }}
+            aria-label="최대 예산 (억)"
           />
-          <span>억</span>
-        </div>
-        <span className="map-filter-dash">-</span>
-        <div className="map-filter-price-input">
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder="최대"
-            value={filters.maxPrice}
-            onChange={updateField('maxPrice')}
-            min={0}
-            aria-label="최대 가격 (억)"
-          />
-          <span>억</span>
         </div>
         <button
           type="button"
@@ -242,11 +240,11 @@ function MapPage() {
   const cardRefsMap = useRef(new Map());
 
   const filteredProperties = useMemo(() => {
-    const minP = filters.minPrice === '' ? 0 : Number(filters.minPrice) * 100000000;
-    const maxP = filters.maxPrice === '' ? Infinity : Number(filters.maxPrice) * 100000000;
+    const maxP =
+      filters.maxBudget >= MAX_BUDGET_EOK ? Infinity : filters.maxBudget * 100000000;
 
     return urgentProperties.filter((p) => {
-      if (p.price < minP || p.price > maxP) return false;
+      if (p.price > maxP) return false;
       if (filters.propertyTypes.length && !filters.propertyTypes.includes(p.propertyType)) return false;
       if (filters.minRooms !== '전체' && p.rooms < Number(filters.minRooms)) return false;
       if (filters.minBathrooms !== '전체' && p.bathrooms < Number(filters.minBathrooms)) return false;
@@ -315,6 +313,14 @@ function MapPage() {
             </span>
           </div>
 
+          <MapFilterBar
+            filters={filters}
+            onChange={setFilters}
+            expanded={filterExpanded}
+            setExpanded={setFilterExpanded}
+            resultCount={filteredProperties.length}
+          />
+
           <div className="map-card-list">
             {mapProperties.length > 0 ? (
               mapProperties.map((property) => (
@@ -377,20 +383,11 @@ function MapPage() {
           )}
         </aside>
 
-        <div className="map-canvas-area">
-          <MapFilterBar
-            filters={filters}
-            onChange={setFilters}
-            expanded={filterExpanded}
-            setExpanded={setFilterExpanded}
-            resultCount={filteredProperties.length}
-          />
-          <MapView
-            properties={mapProperties}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-          />
-        </div>
+        <MapView
+          properties={mapProperties}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
       </section>
     </div>
   );

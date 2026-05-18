@@ -1535,11 +1535,10 @@ body {
   pointer-events: none;
 }
 
-/* 토글 버튼 — 지도 좌하단 (필터바와 안 겹치도록) */
+/* 토글 버튼 — 지도 좌상단 */
 .map-view-toggle {
   position: absolute;
-  top: auto;
-  bottom: 24px;
+  top: 12px;
   left: 12px;
   display: inline-flex;
   background: var(--color-bg);
@@ -1708,130 +1707,148 @@ body {
   align-self: flex-start;
 }
 
-/* ----------------------------- 지도 페이지 — 필터 오버레이 ----------------------------- */
-.map-canvas-area {
-  position: relative;
-  min-width: 0;
-  height: 100%;
-  overflow: hidden;
+/* ----------------------------- 지도 페이지 — 좌측 패널 상단 필터 ----------------------------- */
+/* 좌측 매물 패널 안, 헤더 바로 아래에 자리잡는 필터.
+   Compass 라이트 톤 — 흰 배경 + 가는 보더 + 검정 액센트. */
+.map-list-panel {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
 }
 
-.map-canvas-area > .map-canvas-wrapper {
-  position: absolute;
-  inset: 0;
-}
-
-/* 접힌 필터 바 — 다크 토글 스타일 (지도 좌상단 오버레이) */
 .map-filter-bar {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 30;
-  max-width: calc(100% - 28px);
+  padding: 14px 18px 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
   font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .map-filter-summary {
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.map-filter-budget {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.map-filter-budget-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
   gap: 8px;
-  padding: 6px 8px 6px 12px;
-  border-radius: 999px;
-  background: #18243a;
-  color: #ffffff;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.map-filter-price-input {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.map-filter-price-input input {
-  width: 56px;
-  background: transparent;
-  border: 0;
-  color: #ffffff;
-  font-size: 13px;
+.map-filter-budget-label {
+  font-size: 12px;
   font-weight: 500;
-  outline: none;
-  padding: 0;
-  font-family: inherit;
-  -moz-appearance: textfield;
-  appearance: textfield;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
 }
 
-.map-filter-price-input input::-webkit-outer-spin-button,
-.map-filter-price-input input::-webkit-inner-spin-button {
+.map-filter-budget-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* 슬라이더 — 트랙은 회색, 채워진 부분은 검정, 핸들은 검정 원 */
+.map-filter-budget-slider {
   -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(
+    to right,
+    var(--color-text) 0%,
+    var(--color-text) var(--fill, 50%),
+    var(--color-border) var(--fill, 50%),
+    var(--color-border) 100%
+  );
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  padding: 0;
   margin: 0;
 }
 
-.map-filter-price-input input::placeholder {
-  color: rgba(255, 255, 255, 0.45);
+.map-filter-budget-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text);
+  border: 2px solid var(--color-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.1s ease;
 }
 
-.map-filter-price-input span {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 12px;
-  font-weight: 500;
+.map-filter-budget-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
 }
 
-.map-filter-dash {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
+.map-filter-budget-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text);
+  border: 2px solid var(--color-bg);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
 }
 
+.map-filter-budget-slider::-moz-range-track {
+  background: transparent;
+}
+
+/* 필터 / 필터 닫기 버튼 */
 .map-filter-toggle {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 9px 16px;
   border-radius: 999px;
-  background: #ffffff;
-  color: #111111;
-  font-size: 13px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12.5px;
   font-weight: 600;
   font-family: inherit;
-  border: 0;
+  border: 1px solid var(--color-border-strong, #c8c8c8);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .map-filter-toggle:hover {
-  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--color-text);
 }
 
 .map-filter-bar.is-expanded .map-filter-toggle {
-  background: #111111;
-  color: #ffffff;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
 }
 
 .map-filter-bar.is-expanded .map-filter-toggle:hover {
   background: #2a2a2a;
 }
 
-/* 펼친 상세 필터 — 흰 카드 */
+/* 펼친 상세 필터 — 인라인 패널 (왼쪽 패널 안에서 펼침) */
 .map-filter-detail {
-  margin-top: 10px;
-  padding: 20px;
-  width: 360px;
-  max-width: calc(100vw - 28px);
-  max-height: calc(100dvh - var(--header-height) - 110px);
-  overflow-y: auto;
-  border-radius: 14px;
-  background: #ffffff;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.22);
-  border: 1px solid #e6e6e6;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
+  padding: 14px 0 4px;
+  border-top: 1px solid var(--color-border);
 }
 
 .map-filter-detail fieldset {
@@ -1844,9 +1861,9 @@ body {
   display: block;
   margin-bottom: 8px;
   padding: 0;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #111111;
+  color: var(--color-text);
   letter-spacing: 0.02em;
 }
 
@@ -1862,16 +1879,16 @@ body {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #333333;
+  color: var(--color-text);
   cursor: pointer;
 }
 
 .map-filter-checks input[type='checkbox'],
 .map-filter-verified input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   cursor: pointer;
-  accent-color: #111111;
+  accent-color: var(--color-text);
 }
 
 .map-filter-row-2col {
@@ -1883,11 +1900,11 @@ body {
 .map-filter-detail select {
   width: 100%;
   padding: 9px 10px;
-  border-radius: 8px;
-  border: 1px solid #d6d6d6;
-  background: #ffffff;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
   font-size: 13px;
-  color: #111111;
+  color: var(--color-text);
   font-family: inherit;
   cursor: pointer;
 }
@@ -1899,12 +1916,12 @@ body {
 }
 
 .map-filter-chip {
-  padding: 7px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid #d6d6d6;
-  background: #ffffff;
-  color: #333333;
-  font-size: 12.5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12px;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -1912,48 +1929,48 @@ body {
 }
 
 .map-filter-chip:hover {
-  border-color: #111111;
+  border-color: var(--color-text);
 }
 
 .map-filter-chip.active {
-  background: #111111;
-  border-color: #111111;
-  color: #ffffff;
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-bg);
 }
 
 .map-filter-actions {
   display: flex;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 2px;
   padding-top: 14px;
-  border-top: 1px solid #ececec;
+  border-top: 1px solid var(--color-border);
 }
 
 .map-filter-reset {
   flex: 0 0 auto;
-  padding: 10px 16px;
+  padding: 9px 14px;
   border-radius: 999px;
-  border: 1px solid #c8c8c8;
-  background: #ffffff;
-  color: #111111;
-  font-size: 13px;
+  border: 1px solid var(--color-border-strong, #c8c8c8);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12.5px;
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
 }
 
 .map-filter-reset:hover {
-  border-color: #111111;
+  border-color: var(--color-text);
 }
 
 .map-filter-apply {
   flex: 1;
-  padding: 10px 16px;
+  padding: 9px 14px;
   border-radius: 999px;
   border: 0;
-  background: #111111;
-  color: #ffffff;
-  font-size: 13px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 12.5px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -1973,14 +1990,4 @@ body {
 
 .map-card-empty p {
   margin: 4px 0;
-}
-
-/* 모바일 — 필터 펼치면 화면 폭에 맞춤 */
-@media (max-width: 720px) {
-  .map-filter-summary {
-    flex-wrap: wrap;
-  }
-  .map-filter-detail {
-    width: calc(100vw - 28px);
-  }
 }

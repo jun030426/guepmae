@@ -4,10 +4,10 @@ import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const navItems = [
-  { label: '급매 찾기', path: '/properties' },
+  { label: '매물', path: '/properties' },
   { label: '지도 검색', path: '/map' },
   { label: '급매 리포트', path: '/report' },
-  { label: '내 매물 검증', path: '/register' },
+  { label: '집 내놓기', path: '/register' },
 ];
 
 function Header() {

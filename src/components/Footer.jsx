@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 const footerGroups = [
   {
     title: '서비스',
-    links: ['급매 찾기', '지도 검색', '내 매물 검증', '중개사 연결'],
+    links: ['매물', '지도 검색', '집 내놓기', '중개사 연결'],
   },
   {
     title: '데이터',

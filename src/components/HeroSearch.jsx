@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 
-const tabs = ['급매 찾기', '실거래가 비교', '내 매물 검증'];
+const tabs = ['매물', '실거래가 비교', '집 내놓기'];
 
 function HeroSearch() {
   const [activeTab, setActiveTab] = useState(tabs[0]);
@@ -13,7 +13,7 @@ function HeroSearch() {
     event.preventDefault();
     const query = keyword.trim();
 
-    if (activeTab === '내 매물 검증') {
+    if (activeTab === '집 내놓기') {
       navigate('/register');
       return;
     }
@@ -74,7 +74,7 @@ function HeroSearch() {
 
         <div className="hero-cta-row">
           <Link to="/properties" className="hero-cta primary">
-            급매 찾기
+            매물
           </Link>
           <Link to="/register" className="hero-cta secondary">
             내 매물 급매 검증하기

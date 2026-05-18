@@ -137,7 +137,7 @@ function Home() {
               <p>데이터가 부족하면 비교 기준과 추가 확인 절차를 보여줍니다.</p>
             </div>
             <Link to="/register" className="primary-link-button">
-              내 매물 검증하기
+              집 내놓기
               <ArrowRight size={18} />
             </Link>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   AlertTriangle,
@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  FileText,
   Heart,
   LayoutGrid,
   Mail,
@@ -71,10 +72,21 @@ function PropertyDetail() {
   const photos = useMemo(() => (property ? getPropertyPhotos(property, 12) : []), [property]);
   const [activePhoto, setActivePhoto] = useState(0);
   const [viewerMode, setViewerMode] = useState(null);
+  const thumbnailTrackRef = useRef(null);
 
   useEffect(() => {
     setActivePhoto(0);
   }, [id]);
+
+  // 화살표로 사진을 넘기면 활성 썸네일이 화면 밖일 수 있어 가로 스크롤로 끌어옴
+  useEffect(() => {
+    const track = thumbnailTrackRef.current;
+    if (!track) return;
+    const active = track.querySelector('.thumb-button.active');
+    if (active && typeof active.scrollIntoView === 'function') {
+      active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [activePhoto]);
 
   if (!property) {
     return (
@@ -247,7 +259,7 @@ function PropertyDetail() {
                 <button type="button" className="dock-arrow" aria-label="이전 사진" onClick={showPreviousPhoto}>
                   <ChevronLeft size={21} />
                 </button>
-                <div className="thumbnail-track" aria-label="사진 썸네일 목록">
+                <div className="thumbnail-track" aria-label="사진 썸네일 목록" ref={thumbnailTrackRef}>
                   {photos.map((photo, index) => (
                     <button
                       type="button"
@@ -276,6 +288,15 @@ function PropertyDetail() {
                 <button type="button" className="gallery-action-tile" onClick={() => setViewerMode('tour')}>
                   <Camera size={19} />
                   3D 투어
+                </button>
+                <button
+                  type="button"
+                  className="gallery-action-tile is-coming-soon"
+                  onClick={() => setViewerMode('report')}
+                  aria-label="매물 리포트 (준비 중)"
+                >
+                  <FileText size={19} />
+                  매물 리포트
                 </button>
               </div>
             </div>

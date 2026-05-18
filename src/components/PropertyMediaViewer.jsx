@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Compass, Expand, MapPin, Minus, Plus, X } from 'lucide-react';
+import { Compass, Expand, FileText, MapPin, Minus, Plus, Sparkles, X } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
 import { loadPannellum } from '../utils/pannellumLoader.js';
@@ -12,6 +12,7 @@ const viewerModes = [
   { id: 'photos', label: '사진' },
   { id: 'map', label: '지도' },
   { id: 'tour', label: '3D 투어' },
+  { id: 'report', label: '매물 리포트' },
 ];
 
 function hasCoordinates(property) {
@@ -522,6 +523,37 @@ function PropertyPhotoGrid({ photos, property }) {
   );
 }
 
+// AI 매물 리포트 — 향후 Vercel AI Gateway 연결 예정. 현재는 placeholder
+function PropertyReportPanel({ property }) {
+  return (
+    <div className="viewer-report-placeholder">
+      <div className="viewer-report-icon" aria-hidden="true">
+        <Sparkles size={36} />
+      </div>
+      <h3>매물 리포트 — 곧 출시 예정</h3>
+      <p>
+        AI가 <strong>{property.title}</strong> 의 시세, 입지, 단지 특성, 인근 거래 패턴을 종합 분석해서
+        이 매물의 강점과 주의할 점을 한눈에 정리해드릴 예정입니다.
+      </p>
+      <ul>
+        <li>
+          <FileText size={15} />
+          한 줄 평가 — 추천 대상 / 강점 / 주의할 점
+        </li>
+        <li>
+          <FileText size={15} />
+          시세 분석 — 인근 같은 평형 비교 + 해석
+        </li>
+        <li>
+          <FileText size={15} />
+          생활권 점수 — 출퇴근/학군/생활편의/자산가치 잠재력
+        </li>
+      </ul>
+      <p className="viewer-report-coming-soon">2026년 상반기 출시 예정</p>
+    </div>
+  );
+}
+
 function PropertyMediaViewer({ property, photos, initialMode, onClose }) {
   const [mode, setMode] = useState(initialMode);
   const summary = useMemo(
@@ -594,6 +626,7 @@ function PropertyMediaViewer({ property, photos, initialMode, onClose }) {
         {mode === 'photos' && <PropertyPhotoGrid photos={photos} property={property} />}
         {mode === 'map' && <PropertyMapPanel property={property} />}
         {mode === 'tour' && <PropertyTourPanel property={property} photos={photos} />}
+        {mode === 'report' && <PropertyReportPanel property={property} />}
       </main>
     </section>
   );

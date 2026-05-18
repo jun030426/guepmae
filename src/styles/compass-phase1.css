@@ -1087,6 +1087,101 @@ body {
   pointer-events: none;
 }
 
+/* ----------------------------- Auth: 이메일 인증 대기 패널 ----------------------------- */
+.verification-pending {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-3) 0;
+  gap: var(--space-2);
+}
+
+.verification-pending-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  display: grid;
+  place-items: center;
+  color: var(--color-text);
+  margin-bottom: var(--space-2);
+}
+
+.verification-pending h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 28px;
+  letter-spacing: var(--ls-tight);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.verification-pending-target {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text);
+  margin: var(--space-1) 0 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  width: 100%;
+  word-break: break-all;
+}
+
+.verification-pending-target strong {
+  font-weight: 600;
+}
+
+.verification-pending-body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+  margin: var(--space-2) 0 0;
+  max-width: 38ch;
+}
+
+.verification-pending-body strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.verification-pending-hint {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-3) 0 0;
+  width: 100%;
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-2);
+  text-align: left;
+}
+
+.verification-pending-hint li {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  padding-left: 12px;
+  position: relative;
+}
+
+.verification-pending-hint li::before {
+  content: '·';
+  position: absolute;
+  left: 0;
+  color: var(--color-text-subtle);
+}
+
+.verification-pending-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  margin-top: var(--space-3);
+}
+
 /* ----------------------------- AI Teaser ----------------------------- */
 .ai-teaser-section {
   margin-top: var(--space-5);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, Mail } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Mail, MailCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const initialLoginForm = {
@@ -42,6 +42,7 @@ function getFriendlyAuthError(error) {
 function Login() {
   const [searchParams, setSearchParams] = useSearchParams();
   const modeParam = searchParams.get('mode');
+  const verifiedParam = searchParams.get('verified');
   const [mode, setMode] = useState(modeParam === 'signup' ? 'signup' : 'start');
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [loginForm, setLoginForm] = useState(initialLoginForm);
@@ -49,9 +50,12 @@ function Login() {
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState(null);
+  const [isResending, setIsResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, isConfigured, signIn, signUp, getRedirectPath, profile } = useAuth();
+  const { isAuthenticated, isConfigured, signIn, signUp, resendVerification, getRedirectPath, profile } = useAuth();
 
   const fromPath = location.state?.from?.pathname;
   const canSubmitSignup = useMemo(
@@ -70,6 +74,19 @@ function Login() {
     setError('');
     setStatus('');
   }, [modeParam]);
+
+  // 이메일 인증 링크 클릭 후 돌아왔을 때: 성공 메시지 노출 + 로그인 폼 자동 펼치기
+  useEffect(() => {
+    if (verifiedParam === 'true') {
+      setStatus('이메일 인증이 완료되었습니다. 로그인해주세요.');
+      setShowEmailLogin(true);
+      setPendingVerificationEmail(null);
+      // 쿼리 파라미터 제거 — 새로고침해도 메시지 안 다시 뜨도록
+      const next = new URLSearchParams(searchParams);
+      next.delete('verified');
+      setSearchParams(next, { replace: true });
+    }
+  }, [verifiedParam, searchParams, setSearchParams]);
 
   useEffect(() => {
     if (isAuthenticated && profile) {
@@ -127,9 +144,9 @@ function Login() {
       const result = await signUp(signupForm);
 
       if (result.needsEmailConfirmation) {
-        setStatus('가입 요청이 완료되었습니다. 이메일 인증 후 로그인해주세요.');
+        // 로그인 화면으로 돌리지 않고 인증 대기 화면으로 전환
+        setPendingVerificationEmail(signupForm.email);
         setSignupForm(initialSignupForm);
-        switchToStart();
         return;
       }
 
@@ -139,6 +156,30 @@ function Login() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleResend = async () => {
+    if (!pendingVerificationEmail) return;
+    setResendStatus('');
+    setError('');
+    setIsResending(true);
+
+    try {
+      await resendVerification(pendingVerificationEmail);
+      setResendStatus('인증 메일을 다시 보냈습니다. 메일함을 확인해주세요.');
+    } catch (resendError) {
+      setError(getFriendlyAuthError(resendError));
+    } finally {
+      setIsResending(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setPendingVerificationEmail(null);
+    setResendStatus('');
+    setError('');
+    setStatus('');
+    switchToStart();
   };
 
   return (
@@ -153,7 +194,41 @@ function Login() {
           <p className="form-status error">Supabase 환경변수가 없어 인증 기능을 사용할 수 없습니다.</p>
         )}
 
-        {mode === 'start' ? (
+        {pendingVerificationEmail ? (
+          <div className="verification-pending">
+            <div className="verification-pending-icon" aria-hidden="true">
+              <MailCheck size={36} />
+            </div>
+            <h1>이메일을 확인해주세요</h1>
+            <p className="verification-pending-target">
+              <strong>{pendingVerificationEmail}</strong> 로 인증 메일을 보냈습니다.
+            </p>
+            <p className="verification-pending-body">
+              메일에 있는 <strong>인증 링크를 클릭</strong>하시면 가입이 완료됩니다.
+              그 후 이 화면으로 다시 돌아와 로그인하실 수 있습니다.
+            </p>
+            <ul className="verification-pending-hint">
+              <li>메일이 안 보이면 스팸함 또는 프로모션함을 확인해주세요.</li>
+              <li>인증 링크는 24시간 동안만 유효합니다.</li>
+            </ul>
+
+            <div className="verification-pending-actions">
+              <button
+                type="button"
+                className="auth-submit-button"
+                onClick={handleResend}
+                disabled={isResending || !isConfigured}
+              >
+                {isResending ? '메일 재전송 중...' : '인증 메일 다시 보내기'}
+              </button>
+              <button type="button" className="auth-text-button" onClick={handleBackToLogin}>
+                로그인 화면으로 돌아가기
+              </button>
+            </div>
+
+            {resendStatus && <p className="form-status">{resendStatus}</p>}
+          </div>
+        ) : mode === 'start' ? (
           <>
             <div className="auth-intro">
               <h1>로그인하고</h1>

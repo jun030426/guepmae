@@ -118,6 +118,8 @@ export function AuthProvider({ children }) {
       email,
       password,
       options: {
+        // 이메일 인증 링크 클릭 후 돌아올 URL — verified=true 쿼리로 인증 완료 화면 분기
+        emailRedirectTo: `${window.location.origin}/login?verified=true`,
         data: {
           full_name: fullName,
           phone,
@@ -138,6 +140,24 @@ export function AuthProvider({ children }) {
     }
 
     return { user: data.user, profile: null, needsEmailConfirmation: true };
+  };
+
+  const resendVerification = async (email) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+    }
+
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/login?verified=true`,
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -170,6 +190,7 @@ export function AuthProvider({ children }) {
       signIn,
       signUp,
       signOut,
+      resendVerification,
       refreshProfile: () => (session?.user ? loadProfile(session.user.id) : null),
       getRedirectPath,
     }),

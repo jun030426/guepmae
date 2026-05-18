@@ -1242,21 +1242,30 @@ body {
 }
 
 /* ----------------------------- 홈 — 생활권 카드 가운데 정렬 ----------------------------- */
-.neighborhood-card > div {
+/* global.css(line 4076~)에서 .neighborhood-card 를 grid-template-columns: 1fr 로 재정의 중.
+   확실하게 텍스트 컨테이너만 center 정렬되도록 자식 div 전체를 flex column 으로 묶고 가운데로. */
+.neighborhood-card {
   text-align: center;
 }
 
-.neighborhood-card h3 {
+.neighborhood-card > div:last-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 
+.neighborhood-card h3,
 .neighborhood-card p {
   text-align: center;
+  width: 100%;
 }
 
 .neighborhood-card span {
   display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
 }
 
 /* ----------------------------- AI Teaser ----------------------------- */

@@ -39,7 +39,7 @@ function HeroSearch() {
           급매만 모았습니다.
         </h1>
         <p className="hero-subtitle">
-          국토부 실거래가 대비 5% 이상 저렴한 매물을 한눈에 비교하세요.
+          시세 대비 5%이상 저렴한 매물을 한눈에 확인하세요.
         </p>
 
         <form className="hero-search-panel" onSubmit={handleSubmit}>

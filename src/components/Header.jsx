@@ -56,7 +56,7 @@ function Header() {
                 로그인 | 회원가입
               </Link>
               <Link to="/agent-signup" className="agent-signup-button">
-                중개사 가입/광고문의
+                중개사 가입
               </Link>
             </>
           )}

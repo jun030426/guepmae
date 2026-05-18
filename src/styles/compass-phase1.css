@@ -1267,6 +1267,33 @@ body {
   gap: 6px;
 }
 
+/* ----------------------------- Hero 검색 패널 — 미니멀(투명) 변형 ----------------------------- */
+/* tabs/CTA 제거 후 검색바 한 줄만 남기는 변형. 흰 배경 → 반투명 어두운 톤. */
+.hero-search-panel--minimal {
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18) !important;
+}
+
+.hero-search-panel--minimal .hero-search-row {
+  padding: 12px;
+}
+
+.hero-search-panel--minimal .hero-search-row svg {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hero-search-panel--minimal .hero-search-row input {
+  background: transparent;
+  color: #ffffff;
+}
+
+.hero-search-panel--minimal .hero-search-row input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
 /* ----------------------------- AI Teaser ----------------------------- */
 .ai-teaser-section {
   margin-top: var(--space-5);

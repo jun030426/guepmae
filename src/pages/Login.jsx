@@ -293,7 +293,7 @@ function Login() {
             </div>
 
             <Link to="/agent-signup" className="agent-entry-link">
-              중개사 가입/광고문의
+              중개사 가입
               <ArrowRight size={15} />
             </Link>
           </>

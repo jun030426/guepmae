@@ -1,23 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 
-const tabs = ['매물', '실거래가 비교', '집 내놓기'];
-
 function HeroSearch() {
-  const [activeTab, setActiveTab] = useState(tabs[0]);
   const [keyword, setKeyword] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (event) => {
     event.preventDefault();
     const query = keyword.trim();
-
-    if (activeTab === '집 내놓기') {
-      navigate('/register');
-      return;
-    }
-
     navigate(query ? `/properties?keyword=${encodeURIComponent(query)}` : '/properties');
   };
 
@@ -42,22 +33,7 @@ function HeroSearch() {
           시세 대비 5%이상 저렴한 매물을 한눈에 확인하세요.
         </p>
 
-        <form className="hero-search-panel" onSubmit={handleSubmit}>
-          <div className="search-tabs" role="tablist" aria-label="검색 목적">
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === tab}
-                className={activeTab === tab ? 'search-tab active' : 'search-tab'}
-                onClick={() => setActiveTab(tab)}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
+        <form className="hero-search-panel hero-search-panel--minimal" onSubmit={handleSubmit}>
           <div className="hero-search-row">
             <Search size={20} />
             <input
@@ -71,15 +47,6 @@ function HeroSearch() {
             </button>
           </div>
         </form>
-
-        <div className="hero-cta-row">
-          <Link to="/properties" className="hero-cta primary">
-            매물
-          </Link>
-          <Link to="/register" className="hero-cta secondary">
-            내 매물 급매 검증하기
-          </Link>
-        </div>
       </div>
     </section>
   );

@@ -1,0 +1,8052 @@
+[
+  {
+    "id": "gm-001",
+    "title": "e편한세상서울대입구2차 84",
+    "address": "서울특별시 관악구 봉천동",
+    "coordinates": {
+      "lat": 37.475998,
+      "lng": 126.953909
+    },
+    "region": "서울 관악구",
+    "propertyType": "아파트",
+    "price": 1325442284,
+    "actualTransactionPrice": 1430000000,
+    "discountRate": 7.3,
+    "urgentScore": 78,
+    "area": 84,
+    "supplyArea": 112,
+    "floor": "2층",
+    "builtYear": 2020,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-03",
+    "recentTransactionDate": "2026-04-17",
+    "description": "서울 관악구 생활권의 실거래 대비 7.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 490000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 436,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "관악구 지하철역 도보 5분",
+      "school": "관악구 고등학교 도보 12분",
+      "mart": "이마트 관악구점 차량 9분",
+      "hospital": "관악구 대학병원 차량 12분",
+      "park": "관악구 수변공원 도보 10분",
+      "commute": "강남역 기준 약 37분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 1469973061
+      },
+      {
+        "month": "1월",
+        "price": 1466168922
+      },
+      {
+        "month": "2월",
+        "price": 1433477901
+      },
+      {
+        "month": "3월",
+        "price": 1449490738
+      },
+      {
+        "month": "4월",
+        "price": 1436087063
+      },
+      {
+        "month": "5월",
+        "price": 1325442284
+      }
+    ]
+  },
+  {
+    "id": "gm-002",
+    "title": "우장산아이파크,이편한세상 60",
+    "address": "서울특별시 강서구 화곡동",
+    "coordinates": {
+      "lat": 37.551122,
+      "lng": 126.842322
+    },
+    "region": "서울 강서구",
+    "propertyType": "아파트",
+    "price": 1228041570,
+    "actualTransactionPrice": 1375000000,
+    "discountRate": 10.7,
+    "urgentScore": 87,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "17층",
+    "builtYear": 2008,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-14",
+    "recentTransactionDate": "2026-04-21",
+    "description": "서울 강서구 생활권의 실거래 대비 10.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 440000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 67,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "강서구 지하철역 도보 15분",
+      "school": "강서구 초등학교 도보 8분",
+      "mart": "롯데마트 강서구점 차량 6분",
+      "hospital": "강서구 대학병원 차량 12분",
+      "park": "강서구 중앙공원 도보 10분",
+      "commute": "강남역 기준 약 48분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 1394309767
+      },
+      {
+        "month": "1월",
+        "price": 1390079025
+      },
+      {
+        "month": "2월",
+        "price": 1392447434
+      },
+      {
+        "month": "3월",
+        "price": 1393521476
+      },
+      {
+        "month": "4월",
+        "price": 1400685410
+      },
+      {
+        "month": "5월",
+        "price": 1228041570
+      }
+    ]
+  },
+  {
+    "id": "gm-003",
+    "title": "덕현 62",
+    "address": "경기도 구리시 교문동",
+    "coordinates": {
+      "lat": 37.594247,
+      "lng": 127.130035
+    },
+    "region": "경기 구리시",
+    "propertyType": "아파트",
+    "price": 776674228,
+    "actualTransactionPrice": 860000000,
+    "discountRate": 9.7,
+    "urgentScore": 84,
+    "area": 62,
+    "supplyArea": 83,
+    "floor": "4층",
+    "builtYear": 1993,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-04",
+    "recentTransactionDate": "2026-04-13",
+    "description": "경기 구리시 생활권의 실거래 대비 9.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 150000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 803,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "구리시 지하철역 도보 5분",
+      "school": "구리시 중학교 도보 8분",
+      "mart": "홈플러스 구리시점 차량 7분",
+      "hospital": "구리시 대학병원 차량 12분",
+      "park": "구리시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 48분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 863340021
+      },
+      {
+        "month": "1월",
+        "price": 873235550
+      },
+      {
+        "month": "2월",
+        "price": 857158549
+      },
+      {
+        "month": "3월",
+        "price": 861771980
+      },
+      {
+        "month": "4월",
+        "price": 840094362
+      },
+      {
+        "month": "5월",
+        "price": 776674228
+      }
+    ]
+  },
+  {
+    "id": "gm-004",
+    "title": "한신 68",
+    "address": "서울특별시 성북구 돈암동",
+    "coordinates": {
+      "lat": 37.581871,
+      "lng": 127.021548
+    },
+    "region": "서울 성북구",
+    "propertyType": "아파트",
+    "price": 232807870,
+    "actualTransactionPrice": 264000000,
+    "discountRate": 11.8,
+    "urgentScore": 90,
+    "area": 68,
+    "supplyArea": 91,
+    "floor": "11층",
+    "builtYear": 1998,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-14",
+    "description": "서울 성북구 생활권의 실거래 대비 11.8% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 240000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 2669,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "성북구 지하철역 도보 12분",
+      "school": "성북구 중학교 도보 5분",
+      "mart": "이마트 성북구점 차량 10분",
+      "hospital": "성북구 의료원 차량 11분",
+      "park": "성북구 근린공원 도보 5분",
+      "commute": "강남역 기준 약 24분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 259373142
+      },
+      {
+        "month": "1월",
+        "price": 270220840
+      },
+      {
+        "month": "2월",
+        "price": 263855574
+      },
+      {
+        "month": "3월",
+        "price": 270441790
+      },
+      {
+        "month": "4월",
+        "price": 259717265
+      },
+      {
+        "month": "5월",
+        "price": 232807870
+      }
+    ]
+  },
+  {
+    "id": "gm-005",
+    "title": "주공6 58",
+    "address": "경기도 구리시 인창동",
+    "coordinates": {
+      "lat": 37.600495,
+      "lng": 127.132061
+    },
+    "region": "경기 구리시",
+    "propertyType": "아파트",
+    "price": 379325370,
+    "actualTransactionPrice": 444000000,
+    "discountRate": 14.6,
+    "urgentScore": 97,
+    "area": 58,
+    "supplyArea": 77,
+    "floor": "14층",
+    "builtYear": 1996,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-10",
+    "recentTransactionDate": "2026-05-16",
+    "description": "경기 구리시 생활권의 실거래 대비 14.6% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 260000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 349,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "구리시 지하철역 도보 8분",
+      "school": "구리시 고등학교 도보 7분",
+      "mart": "코스트코 구리시점 차량 6분",
+      "hospital": "구리시 대학병원 차량 15분",
+      "park": "구리시 수변공원 도보 5분",
+      "commute": "강남역 기준 약 17분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 441697549
+      },
+      {
+        "month": "1월",
+        "price": 453096404
+      },
+      {
+        "month": "2월",
+        "price": 446646185
+      },
+      {
+        "month": "3월",
+        "price": 446438003
+      },
+      {
+        "month": "4월",
+        "price": 454856302
+      },
+      {
+        "month": "5월",
+        "price": 379325370
+      }
+    ]
+  },
+  {
+    "id": "gm-006",
+    "title": "예당마을신안인스빌 85",
+    "address": "경기도 남양주시 진접읍 금곡리",
+    "coordinates": {
+      "lat": 37.640619,
+      "lng": 127.221674
+    },
+    "region": "경기 남양주시",
+    "propertyType": "아파트",
+    "price": 427872618,
+    "actualTransactionPrice": 452500000,
+    "discountRate": 5.4,
+    "urgentScore": 74,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "19층",
+    "builtYear": 2010,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-13",
+    "description": "경기 남양주시 생활권의 실거래 대비 5.4% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 490000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 2449,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "남양주시 지하철역 도보 4분",
+      "school": "남양주시 초등학교 도보 4분",
+      "mart": "이마트 남양주시점 차량 9분",
+      "hospital": "남양주시 대학병원 차량 12분",
+      "park": "남양주시 수변공원 도보 15분",
+      "commute": "강남역 기준 약 70분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 464221822
+      },
+      {
+        "month": "1월",
+        "price": 448500356
+      },
+      {
+        "month": "2월",
+        "price": 453050611
+      },
+      {
+        "month": "3월",
+        "price": 448124902
+      },
+      {
+        "month": "4월",
+        "price": 463303321
+      },
+      {
+        "month": "5월",
+        "price": 427872618
+      }
+    ]
+  },
+  {
+    "id": "gm-007",
+    "title": "간석래미안자이 85",
+    "address": "인천광역시 남동구 간석동",
+    "coordinates": {
+      "lat": 37.447843,
+      "lng": 126.723787
+    },
+    "region": "인천 남동구",
+    "propertyType": "아파트",
+    "price": 486070926,
+    "actualTransactionPrice": 552000000,
+    "discountRate": 11.9,
+    "urgentScore": 90,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "22층",
+    "builtYear": 2008,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-03",
+    "recentTransactionDate": "2026-04-26",
+    "description": "인천 남동구 생활권의 실거래 대비 11.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 460000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 455,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "남동구 지하철역 도보 4분",
+      "school": "남동구 중학교 도보 10분",
+      "mart": "롯데마트 남동구점 차량 8분",
+      "hospital": "남동구 의료원 차량 9분",
+      "park": "남동구 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 56분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 552411160
+      },
+      {
+        "month": "1월",
+        "price": 541282710
+      },
+      {
+        "month": "2월",
+        "price": 535563519
+      },
+      {
+        "month": "3월",
+        "price": 565204698
+      },
+      {
+        "month": "4월",
+        "price": 566930691
+      },
+      {
+        "month": "5월",
+        "price": 486070926
+      }
+    ]
+  },
+  {
+    "id": "gm-008",
+    "title": "동탄파크푸르지오 85",
+    "address": "경기도 화성시 동탄구 영천동",
+    "coordinates": {
+      "lat": 37.204567,
+      "lng": 126.824
+    },
+    "region": "경기 화성시",
+    "propertyType": "아파트",
+    "price": 517316493,
+    "actualTransactionPrice": 585000000,
+    "discountRate": 11.6,
+    "urgentScore": 89,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "7층",
+    "builtYear": 2018,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-16",
+    "recentTransactionDate": "2026-04-19",
+    "description": "경기 화성시 생활권의 실거래 대비 11.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 460000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 94,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "화성시 지하철역 도보 7분",
+      "school": "화성시 초등학교 도보 4분",
+      "mart": "홈플러스 화성시점 차량 9분",
+      "hospital": "화성시 종합병원 차량 5분",
+      "park": "화성시 체육공원 도보 15분",
+      "commute": "강남역 기준 약 18분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 599236053
+      },
+      {
+        "month": "1월",
+        "price": 569648565
+      },
+      {
+        "month": "2월",
+        "price": 595518715
+      },
+      {
+        "month": "3월",
+        "price": 568188171
+      },
+      {
+        "month": "4월",
+        "price": 596098600
+      },
+      {
+        "month": "5월",
+        "price": 517316493
+      }
+    ]
+  },
+  {
+    "id": "gm-009",
+    "title": "하나 37",
+    "address": "인천광역시 계양구 계산동",
+    "coordinates": {
+      "lat": 37.535991,
+      "lng": 126.740212
+    },
+    "region": "인천 계양구",
+    "propertyType": "아파트",
+    "price": 133150309,
+    "actualTransactionPrice": 151000000,
+    "discountRate": 11.8,
+    "urgentScore": 90,
+    "area": 37,
+    "supplyArea": 49,
+    "floor": "5층",
+    "builtYear": 1988,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-14",
+    "description": "인천 계양구 생활권의 실거래 대비 11.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 390000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 261,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "계양구 지하철역 도보 15분",
+      "school": "계양구 초등학교 도보 5분",
+      "mart": "롯데마트 계양구점 차량 3분",
+      "hospital": "계양구 대학병원 차량 6분",
+      "park": "계양구 수변공원 도보 10분",
+      "commute": "강남역 기준 약 53분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 154272987
+      },
+      {
+        "month": "1월",
+        "price": 153367958
+      },
+      {
+        "month": "2월",
+        "price": 152432636
+      },
+      {
+        "month": "3월",
+        "price": 150600168
+      },
+      {
+        "month": "4월",
+        "price": 148681482
+      },
+      {
+        "month": "5월",
+        "price": 133150309
+      }
+    ]
+  },
+  {
+    "id": "gm-010",
+    "title": "우성 60",
+    "address": "인천광역시 서구 연희동",
+    "coordinates": {
+      "lat": 37.538715,
+      "lng": 126.676425
+    },
+    "region": "인천 서구",
+    "propertyType": "아파트",
+    "price": 128867097,
+    "actualTransactionPrice": 143500000,
+    "discountRate": 10.2,
+    "urgentScore": 86,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "11층",
+    "builtYear": 1997,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-03",
+    "recentTransactionDate": "2026-05-04",
+    "description": "인천 서구 생활권의 실거래 대비 10.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 170000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 627,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "서구 지하철역 도보 5분",
+      "school": "서구 초등학교 도보 7분",
+      "mart": "롯데마트 서구점 차량 4분",
+      "hospital": "서구 종합병원 차량 12분",
+      "park": "서구 체육공원 도보 5분",
+      "commute": "강남역 기준 약 35분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 140309376
+      },
+      {
+        "month": "1월",
+        "price": 139389507
+      },
+      {
+        "month": "2월",
+        "price": 142028350
+      },
+      {
+        "month": "3월",
+        "price": 147402108
+      },
+      {
+        "month": "4월",
+        "price": 147671428
+      },
+      {
+        "month": "5월",
+        "price": 128867097
+      }
+    ]
+  },
+  {
+    "id": "gm-011",
+    "title": "하나 60",
+    "address": "인천광역시 계양구 효성동",
+    "coordinates": {
+      "lat": 37.538239,
+      "lng": 126.738238
+    },
+    "region": "인천 계양구",
+    "propertyType": "아파트",
+    "price": 129560563,
+    "actualTransactionPrice": 151000000,
+    "discountRate": 14.2,
+    "urgentScore": 96,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "2층",
+    "builtYear": 1996,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-02",
+    "recentTransactionDate": "2026-04-10",
+    "description": "인천 계양구 생활권의 실거래 대비 14.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 410000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 584,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "계양구 지하철역 도보 15분",
+      "school": "계양구 초등학교 도보 12분",
+      "mart": "이마트 계양구점 차량 9분",
+      "hospital": "계양구 대학병원 차량 6분",
+      "park": "계양구 수변공원 도보 6분",
+      "commute": "강남역 기준 약 64분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 150638501
+      },
+      {
+        "month": "1월",
+        "price": 151872639
+      },
+      {
+        "month": "2월",
+        "price": 151566483
+      },
+      {
+        "month": "3월",
+        "price": 148853182
+      },
+      {
+        "month": "4월",
+        "price": 153603663
+      },
+      {
+        "month": "5월",
+        "price": 129560563
+      }
+    ]
+  },
+  {
+    "id": "gm-012",
+    "title": "진우 50",
+    "address": "경기도 화성시 만세구 팔탄면 가재리",
+    "coordinates": {
+      "lat": 37.201063,
+      "lng": 126.828051
+    },
+    "region": "경기 화성시",
+    "propertyType": "아파트",
+    "price": 136560332,
+    "actualTransactionPrice": 154000000,
+    "discountRate": 11.3,
+    "urgentScore": 88,
+    "area": 50,
+    "supplyArea": 66,
+    "floor": "1층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-10",
+    "recentTransactionDate": "2026-04-25",
+    "description": "경기 화성시 생활권의 실거래 대비 11.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 320000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 458,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "화성시 지하철역 도보 4분",
+      "school": "화성시 중학교 도보 4분",
+      "mart": "홈플러스 화성시점 차량 8분",
+      "hospital": "화성시 대학병원 차량 10분",
+      "park": "화성시 수변공원 도보 10분",
+      "commute": "강남역 기준 약 67분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 154954222
+      },
+      {
+        "month": "1월",
+        "price": 151528712
+      },
+      {
+        "month": "2월",
+        "price": 150382307
+      },
+      {
+        "month": "3월",
+        "price": 150630933
+      },
+      {
+        "month": "4월",
+        "price": 153101627
+      },
+      {
+        "month": "5월",
+        "price": 136560332
+      }
+    ]
+  },
+  {
+    "id": "gm-013",
+    "title": "충무주공(872) 44",
+    "address": "경기도 군포시 금정동",
+    "coordinates": {
+      "lat": 37.368787,
+      "lng": 126.937864
+    },
+    "region": "경기 군포시",
+    "propertyType": "아파트",
+    "price": 296868110,
+    "actualTransactionPrice": 326500000,
+    "discountRate": 9.1,
+    "urgentScore": 83,
+    "area": 44,
+    "supplyArea": 59,
+    "floor": "15층",
+    "builtYear": 1993,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-07",
+    "recentTransactionDate": "2026-04-13",
+    "description": "경기 군포시 생활권의 실거래 대비 9.1% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 160000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 174,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "군포시 지하철역 도보 6분",
+      "school": "군포시 초등학교 도보 12분",
+      "mart": "롯데마트 군포시점 차량 8분",
+      "hospital": "군포시 의료원 차량 9분",
+      "park": "군포시 수변공원 도보 5분",
+      "commute": "강남역 기준 약 33분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 322757175
+      },
+      {
+        "month": "1월",
+        "price": 330051107
+      },
+      {
+        "month": "2월",
+        "price": 330749539
+      },
+      {
+        "month": "3월",
+        "price": 322978116
+      },
+      {
+        "month": "4월",
+        "price": 328080267
+      },
+      {
+        "month": "5월",
+        "price": 296868110
+      }
+    ]
+  },
+  {
+    "id": "gm-014",
+    "title": "한승미메이드 85",
+    "address": "경기도 화성시 병점구 송산동",
+    "coordinates": {
+      "lat": 37.197311,
+      "lng": 126.828077
+    },
+    "region": "경기 화성시",
+    "propertyType": "아파트",
+    "price": 459260417,
+    "actualTransactionPrice": 540000000,
+    "discountRate": 15,
+    "urgentScore": 98,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "6층",
+    "builtYear": 2008,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-24",
+    "description": "경기 화성시 생활권의 실거래 대비 15% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 210000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 414,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "화성시 지하철역 도보 6분",
+      "school": "화성시 초등학교 도보 15분",
+      "mart": "홈플러스 화성시점 차량 7분",
+      "hospital": "화성시 종합병원 차량 11분",
+      "park": "화성시 근린공원 도보 7분",
+      "commute": "강남역 기준 약 57분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 534398472
+      },
+      {
+        "month": "1월",
+        "price": 546236944
+      },
+      {
+        "month": "2월",
+        "price": 528267083
+      },
+      {
+        "month": "3월",
+        "price": 542188889
+      },
+      {
+        "month": "4월",
+        "price": 526102361
+      },
+      {
+        "month": "5월",
+        "price": 459260417
+      }
+    ]
+  },
+  {
+    "id": "gm-015",
+    "title": "송정그린빌 60",
+    "address": "경기도 안성시 공도읍 양기리",
+    "coordinates": {
+      "lat": 37.009335,
+      "lng": 127.27239
+    },
+    "region": "경기 안성시",
+    "propertyType": "아파트",
+    "price": 128627218,
+    "actualTransactionPrice": 137500000,
+    "discountRate": 6.5,
+    "urgentScore": 76,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "10층",
+    "builtYear": 2001,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-04-23",
+    "description": "경기 안성시 생활권의 실거래 대비 6.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 360000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 280,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "안성시 지하철역 도보 12분",
+      "school": "안성시 고등학교 도보 4분",
+      "mart": "홈플러스 안성시점 차량 10분",
+      "hospital": "안성시 종합병원 차량 14분",
+      "park": "안성시 근린공원 도보 6분",
+      "commute": "강남역 기준 약 16분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 136739223
+      },
+      {
+        "month": "1월",
+        "price": 133508857
+      },
+      {
+        "month": "2월",
+        "price": 134375907
+      },
+      {
+        "month": "3월",
+        "price": 138551019
+      },
+      {
+        "month": "4월",
+        "price": 138522621
+      },
+      {
+        "month": "5월",
+        "price": 128627218
+      }
+    ]
+  },
+  {
+    "id": "gm-016",
+    "title": "양평역한라비발디 84",
+    "address": "경기도 양평군 양평읍 양근리",
+    "coordinates": {
+      "lat": 37.41176,
+      "lng": 127.519303
+    },
+    "region": "경기 양평군",
+    "propertyType": "아파트",
+    "price": 457942689,
+    "actualTransactionPrice": 515000000,
+    "discountRate": 11.1,
+    "urgentScore": 88,
+    "area": 84,
+    "supplyArea": 112,
+    "floor": "17층",
+    "builtYear": 2023,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-02",
+    "description": "경기 양평군 생활권의 실거래 대비 11.1% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 180000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 963,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "양평군 지하철역 도보 12분",
+      "school": "양평군 고등학교 도보 15분",
+      "mart": "홈플러스 양평군점 차량 7분",
+      "hospital": "양평군 의료원 차량 15분",
+      "park": "양평군 중앙공원 도보 7분",
+      "commute": "강남역 기준 약 61분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 508849538
+      },
+      {
+        "month": "1월",
+        "price": 511985766
+      },
+      {
+        "month": "2월",
+        "price": 512443677
+      },
+      {
+        "month": "3월",
+        "price": 507266788
+      },
+      {
+        "month": "4월",
+        "price": 530120840
+      },
+      {
+        "month": "5월",
+        "price": 457942689
+      }
+    ]
+  },
+  {
+    "id": "gm-017",
+    "title": "주공6 36",
+    "address": "경기도 광명시 하안동",
+    "coordinates": {
+      "lat": 37.477884,
+      "lng": 126.867016
+    },
+    "region": "경기 광명시",
+    "propertyType": "아파트",
+    "price": 415893704,
+    "actualTransactionPrice": 444000000,
+    "discountRate": 6.3,
+    "urgentScore": 76,
+    "area": 36,
+    "supplyArea": 48,
+    "floor": "15층",
+    "builtYear": 1990,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-14",
+    "recentTransactionDate": "2026-05-11",
+    "description": "경기 광명시 생활권의 실거래 대비 6.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 290000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 486,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "광명시 지하철역 도보 10분",
+      "school": "광명시 중학교 도보 7분",
+      "mart": "홈플러스 광명시점 차량 5분",
+      "hospital": "광명시 의료원 차량 11분",
+      "park": "광명시 수변공원 도보 10분",
+      "commute": "강남역 기준 약 69분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 450836549
+      },
+      {
+        "month": "1월",
+        "price": 446695404
+      },
+      {
+        "month": "2월",
+        "price": 451345185
+      },
+      {
+        "month": "3월",
+        "price": 435597003
+      },
+      {
+        "month": "4월",
+        "price": 455115302
+      },
+      {
+        "month": "5월",
+        "price": 415893704
+      }
+    ]
+  },
+  {
+    "id": "gm-018",
+    "title": "진달래마을(효성) 85",
+    "address": "경기도 부천시 원미구 상동",
+    "coordinates": {
+      "lat": 37.505708,
+      "lng": 126.759029
+    },
+    "region": "경기 부천시",
+    "propertyType": "아파트",
+    "price": 751694184,
+    "actualTransactionPrice": 832500000,
+    "discountRate": 9.7,
+    "urgentScore": 84,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "2층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-08",
+    "recentTransactionDate": "2026-04-15",
+    "description": "경기 부천시 생활권의 실거래 대비 9.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 250000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 72,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부천시 지하철역 도보 7분",
+      "school": "부천시 초등학교 도보 6분",
+      "mart": "코스트코 부천시점 차량 9분",
+      "hospital": "부천시 의료원 차량 11분",
+      "park": "부천시 중앙공원 도보 10분",
+      "commute": "강남역 기준 약 23분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 833738686
+      },
+      {
+        "month": "1월",
+        "price": 825627164
+      },
+      {
+        "month": "2월",
+        "price": 854811128
+      },
+      {
+        "month": "3월",
+        "price": 816611412
+      },
+      {
+        "month": "4월",
+        "price": 815398848
+      },
+      {
+        "month": "5월",
+        "price": 751694184
+      }
+    ]
+  },
+  {
+    "id": "gm-019",
+    "title": "장미 50",
+    "address": "경기도 평택시 지산동",
+    "coordinates": {
+      "lat": 36.993932,
+      "lng": 127.113442
+    },
+    "region": "경기 평택시",
+    "propertyType": "아파트",
+    "price": 133743422,
+    "actualTransactionPrice": 146500000,
+    "discountRate": 8.7,
+    "urgentScore": 82,
+    "area": 50,
+    "supplyArea": 66,
+    "floor": "2층",
+    "builtYear": 1994,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-16",
+    "recentTransactionDate": "2026-05-07",
+    "description": "경기 평택시 생활권의 실거래 대비 8.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 320000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 865,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "평택시 지하철역 도보 12분",
+      "school": "평택시 중학교 도보 5분",
+      "mart": "롯데마트 평택시점 차량 10분",
+      "hospital": "평택시 의료원 차량 11분",
+      "park": "평택시 수변공원 도보 6분",
+      "commute": "강남역 기준 약 24분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 145229580
+      },
+      {
+        "month": "1월",
+        "price": 145938605
+      },
+      {
+        "month": "2월",
+        "price": 148083240
+      },
+      {
+        "month": "3월",
+        "price": 150822466
+      },
+      {
+        "month": "4월",
+        "price": 146153042
+      },
+      {
+        "month": "5월",
+        "price": 133743422
+      }
+    ]
+  },
+  {
+    "id": "gm-020",
+    "title": "성지 73",
+    "address": "경기도 부천시 소사구 소사본동",
+    "coordinates": {
+      "lat": 37.497956,
+      "lng": 126.771055
+    },
+    "region": "경기 부천시",
+    "propertyType": "아파트",
+    "price": 338831867,
+    "actualTransactionPrice": 380000000,
+    "discountRate": 10.8,
+    "urgentScore": 87,
+    "area": 73,
+    "supplyArea": 97,
+    "floor": "7층",
+    "builtYear": 1988,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-16",
+    "recentTransactionDate": "2026-05-08",
+    "description": "경기 부천시 생활권의 실거래 대비 10.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 400000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 979,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부천시 지하철역 도보 7분",
+      "school": "부천시 중학교 도보 15분",
+      "mart": "홈플러스 부천시점 차량 6분",
+      "hospital": "부천시 종합병원 차량 9분",
+      "park": "부천시 근린공원 도보 5분",
+      "commute": "강남역 기준 약 55분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 391369017
+      },
+      {
+        "month": "1월",
+        "price": 381649794
+      },
+      {
+        "month": "2월",
+        "price": 385154336
+      },
+      {
+        "month": "3월",
+        "price": 376901163
+      },
+      {
+        "month": "4월",
+        "price": 381731013
+      },
+      {
+        "month": "5월",
+        "price": 338831867
+      }
+    ]
+  },
+  {
+    "id": "gm-021",
+    "title": "포스코더샵2차 84",
+    "address": "경기도 화성시 동탄구 능동",
+    "coordinates": {
+      "lat": 37.19168,
+      "lng": 126.833668
+    },
+    "region": "경기 화성시",
+    "propertyType": "아파트",
+    "price": 557377546,
+    "actualTransactionPrice": 645000000,
+    "discountRate": 13.6,
+    "urgentScore": 94,
+    "area": 84,
+    "supplyArea": 112,
+    "floor": "19층",
+    "builtYear": 2008,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-05-10",
+    "description": "경기 화성시 생활권의 실거래 대비 13.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 430000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 398,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "화성시 지하철역 도보 4분",
+      "school": "화성시 중학교 도보 5분",
+      "mart": "이마트 화성시점 차량 10분",
+      "hospital": "화성시 의료원 차량 14분",
+      "park": "화성시 수변공원 도보 5분",
+      "commute": "강남역 기준 약 49분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 633556890
+      },
+      {
+        "month": "1월",
+        "price": 645816038
+      },
+      {
+        "month": "2월",
+        "price": 657945787
+      },
+      {
+        "month": "3월",
+        "price": 627543360
+      },
+      {
+        "month": "4월",
+        "price": 635472647
+      },
+      {
+        "month": "5월",
+        "price": 557377546
+      }
+    ]
+  },
+  {
+    "id": "gm-022",
+    "title": "루원시티센트럴타운 85",
+    "address": "인천광역시 서구 신현동",
+    "coordinates": {
+      "lat": 37.552204,
+      "lng": 126.680581
+    },
+    "region": "인천 서구",
+    "propertyType": "아파트",
+    "price": 461910417,
+    "actualTransactionPrice": 540000000,
+    "discountRate": 14.5,
+    "urgentScore": 96,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "9층",
+    "builtYear": 2017,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-07",
+    "description": "인천 서구 생활권의 실거래 대비 14.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 290000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 924,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "서구 지하철역 도보 8분",
+      "school": "서구 고등학교 도보 10분",
+      "mart": "홈플러스 서구점 차량 4분",
+      "hospital": "서구 의료원 차량 11분",
+      "park": "서구 중앙공원 도보 15분",
+      "commute": "강남역 기준 약 45분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 547208472
+      },
+      {
+        "month": "1월",
+        "price": 524846944
+      },
+      {
+        "month": "2월",
+        "price": 548277083
+      },
+      {
+        "month": "3월",
+        "price": 549598889
+      },
+      {
+        "month": "4월",
+        "price": 531712361
+      },
+      {
+        "month": "5월",
+        "price": 461910417
+      }
+    ]
+  },
+  {
+    "id": "gm-023",
+    "title": "삼성 85",
+    "address": "경기도 수원시 영통구 영통동",
+    "coordinates": {
+      "lat": 37.265928,
+      "lng": 127.021194
+    },
+    "region": "경기 수원시",
+    "propertyType": "아파트",
+    "price": 211019606,
+    "actualTransactionPrice": 237000000,
+    "discountRate": 11,
+    "urgentScore": 88,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "1층",
+    "builtYear": 1997,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-15",
+    "recentTransactionDate": "2026-04-20",
+    "description": "경기 수원시 생활권의 실거래 대비 11% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 270000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 60,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "수원시 지하철역 도보 10분",
+      "school": "수원시 초등학교 도보 6분",
+      "mart": "코스트코 수원시점 차량 3분",
+      "hospital": "수원시 종합병원 차량 8분",
+      "park": "수원시 근린공원 도보 6분",
+      "commute": "강남역 기준 약 32분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 234200864
+      },
+      {
+        "month": "1월",
+        "price": 242062888
+      },
+      {
+        "month": "2월",
+        "price": 233287366
+      },
+      {
+        "month": "3월",
+        "price": 234953742
+      },
+      {
+        "month": "4월",
+        "price": 234114793
+      },
+      {
+        "month": "5월",
+        "price": 211019606
+      }
+    ]
+  },
+  {
+    "id": "gm-024",
+    "title": "한솔마을(4단지)(주공) 35",
+    "address": "경기도 성남시 분당구 정자동",
+    "coordinates": {
+      "lat": 37.427252,
+      "lng": 127.119607
+    },
+    "region": "경기 성남시",
+    "propertyType": "아파트",
+    "price": 894116512,
+    "actualTransactionPrice": 1000000000,
+    "discountRate": 10.6,
+    "urgentScore": 87,
+    "area": 35,
+    "supplyArea": 47,
+    "floor": "12층",
+    "builtYear": 1994,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-13",
+    "description": "경기 성남시 생활권의 실거래 대비 10.6% 저렴한 매물입니다.",
+    "parking": "세대당 0.8대",
+    "maintenanceFee": 270000,
+    "moveInDate": "협의 가능",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 99,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "성남시 지하철역 도보 4분",
+      "school": "성남시 고등학교 도보 12분",
+      "mart": "롯데마트 성남시점 차량 5분",
+      "hospital": "성남시 대학병원 차량 15분",
+      "park": "성남시 수변공원 도보 15분",
+      "commute": "강남역 기준 약 49분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 1011779578
+      },
+      {
+        "month": "1월",
+        "price": 1014536008
+      },
+      {
+        "month": "2월",
+        "price": 972091821
+      },
+      {
+        "month": "3월",
+        "price": 998706276
+      },
+      {
+        "month": "4월",
+        "price": 979749743
+      },
+      {
+        "month": "5월",
+        "price": 894116512
+      }
+    ]
+  },
+  {
+    "id": "gm-025",
+    "title": "성일 50",
+    "address": "경기도 수원시 영통구 매탄동",
+    "coordinates": {
+      "lat": 37.264176,
+      "lng": 127.03122
+    },
+    "region": "경기 수원시",
+    "propertyType": "아파트",
+    "price": 198382099,
+    "actualTransactionPrice": 222500000,
+    "discountRate": 10.8,
+    "urgentScore": 87,
+    "area": 50,
+    "supplyArea": 66,
+    "floor": "6층",
+    "builtYear": 1989,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-04-09",
+    "description": "경기 수원시 생활권의 실거래 대비 10.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 200000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 311,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "수원시 지하철역 도보 7분",
+      "school": "수원시 고등학교 도보 12분",
+      "mart": "코스트코 수원시점 차량 7분",
+      "hospital": "수원시 의료원 차량 5분",
+      "park": "수원시 수변공원 도보 10분",
+      "commute": "강남역 기준 약 29분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 224529168
+      },
+      {
+        "month": "1월",
+        "price": 221712265
+      },
+      {
+        "month": "2월",
+        "price": 227750725
+      },
+      {
+        "month": "3월",
+        "price": 228017233
+      },
+      {
+        "month": "4월",
+        "price": 223706696
+      },
+      {
+        "month": "5월",
+        "price": 198382099
+      }
+    ]
+  },
+  {
+    "id": "gm-026",
+    "title": "현대아파트 85",
+    "address": "경기도 안양시 만안구 석수동",
+    "coordinates": {
+      "lat": 37.3895,
+      "lng": 126.957933
+    },
+    "region": "경기 안양시",
+    "propertyType": "아파트",
+    "price": 567402103,
+    "actualTransactionPrice": 625000000,
+    "discountRate": 9.2,
+    "urgentScore": 83,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "15층",
+    "builtYear": 1999,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-14",
+    "recentTransactionDate": "2026-04-27",
+    "description": "경기 안양시 생활권의 실거래 대비 9.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 330000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 689,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "안양시 지하철역 도보 10분",
+      "school": "안양시 고등학교 도보 5분",
+      "mart": "코스트코 안양시점 차량 7분",
+      "hospital": "안양시 대학병원 차량 10분",
+      "park": "안양시 수변공원 도보 5분",
+      "commute": "강남역 기준 약 67분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 640756334
+      },
+      {
+        "month": "1월",
+        "price": 632583269
+      },
+      {
+        "month": "2월",
+        "price": 627409819
+      },
+      {
+        "month": "3월",
+        "price": 621648020
+      },
+      {
+        "month": "4월",
+        "price": 618654353
+      },
+      {
+        "month": "5월",
+        "price": 567402103
+      }
+    ]
+  },
+  {
+    "id": "gm-027",
+    "title": "백현마을경남아너스빌 85",
+    "address": "경기도 용인시 기흥구 동백동",
+    "coordinates": {
+      "lat": 37.243824,
+      "lng": 127.178246
+    },
+    "region": "경기 용인시",
+    "propertyType": "아파트",
+    "price": 385751231,
+    "actualTransactionPrice": 444500000,
+    "discountRate": 13.2,
+    "urgentScore": 93,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "15층",
+    "builtYear": 2006,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-13",
+    "recentTransactionDate": "2026-05-04",
+    "description": "경기 용인시 생활권의 실거래 대비 13.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 220000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 646,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "용인시 지하철역 도보 8분",
+      "school": "용인시 고등학교 도보 8분",
+      "mart": "이마트 용인시점 차량 4분",
+      "hospital": "용인시 의료원 차량 5분",
+      "park": "용인시 수변공원 도보 6분",
+      "commute": "강남역 기준 약 40분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 437854908
+      },
+      {
+        "month": "1월",
+        "price": 438524516
+      },
+      {
+        "month": "2월",
+        "price": 452439950
+      },
+      {
+        "month": "3월",
+        "price": 450379450
+      },
+      {
+        "month": "4월",
+        "price": 434730146
+      },
+      {
+        "month": "5월",
+        "price": 385751231
+      }
+    ]
+  },
+  {
+    "id": "gm-028",
+    "title": "동탄역 신미주 85",
+    "address": "경기도 화성시 동탄구 여울동",
+    "coordinates": {
+      "lat": 37.203048,
+      "lng": 126.828259
+    },
+    "region": "경기 화성시",
+    "propertyType": "아파트",
+    "price": 537852473,
+    "actualTransactionPrice": 599900000,
+    "discountRate": 10.3,
+    "urgentScore": 86,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "7층",
+    "builtYear": 2005,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-19",
+    "description": "경기 화성시 생활권의 실거래 대비 10.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 490000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 108,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "화성시 지하철역 도보 10분",
+      "school": "화성시 초등학교 도보 10분",
+      "mart": "롯데마트 화성시점 차량 4분",
+      "hospital": "화성시 의료원 차량 9분",
+      "park": "화성시 중앙공원 도보 10분",
+      "commute": "강남역 기준 약 43분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 596085050
+      },
+      {
+        "month": "1월",
+        "price": 614735799
+      },
+      {
+        "month": "2월",
+        "price": 594272697
+      },
+      {
+        "month": "3월",
+        "price": 603239875
+      },
+      {
+        "month": "4월",
+        "price": 608865018
+      },
+      {
+        "month": "5월",
+        "price": 537852473
+      }
+    ]
+  },
+  {
+    "id": "gm-029",
+    "title": "현대3 60",
+    "address": "인천광역시 서구 가좌동",
+    "coordinates": {
+      "lat": 37.538572,
+      "lng": 126.678172
+    },
+    "region": "인천 서구",
+    "propertyType": "아파트",
+    "price": 155320910,
+    "actualTransactionPrice": 169000000,
+    "discountRate": 8.1,
+    "urgentScore": 80,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "21층",
+    "builtYear": 1998,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-02",
+    "recentTransactionDate": "2026-05-07",
+    "description": "인천 서구 생활권의 실거래 대비 8.1% 저렴한 매물입니다.",
+    "parking": "세대당 1.2대",
+    "maintenanceFee": 330000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 223,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "서구 지하철역 도보 12분",
+      "school": "서구 초등학교 도보 7분",
+      "mart": "코스트코 서구점 차량 4분",
+      "hospital": "서구 종합병원 차량 8분",
+      "park": "서구 중앙공원 도보 5분",
+      "commute": "강남역 기준 약 65분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 164940783
+      },
+      {
+        "month": "1월",
+        "price": 167589537
+      },
+      {
+        "month": "2월",
+        "price": 173584386
+      },
+      {
+        "month": "3월",
+        "price": 171815145
+      },
+      {
+        "month": "4월",
+        "price": 173329408
+      },
+      {
+        "month": "5월",
+        "price": 155320910
+      }
+    ]
+  },
+  {
+    "id": "gm-030",
+    "title": "일성 68",
+    "address": "경기도 성남시 중원구 상대원동",
+    "coordinates": {
+      "lat": 37.419997,
+      "lng": 127.123685
+    },
+    "region": "경기 성남시",
+    "propertyType": "아파트",
+    "price": 253787635,
+    "actualTransactionPrice": 295000000,
+    "discountRate": 14,
+    "urgentScore": 95,
+    "area": 68,
+    "supplyArea": 90,
+    "floor": "7층",
+    "builtYear": 1993,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-04-18",
+    "description": "경기 성남시 생활권의 실거래 대비 14% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 370000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 464,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "성남시 지하철역 도보 15분",
+      "school": "성남시 고등학교 도보 8분",
+      "mart": "롯데마트 성남시점 차량 10분",
+      "hospital": "성남시 대학병원 차량 10분",
+      "park": "성남시 체육공원 도보 7분",
+      "commute": "강남역 기준 약 33분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 288236017
+      },
+      {
+        "month": "1월",
+        "price": 292736664
+      },
+      {
+        "month": "2월",
+        "price": 292753129
+      },
+      {
+        "month": "3월",
+        "price": 286591893
+      },
+      {
+        "month": "4월",
+        "price": 293537216
+      },
+      {
+        "month": "5월",
+        "price": 253787635
+      }
+    ]
+  },
+  {
+    "id": "gm-031",
+    "title": "중앙하이츠빌 59",
+    "address": "서울특별시 동대문구 이문동",
+    "coordinates": {
+      "lat": 37.577721,
+      "lng": 127.032398
+    },
+    "region": "서울 동대문구",
+    "propertyType": "아파트",
+    "price": 196619383,
+    "actualTransactionPrice": 208000000,
+    "discountRate": 5.5,
+    "urgentScore": 74,
+    "area": 59,
+    "supplyArea": 79,
+    "floor": "11층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-04-17",
+    "description": "서울 동대문구 생활권의 실거래 대비 5.5% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 170000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 82,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "동대문구 지하철역 도보 7분",
+      "school": "동대문구 중학교 도보 10분",
+      "mart": "롯데마트 동대문구점 차량 5분",
+      "hospital": "동대문구 대학병원 차량 13분",
+      "park": "동대문구 근린공원 도보 6분",
+      "commute": "강남역 기준 약 48분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 204237597
+      },
+      {
+        "month": "1월",
+        "price": 210444267
+      },
+      {
+        "month": "2월",
+        "price": 206209210
+      },
+      {
+        "month": "3월",
+        "price": 202818350
+      },
+      {
+        "month": "4월",
+        "price": 213868724
+      },
+      {
+        "month": "5월",
+        "price": 196619383
+      }
+    ]
+  },
+  {
+    "id": "gm-032",
+    "title": "호계2차현대홈타운 60",
+    "address": "경기도 안양시 동안구 호계동",
+    "coordinates": {
+      "lat": 37.394245,
+      "lng": 126.958011
+    },
+    "region": "경기 안양시",
+    "propertyType": "아파트",
+    "price": 552899711,
+    "actualTransactionPrice": 615000000,
+    "discountRate": 10.1,
+    "urgentScore": 85,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "15층",
+    "builtYear": 2003,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-16",
+    "recentTransactionDate": "2026-04-24",
+    "description": "경기 안양시 생활권의 실거래 대비 10.1% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 350000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 525,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "안양시 지하철역 도보 6분",
+      "school": "안양시 고등학교 도보 10분",
+      "mart": "롯데마트 안양시점 차량 3분",
+      "hospital": "안양시 종합병원 차량 14분",
+      "park": "안양시 근린공원 도보 7분",
+      "commute": "강남역 기준 약 37분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 599933607
+      },
+      {
+        "month": "1월",
+        "price": 599578812
+      },
+      {
+        "month": "2월",
+        "price": 620625637
+      },
+      {
+        "month": "3월",
+        "price": 622643526
+      },
+      {
+        "month": "4월",
+        "price": 608935258
+      },
+      {
+        "month": "5월",
+        "price": 552899711
+      }
+    ]
+  },
+  {
+    "id": "gm-033",
+    "title": "장안현대홈타운(336) 85",
+    "address": "서울특별시 동대문구 장안동",
+    "coordinates": {
+      "lat": 37.575969,
+      "lng": 127.042424
+    },
+    "region": "서울 동대문구",
+    "propertyType": "아파트",
+    "price": 1110258981,
+    "actualTransactionPrice": 1173000000,
+    "discountRate": 5.3,
+    "urgentScore": 73,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "6층",
+    "builtYear": 2003,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-09",
+    "recentTransactionDate": "2026-05-06",
+    "description": "서울 동대문구 생활권의 실거래 대비 5.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 460000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 136,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "동대문구 지하철역 도보 6분",
+      "school": "동대문구 초등학교 도보 5분",
+      "mart": "롯데마트 동대문구점 차량 9분",
+      "hospital": "동대문구 종합병원 차량 10분",
+      "park": "동대문구 중앙공원 도보 10분",
+      "commute": "강남역 기준 약 45분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 1176333758
+      },
+      {
+        "month": "1월",
+        "price": 1157573300
+      },
+      {
+        "month": "2월",
+        "price": 1138577519
+      },
+      {
+        "month": "3월",
+        "price": 1182992524
+      },
+      {
+        "month": "4월",
+        "price": 1156357761
+      },
+      {
+        "month": "5월",
+        "price": 1110258981
+      }
+    ]
+  },
+  {
+    "id": "gm-034",
+    "title": "범박파밀리에포레스트 84",
+    "address": "경기도 부천시 소사구 범박동",
+    "coordinates": {
+      "lat": 37.507693,
+      "lng": 126.759237
+    },
+    "region": "경기 부천시",
+    "propertyType": "아파트",
+    "price": 506576678,
+    "actualTransactionPrice": 555000000,
+    "discountRate": 8.7,
+    "urgentScore": 82,
+    "area": 84,
+    "supplyArea": 112,
+    "floor": "5층",
+    "builtYear": 2011,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-03",
+    "recentTransactionDate": "2026-05-10",
+    "description": "경기 부천시 생활권의 실거래 대비 8.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 410000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 1883,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부천시 지하철역 도보 4분",
+      "school": "부천시 고등학교 도보 15분",
+      "mart": "이마트 부천시점 차량 5분",
+      "hospital": "부천시 종합병원 차량 10분",
+      "park": "부천시 근린공원 도보 10분",
+      "commute": "강남역 기준 약 55분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 548857458
+      },
+      {
+        "month": "1월",
+        "price": 539749776
+      },
+      {
+        "month": "2월",
+        "price": 544405752
+      },
+      {
+        "month": "3월",
+        "price": 559639275
+      },
+      {
+        "month": "4월",
+        "price": 555130899
+      },
+      {
+        "month": "5월",
+        "price": 506576678
+      }
+    ]
+  },
+  {
+    "id": "gm-035",
+    "title": "벽산베스트블루밍 85",
+    "address": "서울특별시 구로구 고척동",
+    "coordinates": {
+      "lat": 37.499217,
+      "lng": 126.88815
+    },
+    "region": "서울 구로구",
+    "propertyType": "아파트",
+    "price": 812010494,
+    "actualTransactionPrice": 880000000,
+    "discountRate": 7.7,
+    "urgentScore": 79,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "10층",
+    "builtYear": 2010,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-10",
+    "recentTransactionDate": "2026-04-01",
+    "description": "서울 구로구 생활권의 실거래 대비 7.7% 저렴한 매물입니다.",
+    "parking": "세대당 0.8대",
+    "maintenanceFee": 480000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 927,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "구로구 지하철역 도보 6분",
+      "school": "구로구 초등학교 도보 12분",
+      "mart": "코스트코 구로구점 차량 6분",
+      "hospital": "구로구 종합병원 차량 10분",
+      "park": "구로구 수변공원 도보 6분",
+      "commute": "강남역 기준 약 55분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 861319918
+      },
+      {
+        "month": "1월",
+        "price": 859712243
+      },
+      {
+        "month": "2월",
+        "price": 901928025
+      },
+      {
+        "month": "3월",
+        "price": 877315412
+      },
+      {
+        "month": "4월",
+        "price": 896200329
+      },
+      {
+        "month": "5월",
+        "price": 812010494
+      }
+    ]
+  },
+  {
+    "id": "gm-036",
+    "title": "의왕역푸르지오라포레 75",
+    "address": "경기도 의왕시 삼동",
+    "coordinates": {
+      "lat": 37.341141,
+      "lng": 126.973562
+    },
+    "region": "경기 의왕시",
+    "propertyType": "아파트",
+    "price": 585960455,
+    "actualTransactionPrice": 650000000,
+    "discountRate": 9.9,
+    "urgentScore": 85,
+    "area": 75,
+    "supplyArea": 100,
+    "floor": "16층",
+    "builtYear": 2019,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-02",
+    "description": "경기 의왕시 생활권의 실거래 대비 9.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 210000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 541,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "의왕시 지하철역 도보 15분",
+      "school": "의왕시 초등학교 도보 8분",
+      "mart": "롯데마트 의왕시점 차량 10분",
+      "hospital": "의왕시 대학병원 차량 8분",
+      "park": "의왕시 체육공원 도보 5분",
+      "commute": "강남역 기준 약 31분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 661285892
+      },
+      {
+        "month": "1월",
+        "price": 640327572
+      },
+      {
+        "month": "2월",
+        "price": 667988850
+      },
+      {
+        "month": "3월",
+        "price": 662538246
+      },
+      {
+        "month": "4월",
+        "price": 666466499
+      },
+      {
+        "month": "5월",
+        "price": 585960455
+      }
+    ]
+  },
+  {
+    "id": "gm-037",
+    "title": "이편한세상광주역1단지 73",
+    "address": "경기도 광주시 역동",
+    "coordinates": {
+      "lat": 37.423665,
+      "lng": 127.258075
+    },
+    "region": "경기 광주시",
+    "propertyType": "아파트",
+    "price": 554968441,
+    "actualTransactionPrice": 635000000,
+    "discountRate": 12.6,
+    "urgentScore": 92,
+    "area": 73,
+    "supplyArea": 97,
+    "floor": "2층",
+    "builtYear": 2016,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-16",
+    "recentTransactionDate": "2026-04-04",
+    "description": "경기 광주시 생활권의 실거래 대비 12.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 230000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 94,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "광주시 지하철역 도보 10분",
+      "school": "광주시 중학교 도보 12분",
+      "mart": "홈플러스 광주시점 차량 6분",
+      "hospital": "광주시 종합병원 차량 13분",
+      "park": "광주시 중앙공원 도보 5분",
+      "commute": "강남역 기준 약 24분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 653861525
+      },
+      {
+        "month": "1월",
+        "price": 623597275
+      },
+      {
+        "month": "2월",
+        "price": 618605633
+      },
+      {
+        "month": "3월",
+        "price": 635241228
+      },
+      {
+        "month": "4월",
+        "price": 638814246
+      },
+      {
+        "month": "5월",
+        "price": 554968441
+      }
+    ]
+  },
+  {
+    "id": "gm-038",
+    "title": "모아미래도1단지아파트 60",
+    "address": "경기도 용인시 기흥구 동백동",
+    "coordinates": {
+      "lat": 37.233689,
+      "lng": 127.182888
+    },
+    "region": "경기 용인시",
+    "propertyType": "아파트",
+    "price": 370307515,
+    "actualTransactionPrice": 428000000,
+    "discountRate": 13.5,
+    "urgentScore": 94,
+    "area": 60,
+    "supplyArea": 79,
+    "floor": "12층",
+    "builtYear": 2006,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-05-01",
+    "description": "경기 용인시 생활권의 실거래 대비 13.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 450000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 986,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "용인시 지하철역 도보 5분",
+      "school": "용인시 고등학교 도보 7분",
+      "mart": "롯데마트 용인시점 차량 8분",
+      "hospital": "용인시 종합병원 차량 10분",
+      "park": "용인시 중앙공원 도보 15분",
+      "commute": "강남역 기준 약 21분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 428339604
+      },
+      {
+        "month": "1월",
+        "price": 433442689
+      },
+      {
+        "month": "2월",
+        "price": 440599910
+      },
+      {
+        "month": "3월",
+        "price": 421674230
+      },
+      {
+        "month": "4월",
+        "price": 430324168
+      },
+      {
+        "month": "5월",
+        "price": 370307515
+      }
+    ]
+  },
+  {
+    "id": "gm-039",
+    "title": "동탄역푸르지오 85",
+    "address": "경기도 화성시 동탄구 영천동",
+    "coordinates": {
+      "lat": 37.203913,
+      "lng": 126.823901
+    },
+    "region": "경기 화성시",
+    "propertyType": "아파트",
+    "price": 810173611,
+    "actualTransactionPrice": 900000000,
+    "discountRate": 10,
+    "urgentScore": 85,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "12층",
+    "builtYear": 2017,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-09",
+    "recentTransactionDate": "2026-04-14",
+    "description": "경기 화성시 생활권의 실거래 대비 10% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 430000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 65,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "화성시 지하철역 도보 5분",
+      "school": "화성시 고등학교 도보 4분",
+      "mart": "이마트 화성시점 차량 7분",
+      "hospital": "화성시 대학병원 차량 7분",
+      "park": "화성시 근린공원 도보 6분",
+      "commute": "강남역 기준 약 63분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 878070370
+      },
+      {
+        "month": "1월",
+        "price": 901926157
+      },
+      {
+        "month": "2월",
+        "price": 898601389
+      },
+      {
+        "month": "3월",
+        "price": 916929398
+      },
+      {
+        "month": "4월",
+        "price": 907743519
+      },
+      {
+        "month": "5월",
+        "price": 810173611
+      }
+    ]
+  },
+  {
+    "id": "gm-040",
+    "title": "삼호 45",
+    "address": "경기도 시흥시 대야동",
+    "coordinates": {
+      "lat": 37.372937,
+      "lng": 126.796314
+    },
+    "region": "경기 시흥시",
+    "propertyType": "아파트",
+    "price": 58755536,
+    "actualTransactionPrice": 65000000,
+    "discountRate": 9.6,
+    "urgentScore": 84,
+    "area": 45,
+    "supplyArea": 60,
+    "floor": "5층",
+    "builtYear": 1987,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-05-07",
+    "description": "경기 시흥시 생활권의 실거래 대비 9.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 430000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 1226,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "시흥시 지하철역 도보 8분",
+      "school": "시흥시 중학교 도보 7분",
+      "mart": "코스트코 시흥시점 차량 8분",
+      "hospital": "시흥시 의료원 차량 14분",
+      "park": "시흥시 수변공원 도보 15분",
+      "commute": "강남역 기준 약 25분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 64949561
+      },
+      {
+        "month": "1월",
+        "price": 64695396
+      },
+      {
+        "month": "2월",
+        "price": 64103191
+      },
+      {
+        "month": "3월",
+        "price": 66699797
+      },
+      {
+        "month": "4월",
+        "price": 65034289
+      },
+      {
+        "month": "5월",
+        "price": 58755536
+      }
+    ]
+  },
+  {
+    "id": "gm-041",
+    "title": "성원상떼빌 60",
+    "address": "서울특별시 중랑구 면목동",
+    "coordinates": {
+      "lat": 37.608861,
+      "lng": 127.095627
+    },
+    "region": "서울 중랑구",
+    "propertyType": "아파트",
+    "price": 359215772,
+    "actualTransactionPrice": 398500000,
+    "discountRate": 9.9,
+    "urgentScore": 85,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "9층",
+    "builtYear": 1997,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-04-03",
+    "description": "서울 중랑구 생활권의 실거래 대비 9.9% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 360000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 86,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "중랑구 지하철역 도보 4분",
+      "school": "중랑구 중학교 도보 7분",
+      "mart": "이마트 중랑구점 차량 10분",
+      "hospital": "중랑구 종합병원 차량 15분",
+      "park": "중랑구 중앙공원 도보 10분",
+      "commute": "강남역 기준 약 60분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 397130874
+      },
+      {
+        "month": "1월",
+        "price": 389429103
+      },
+      {
+        "month": "2월",
+        "price": 389617386
+      },
+      {
+        "month": "3월",
+        "price": 395408038
+      },
+      {
+        "month": "4월",
+        "price": 408941151
+      },
+      {
+        "month": "5월",
+        "price": 359215772
+      }
+    ]
+  },
+  {
+    "id": "gm-042",
+    "title": "동부 60",
+    "address": "경기도 용인시 수지구 풍덕천동",
+    "coordinates": {
+      "lat": 37.238185,
+      "lng": 127.17894
+    },
+    "region": "경기 용인시",
+    "propertyType": "아파트",
+    "price": 173207981,
+    "actualTransactionPrice": 188750000,
+    "discountRate": 8.2,
+    "urgentScore": 81,
+    "area": 60,
+    "supplyArea": 79,
+    "floor": "8층",
+    "builtYear": 1995,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-09",
+    "recentTransactionDate": "2026-04-21",
+    "description": "경기 용인시 생활권의 실거래 대비 8.2% 저렴한 매물입니다.",
+    "parking": "세대당 0.8대",
+    "maintenanceFee": 500000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 301,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "용인시 지하철역 도보 6분",
+      "school": "용인시 고등학교 도보 12분",
+      "mart": "이마트 용인시점 차량 3분",
+      "hospital": "용인시 의료원 차량 9분",
+      "park": "용인시 수변공원 도보 6분",
+      "commute": "강남역 기준 약 43분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 191138552
+      },
+      {
+        "month": "1월",
+        "price": 187411953
+      },
+      {
+        "month": "2월",
+        "price": 192141237
+      },
+      {
+        "month": "3월",
+        "price": 192917841
+      },
+      {
+        "month": "4월",
+        "price": 190755420
+      },
+      {
+        "month": "5월",
+        "price": 173207981
+      }
+    ]
+  },
+  {
+    "id": "gm-043",
+    "title": "천왕연지타운2단지 85",
+    "address": "서울특별시 구로구 천왕동",
+    "coordinates": {
+      "lat": 37.50021,
+      "lng": 126.888253
+    },
+    "region": "서울 구로구",
+    "propertyType": "아파트",
+    "price": 662623187,
+    "actualTransactionPrice": 755000000,
+    "discountRate": 12.2,
+    "urgentScore": 91,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "6층",
+    "builtYear": 2014,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-08",
+    "recentTransactionDate": "2026-04-26",
+    "description": "서울 구로구 생활권의 실거래 대비 12.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 380000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 708,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "구로구 지하철역 도보 4분",
+      "school": "구로구 중학교 도보 5분",
+      "mart": "홈플러스 구로구점 차량 8분",
+      "hospital": "구로구 종합병원 차량 15분",
+      "park": "구로구 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 15분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 734233616
+      },
+      {
+        "month": "1월",
+        "price": 775637638
+      },
+      {
+        "month": "2월",
+        "price": 733840193
+      },
+      {
+        "month": "3월",
+        "price": 740407023
+      },
+      {
+        "month": "4월",
+        "price": 754092757
+      },
+      {
+        "month": "5월",
+        "price": 662623187
+      }
+    ]
+  },
+  {
+    "id": "gm-044",
+    "title": "동원 60",
+    "address": "경기도 의정부시 가능동",
+    "coordinates": {
+      "lat": 37.743534,
+      "lng": 127.031066
+    },
+    "region": "경기 의정부시",
+    "propertyType": "아파트",
+    "price": 113751321,
+    "actualTransactionPrice": 125500000,
+    "discountRate": 9.4,
+    "urgentScore": 84,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "7층",
+    "builtYear": 1993,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-16",
+    "recentTransactionDate": "2026-04-13",
+    "description": "경기 의정부시 생활권의 실거래 대비 9.4% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 290000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 65,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "의정부시 지하철역 도보 5분",
+      "school": "의정부시 초등학교 도보 7분",
+      "mart": "코스트코 의정부시점 차량 7분",
+      "hospital": "의정부시 종합병원 차량 8분",
+      "park": "의정부시 중앙공원 도보 12분",
+      "commute": "강남역 기준 약 19분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 123126184
+      },
+      {
+        "month": "1월",
+        "price": 126191283
+      },
+      {
+        "month": "2월",
+        "price": 126093704
+      },
+      {
+        "month": "3월",
+        "price": 122112985
+      },
+      {
+        "month": "4월",
+        "price": 122453107
+      },
+      {
+        "month": "5월",
+        "price": 113751321
+      }
+    ]
+  },
+  {
+    "id": "gm-045",
+    "title": "쌍용스윗닷홈 85",
+    "address": "경기도 의정부시 호원동",
+    "coordinates": {
+      "lat": 37.733158,
+      "lng": 127.036579
+    },
+    "region": "경기 의정부시",
+    "propertyType": "아파트",
+    "price": 371549383,
+    "actualTransactionPrice": 400000000,
+    "discountRate": 7.1,
+    "urgentScore": 78,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "10층",
+    "builtYear": 2005,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-13",
+    "recentTransactionDate": "2026-04-01",
+    "description": "경기 의정부시 생활권의 실거래 대비 7.1% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 490000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 77,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "의정부시 지하철역 도보 7분",
+      "school": "의정부시 고등학교 도보 5분",
+      "mart": "이마트 의정부시점 차량 7분",
+      "hospital": "의정부시 대학병원 차량 7분",
+      "park": "의정부시 중앙공원 도보 5분",
+      "commute": "강남역 기준 약 40분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 409370165
+      },
+      {
+        "month": "1월",
+        "price": 388972737
+      },
+      {
+        "month": "2월",
+        "price": 392495062
+      },
+      {
+        "month": "3월",
+        "price": 393640844
+      },
+      {
+        "month": "4월",
+        "price": 394558230
+      },
+      {
+        "month": "5월",
+        "price": 371549383
+      }
+    ]
+  },
+  {
+    "id": "gm-046",
+    "title": "현대1차 85",
+    "address": "인천광역시 부평구 산곡동",
+    "coordinates": {
+      "lat": 37.508882,
+      "lng": 126.719192
+    },
+    "region": "인천 부평구",
+    "propertyType": "아파트",
+    "price": 326291956,
+    "actualTransactionPrice": 375000000,
+    "discountRate": 13,
+    "urgentScore": 93,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "3층",
+    "builtYear": 1986,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-05-12",
+    "description": "인천 부평구 생활권의 실거래 대비 13% 저렴한 매물입니다.",
+    "parking": "세대당 1.2대",
+    "maintenanceFee": 180000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 61,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부평구 지하철역 도보 7분",
+      "school": "부평구 고등학교 도보 5분",
+      "mart": "롯데마트 부평구점 차량 6분",
+      "hospital": "부평구 의료원 차량 9분",
+      "park": "부평구 체육공원 도보 8분",
+      "commute": "강남역 기준 약 65분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 384193383
+      },
+      {
+        "month": "1월",
+        "price": 364914545
+      },
+      {
+        "month": "2월",
+        "price": 377435475
+      },
+      {
+        "month": "3월",
+        "price": 374603395
+      },
+      {
+        "month": "4월",
+        "price": 380932195
+      },
+      {
+        "month": "5월",
+        "price": 326291956
+      }
+    ]
+  },
+  {
+    "id": "gm-047",
+    "title": "대명 74",
+    "address": "경기도 시흥시 목감동",
+    "coordinates": {
+      "lat": 37.385306,
+      "lng": 126.795905
+    },
+    "region": "경기 시흥시",
+    "propertyType": "아파트",
+    "price": 284320853,
+    "actualTransactionPrice": 332500000,
+    "discountRate": 14.5,
+    "urgentScore": 96,
+    "area": 74,
+    "supplyArea": 99,
+    "floor": "13층",
+    "builtYear": 1990,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-04-11",
+    "description": "경기 시흥시 생활권의 실거래 대비 14.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 330000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 2398,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "시흥시 지하철역 도보 4분",
+      "school": "시흥시 초등학교 도보 6분",
+      "mart": "코스트코 시흥시점 차량 9분",
+      "hospital": "시흥시 의료원 차량 12분",
+      "park": "시흥시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 23분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 342260859
+      },
+      {
+        "month": "1월",
+        "price": 330015914
+      },
+      {
+        "month": "2월",
+        "price": 334329263
+      },
+      {
+        "month": "3월",
+        "price": 333342111
+      },
+      {
+        "month": "4월",
+        "price": 328840105
+      },
+      {
+        "month": "5월",
+        "price": 284320853
+      }
+    ]
+  },
+  {
+    "id": "gm-048",
+    "title": "DMC리슈빌더포레스트 74",
+    "address": "경기도 고양시 덕양구 향동동",
+    "coordinates": {
+      "lat": 37.66033,
+      "lng": 126.833418
+    },
+    "region": "경기 고양시",
+    "propertyType": "아파트",
+    "price": 758880343,
+    "actualTransactionPrice": 835000000,
+    "discountRate": 9.1,
+    "urgentScore": 83,
+    "area": 74,
+    "supplyArea": 99,
+    "floor": "12층",
+    "builtYear": 2019,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-18",
+    "description": "경기 고양시 생활권의 실거래 대비 9.1% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 150000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 170,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "고양시 지하철역 도보 15분",
+      "school": "고양시 중학교 도보 6분",
+      "mart": "코스트코 고양시점 차량 6분",
+      "hospital": "고양시 대학병원 차량 13분",
+      "park": "고양시 근린공원 도보 8분",
+      "commute": "강남역 기준 약 69분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 854160114
+      },
+      {
+        "month": "1월",
+        "price": 848111734
+      },
+      {
+        "month": "2월",
+        "price": 854420837
+      },
+      {
+        "month": "3월",
+        "price": 818193907
+      },
+      {
+        "month": "4월",
+        "price": 844115202
+      },
+      {
+        "month": "5월",
+        "price": 758880343
+      }
+    ]
+  },
+  {
+    "id": "gm-049",
+    "title": "LIG대학마을(건영아파트3차) 59",
+    "address": "서울특별시 관악구 신림동",
+    "coordinates": {
+      "lat": 37.481954,
+      "lng": 126.954531
+    },
+    "region": "서울 관악구",
+    "propertyType": "아파트",
+    "price": 500951389,
+    "actualTransactionPrice": 585000000,
+    "discountRate": 14.4,
+    "urgentScore": 96,
+    "area": 59,
+    "supplyArea": 78,
+    "floor": "5층",
+    "builtYear": 1996,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-04",
+    "recentTransactionDate": "2026-04-28",
+    "description": "서울 관악구 생활권의 실거래 대비 14.4% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 260000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 68,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "관악구 지하철역 도보 12분",
+      "school": "관악구 초등학교 도보 12분",
+      "mart": "코스트코 관악구점 차량 4분",
+      "hospital": "관악구 대학병원 차량 9분",
+      "park": "관악구 중앙공원 도보 10분",
+      "commute": "강남역 기준 약 20분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 579317616
+      },
+      {
+        "month": "1월",
+        "price": 601161377
+      },
+      {
+        "month": "2월",
+        "price": 576087778
+      },
+      {
+        "month": "3월",
+        "price": 570938484
+      },
+      {
+        "month": "4월",
+        "price": 588855162
+      },
+      {
+        "month": "5월",
+        "price": 500951389
+      }
+    ]
+  },
+  {
+    "id": "gm-050",
+    "title": "동부 62",
+    "address": "경기도 용인시 기흥구 구갈동",
+    "coordinates": {
+      "lat": 37.247178,
+      "lng": 127.171044
+    },
+    "region": "경기 용인시",
+    "propertyType": "아파트",
+    "price": 198351601,
+    "actualTransactionPrice": 215000000,
+    "discountRate": 7.7,
+    "urgentScore": 79,
+    "area": 62,
+    "supplyArea": 83,
+    "floor": "5층",
+    "builtYear": 1992,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-14",
+    "recentTransactionDate": "2026-05-04",
+    "description": "경기 용인시 생활권의 실거래 대비 7.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 220000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 2132,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "용인시 지하철역 도보 8분",
+      "school": "용인시 중학교 도보 10분",
+      "mart": "홈플러스 용인시점 차량 9분",
+      "hospital": "용인시 대학병원 차량 9분",
+      "park": "용인시 근린공원 도보 12분",
+      "commute": "강남역 기준 약 31분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 209921012
+      },
+      {
+        "month": "1월",
+        "price": 217859478
+      },
+      {
+        "month": "2월",
+        "price": 213929811
+      },
+      {
+        "month": "3월",
+        "price": 209797752
+      },
+      {
+        "month": "4월",
+        "price": 219517931
+      },
+      {
+        "month": "5월",
+        "price": 198351601
+      }
+    ]
+  },
+  {
+    "id": "gm-051",
+    "title": "중흥에스클래스더퍼스트 85",
+    "address": "경기도 화성시 효행구 봉담읍 상리",
+    "coordinates": {
+      "lat": 37.205402,
+      "lng": 126.832057
+    },
+    "region": "경기 화성시",
+    "propertyType": "아파트",
+    "price": 561397515,
+    "actualTransactionPrice": 602000000,
+    "discountRate": 6.7,
+    "urgentScore": 77,
+    "area": 85,
+    "supplyArea": 112,
+    "floor": "3층",
+    "builtYear": 2022,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-23",
+    "description": "경기 화성시 생활권의 실거래 대비 6.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 280000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 491,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "화성시 지하철역 도보 15분",
+      "school": "화성시 초등학교 도보 8분",
+      "mart": "이마트 화성시점 차량 10분",
+      "hospital": "화성시 대학병원 차량 9분",
+      "park": "화성시 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 31분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 617782681
+      },
+      {
+        "month": "1월",
+        "price": 612669552
+      },
+      {
+        "month": "2월",
+        "price": 589375651
+      },
+      {
+        "month": "3월",
+        "price": 616685053
+      },
+      {
+        "month": "4월",
+        "price": 589470720
+      },
+      {
+        "month": "5월",
+        "price": 561397515
+      }
+    ]
+  },
+  {
+    "id": "gm-052",
+    "title": "주공10 79",
+    "address": "경기도 광명시 하안동",
+    "coordinates": {
+      "lat": 37.476726,
+      "lng": 126.86997
+    },
+    "region": "경기 광명시",
+    "propertyType": "아파트",
+    "price": 273387731,
+    "actualTransactionPrice": 300000000,
+    "discountRate": 8.9,
+    "urgentScore": 82,
+    "area": 79,
+    "supplyArea": 105,
+    "floor": "10층",
+    "builtYear": 1990,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-24",
+    "description": "경기 광명시 생활권의 실거래 대비 8.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 370000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 603,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "광명시 지하철역 도보 8분",
+      "school": "광명시 고등학교 도보 5분",
+      "mart": "코스트코 광명시점 차량 5분",
+      "hospital": "광명시 의료원 차량 7분",
+      "park": "광명시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 63분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 301442207
+      },
+      {
+        "month": "1월",
+        "price": 307769136
+      },
+      {
+        "month": "2월",
+        "price": 294535880
+      },
+      {
+        "month": "3월",
+        "price": 296020216
+      },
+      {
+        "month": "4월",
+        "price": 295833256
+      },
+      {
+        "month": "5월",
+        "price": 273387731
+      }
+    ]
+  },
+  {
+    "id": "gm-053",
+    "title": "현대(관악) 59",
+    "address": "서울특별시 관악구 봉천동",
+    "coordinates": {
+      "lat": 37.47445,
+      "lng": 126.954583
+    },
+    "region": "서울 관악구",
+    "propertyType": "아파트",
+    "price": 874943056,
+    "actualTransactionPrice": 990000000,
+    "discountRate": 11.6,
+    "urgentScore": 89,
+    "area": 59,
+    "supplyArea": 78,
+    "floor": "15층",
+    "builtYear": 1992,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-26",
+    "description": "서울 관악구 생활권의 실거래 대비 11.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 400000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 99,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "관악구 지하철역 도보 5분",
+      "school": "관악구 초등학교 도보 8분",
+      "mart": "롯데마트 관악구점 차량 9분",
+      "hospital": "관악구 대학병원 차량 12분",
+      "park": "관악구 중앙공원 도보 5분",
+      "commute": "강남역 기준 약 56분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 1006976157
+      },
+      {
+        "month": "1월",
+        "price": 1012592523
+      },
+      {
+        "month": "2월",
+        "price": 978410278
+      },
+      {
+        "month": "3월",
+        "price": 1017546088
+      },
+      {
+        "month": "4월",
+        "price": 1016516620
+      },
+      {
+        "month": "5월",
+        "price": 874943056
+      }
+    ]
+  },
+  {
+    "id": "gm-054",
+    "title": "현대홈타운 85",
+    "address": "경기도 평택시 팽성읍 송화리",
+    "coordinates": {
+      "lat": 36.986774,
+      "lng": 127.118396
+    },
+    "region": "경기 평택시",
+    "propertyType": "아파트",
+    "price": 700015432,
+    "actualTransactionPrice": 800000000,
+    "discountRate": 12.5,
+    "urgentScore": 91,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "11층",
+    "builtYear": 2005,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-04-23",
+    "description": "경기 평택시 생활권의 실거래 대비 12.5% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 260000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 548,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "평택시 지하철역 도보 10분",
+      "school": "평택시 중학교 도보 4분",
+      "mart": "코스트코 평택시점 차량 4분",
+      "hospital": "평택시 대학병원 차량 9분",
+      "park": "평택시 근린공원 도보 4분",
+      "commute": "강남역 기준 약 53분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 790590329
+      },
+      {
+        "month": "1월",
+        "price": 794795473
+      },
+      {
+        "month": "2월",
+        "price": 786840123
+      },
+      {
+        "month": "3월",
+        "price": 810131687
+      },
+      {
+        "month": "4월",
+        "price": 820966461
+      },
+      {
+        "month": "5월",
+        "price": 700015432
+      }
+    ]
+  },
+  {
+    "id": "gm-055",
+    "title": "극동스타클래스 76",
+    "address": "경기도 의정부시 신곡동",
+    "coordinates": {
+      "lat": 37.744398,
+      "lng": 127.026709
+    },
+    "region": "경기 의정부시",
+    "propertyType": "아파트",
+    "price": 273002315,
+    "actualTransactionPrice": 300000000,
+    "discountRate": 9,
+    "urgentScore": 83,
+    "area": 76,
+    "supplyArea": 100,
+    "floor": "10층",
+    "builtYear": 2006,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-04",
+    "recentTransactionDate": "2026-04-08",
+    "description": "경기 의정부시 생활권의 실거래 대비 9% 저렴한 매물입니다.",
+    "parking": "세대당 1.2대",
+    "maintenanceFee": 240000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 1521,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "의정부시 지하철역 도보 12분",
+      "school": "의정부시 고등학교 도보 10분",
+      "mart": "홈플러스 의정부시점 차량 3분",
+      "hospital": "의정부시 의료원 차량 6분",
+      "park": "의정부시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 39분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 306923457
+      },
+      {
+        "month": "1월",
+        "price": 294875386
+      },
+      {
+        "month": "2월",
+        "price": 303767130
+      },
+      {
+        "month": "3월",
+        "price": 295876466
+      },
+      {
+        "month": "4월",
+        "price": 308814506
+      },
+      {
+        "month": "5월",
+        "price": 273002315
+      }
+    ]
+  },
+  {
+    "id": "gm-056",
+    "title": "인천간석휴먼시아1단지 60",
+    "address": "인천광역시 남동구 간석동",
+    "coordinates": {
+      "lat": 37.442422,
+      "lng": 126.724922
+    },
+    "region": "인천 남동구",
+    "propertyType": "아파트",
+    "price": 290571273,
+    "actualTransactionPrice": 318000000,
+    "discountRate": 8.6,
+    "urgentScore": 82,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "7층",
+    "builtYear": 2014,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-02",
+    "description": "인천 남동구 생활권의 실거래 대비 8.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 230000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 1474,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "남동구 지하철역 도보 5분",
+      "school": "남동구 중학교 도보 5분",
+      "mart": "이마트 남동구점 차량 4분",
+      "hospital": "남동구 종합병원 차량 13분",
+      "park": "남동구 중앙공원 도보 4분",
+      "commute": "강남역 기준 약 57분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 313760573
+      },
+      {
+        "month": "1월",
+        "price": 310397117
+      },
+      {
+        "month": "2월",
+        "price": 318099866
+      },
+      {
+        "month": "3월",
+        "price": 315963262
+      },
+      {
+        "month": "4월",
+        "price": 324775085
+      },
+      {
+        "month": "5월",
+        "price": 290571273
+      }
+    ]
+  },
+  {
+    "id": "gm-057",
+    "title": "주공2 40",
+    "address": "서울특별시 동대문구 휘경동",
+    "coordinates": {
+      "lat": 37.578947,
+      "lng": 127.042735
+    },
+    "region": "서울 동대문구",
+    "propertyType": "아파트",
+    "price": 289772593,
+    "actualTransactionPrice": 318000000,
+    "discountRate": 8.9,
+    "urgentScore": 82,
+    "area": 40,
+    "supplyArea": 53,
+    "floor": "3층",
+    "builtYear": 2001,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-01",
+    "recentTransactionDate": "2026-04-25",
+    "description": "서울 동대문구 생활권의 실거래 대비 8.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 170000,
+    "moveInDate": "협의 가능",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 91,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "동대문구 지하철역 도보 8분",
+      "school": "동대문구 중학교 도보 5분",
+      "mart": "홈플러스 동대문구점 차량 6분",
+      "hospital": "동대문구 대학병원 차량 14분",
+      "park": "동대문구 중앙공원 도보 10분",
+      "commute": "강남역 기준 약 36분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 312914781
+      },
+      {
+        "month": "1월",
+        "price": 323728826
+      },
+      {
+        "month": "2월",
+        "price": 315399074
+      },
+      {
+        "month": "3월",
+        "price": 324259971
+      },
+      {
+        "month": "4월",
+        "price": 313859293
+      },
+      {
+        "month": "5월",
+        "price": 289772593
+      }
+    ]
+  },
+  {
+    "id": "gm-058",
+    "title": "동아 60",
+    "address": "서울특별시 동대문구 답십리동",
+    "coordinates": {
+      "lat": 37.573571,
+      "lng": 127.041248
+    },
+    "region": "서울 동대문구",
+    "propertyType": "아파트",
+    "price": 510110147,
+    "actualTransactionPrice": 550000000,
+    "discountRate": 7.3,
+    "urgentScore": 78,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "13층",
+    "builtYear": 2001,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-03",
+    "recentTransactionDate": "2026-04-15",
+    "description": "서울 동대문구 생활권의 실거래 대비 7.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 300000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 351,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "동대문구 지하철역 도보 12분",
+      "school": "동대문구 중학교 도보 7분",
+      "mart": "홈플러스 동대문구점 차량 7분",
+      "hospital": "동대문구 종합병원 차량 8분",
+      "park": "동대문구 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 19분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 550054462
+      },
+      {
+        "month": "1월",
+        "price": 535528832
+      },
+      {
+        "month": "2월",
+        "price": 534642863
+      },
+      {
+        "month": "3월",
+        "price": 544239146
+      },
+      {
+        "month": "4월",
+        "price": 534271386
+      },
+      {
+        "month": "5월",
+        "price": 510110147
+      }
+    ]
+  },
+  {
+    "id": "gm-059",
+    "title": "평택용이금호어울림1단지 85",
+    "address": "경기도 평택시 용이동",
+    "coordinates": {
+      "lat": 36.998895,
+      "lng": 127.113961
+    },
+    "region": "경기 평택시",
+    "propertyType": "아파트",
+    "price": 263576042,
+    "actualTransactionPrice": 297000000,
+    "discountRate": 11.3,
+    "urgentScore": 88,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "3층",
+    "builtYear": 2015,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-02",
+    "recentTransactionDate": "2026-04-21",
+    "description": "경기 평택시 생활권의 실거래 대비 11.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 190000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 316,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "평택시 지하철역 도보 10분",
+      "school": "평택시 중학교 도보 15분",
+      "mart": "롯데마트 평택시점 차량 4분",
+      "hospital": "평택시 대학병원 차량 14분",
+      "park": "평택시 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 47분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 302921972
+      },
+      {
+        "month": "1월",
+        "price": 299409382
+      },
+      {
+        "month": "2월",
+        "price": 292867208
+      },
+      {
+        "month": "3월",
+        "price": 299410451
+      },
+      {
+        "month": "4월",
+        "price": 302814111
+      },
+      {
+        "month": "5월",
+        "price": 263576042
+      }
+    ]
+  },
+  {
+    "id": "gm-060",
+    "title": "이천마장호반베르디움2차 83",
+    "address": "경기도 이천시 마장면 오천리",
+    "coordinates": {
+      "lat": 37.279619,
+      "lng": 127.432574
+    },
+    "region": "경기 이천시",
+    "propertyType": "아파트",
+    "price": 316088947,
+    "actualTransactionPrice": 345000000,
+    "discountRate": 8.4,
+    "urgentScore": 81,
+    "area": 83,
+    "supplyArea": 110,
+    "floor": "13층",
+    "builtYear": 2019,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-07",
+    "description": "경기 이천시 생활권의 실거래 대비 8.4% 저렴한 매물입니다.",
+    "parking": "세대당 1.2대",
+    "maintenanceFee": 460000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 70,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "이천시 지하철역 도보 12분",
+      "school": "이천시 고등학교 도보 4분",
+      "mart": "이마트 이천시점 차량 3분",
+      "hospital": "이천시 대학병원 차량 7분",
+      "park": "이천시 근린공원 도보 12분",
+      "commute": "강남역 기준 약 51분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 354842704
+      },
+      {
+        "month": "1월",
+        "price": 340268673
+      },
+      {
+        "month": "2월",
+        "price": 351500428
+      },
+      {
+        "month": "3월",
+        "price": 345157415
+      },
+      {
+        "month": "4월",
+        "price": 343792411
+      },
+      {
+        "month": "5월",
+        "price": 316088947
+      }
+    ]
+  },
+  {
+    "id": "gm-061",
+    "title": "쌍용(3단지) 115",
+    "address": "경기도 용인시 기흥구 상하동",
+    "coordinates": {
+      "lat": 37.238043,
+      "lng": 127.180687
+    },
+    "region": "경기 용인시",
+    "propertyType": "아파트",
+    "price": 372659244,
+    "actualTransactionPrice": 397000000,
+    "discountRate": 6.1,
+    "urgentScore": 75,
+    "area": 115,
+    "supplyArea": 153,
+    "floor": "16층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-08",
+    "recentTransactionDate": "2026-04-23",
+    "description": "경기 용인시 생활권의 실거래 대비 6.1% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 300000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 4,
+    "bathrooms": 2,
+    "unitCount": 2115,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "용인시 지하철역 도보 4분",
+      "school": "용인시 중학교 도보 12분",
+      "mart": "이마트 용인시점 차량 3분",
+      "hospital": "용인시 의료원 차량 6분",
+      "park": "용인시 근린공원 도보 5분",
+      "commute": "강남역 기준 약 16분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 401315333
+      },
+      {
+        "month": "1월",
+        "price": 402244219
+      },
+      {
+        "month": "2월",
+        "price": 395153460
+      },
+      {
+        "month": "3월",
+        "price": 401583982
+      },
+      {
+        "month": "4월",
+        "price": 399847822
+      },
+      {
+        "month": "5월",
+        "price": 372659244
+      }
+    ]
+  },
+  {
+    "id": "gm-062",
+    "title": "한빛마을7단지(한신휴플러스) 85",
+    "address": "경기도 파주시 야당동",
+    "coordinates": {
+      "lat": 37.763667,
+      "lng": 126.7776
+    },
+    "region": "경기 파주시",
+    "propertyType": "아파트",
+    "price": 321173245,
+    "actualTransactionPrice": 365000000,
+    "discountRate": 12,
+    "urgentScore": 90,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "14층",
+    "builtYear": 2011,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-04-06",
+    "description": "경기 파주시 생활권의 실거래 대비 12% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 340000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 66,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "파주시 지하철역 도보 4분",
+      "school": "파주시 중학교 도보 15분",
+      "mart": "코스트코 파주시점 차량 10분",
+      "hospital": "파주시 종합병원 차량 8분",
+      "park": "파주시 수변공원 도보 8분",
+      "commute": "강남역 기준 약 41분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 369365449
+      },
+      {
+        "month": "1월",
+        "price": 370067379
+      },
+      {
+        "month": "2월",
+        "price": 372521084
+      },
+      {
+        "month": "3월",
+        "price": 374631193
+      },
+      {
+        "month": "4월",
+        "price": 356457892
+      },
+      {
+        "month": "5월",
+        "price": 321173245
+      }
+    ]
+  },
+  {
+    "id": "gm-063",
+    "title": "광교호반베르디움트라엘 101",
+    "address": "경기도 수원시 영통구 이의동",
+    "coordinates": {
+      "lat": 37.270891,
+      "lng": 127.021712
+    },
+    "region": "경기 수원시",
+    "propertyType": "아파트",
+    "price": 1089793056,
+    "actualTransactionPrice": 1260000000,
+    "discountRate": 13.5,
+    "urgentScore": 94,
+    "area": 101,
+    "supplyArea": 134,
+    "floor": "8층",
+    "builtYear": 2017,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-01",
+    "recentTransactionDate": "2026-05-05",
+    "description": "경기 수원시 생활권의 실거래 대비 13.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 500000,
+    "moveInDate": "협의 가능",
+    "rooms": 4,
+    "bathrooms": 2,
+    "unitCount": 2646,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "수원시 지하철역 도보 8분",
+      "school": "수원시 초등학교 도보 4분",
+      "mart": "이마트 수원시점 차량 5분",
+      "hospital": "수원시 종합병원 차량 11분",
+      "park": "수원시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 55분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 1281168519
+      },
+      {
+        "month": "1월",
+        "price": 1226366620
+      },
+      {
+        "month": "2월",
+        "price": 1284711944
+      },
+      {
+        "month": "3월",
+        "price": 1297771157
+      },
+      {
+        "month": "4월",
+        "price": 1272310926
+      },
+      {
+        "month": "5월",
+        "price": 1089793056
+      }
+    ]
+  },
+  {
+    "id": "gm-064",
+    "title": "롯데캐슬피렌체 30",
+    "address": "서울특별시 동대문구 용두동",
+    "coordinates": {
+      "lat": 37.578315,
+      "lng": 127.041325
+    },
+    "region": "서울 동대문구",
+    "propertyType": "아파트",
+    "price": 357815557,
+    "actualTransactionPrice": 389500000,
+    "discountRate": 8.1,
+    "urgentScore": 80,
+    "area": 30,
+    "supplyArea": 40,
+    "floor": "12층",
+    "builtYear": 2009,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-13",
+    "description": "서울 동대문구 생활권의 실거래 대비 8.1% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 320000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 219,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "동대문구 지하철역 도보 7분",
+      "school": "동대문구 초등학교 도보 4분",
+      "mart": "이마트 동대문구점 차량 10분",
+      "hospital": "동대문구 의료원 차량 12분",
+      "park": "동대문구 체육공원 도보 8분",
+      "commute": "강남역 기준 약 45분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 393547173
+      },
+      {
+        "month": "1월",
+        "price": 388129136
+      },
+      {
+        "month": "2월",
+        "price": 380685459
+      },
+      {
+        "month": "3월",
+        "price": 392350122
+      },
+      {
+        "month": "4월",
+        "price": 378474886
+      },
+      {
+        "month": "5월",
+        "price": 357815557
+      }
+    ]
+  },
+  {
+    "id": "gm-065",
+    "title": "공작아파트 38",
+    "address": "경기도 안양시 동안구 관양동",
+    "coordinates": {
+      "lat": 37.399839,
+      "lng": 126.959938
+    },
+    "region": "경기 안양시",
+    "propertyType": "아파트",
+    "price": 346456790,
+    "actualTransactionPrice": 400000000,
+    "discountRate": 13.4,
+    "urgentScore": 94,
+    "area": 38,
+    "supplyArea": 50,
+    "floor": "14층",
+    "builtYear": 1993,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-15",
+    "recentTransactionDate": "2026-04-22",
+    "description": "경기 안양시 생활권의 실거래 대비 13.4% 저렴한 매물입니다.",
+    "parking": "세대당 1.2대",
+    "maintenanceFee": 430000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 1677,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "안양시 지하철역 도보 7분",
+      "school": "안양시 고등학교 도보 8분",
+      "mart": "이마트 안양시점 차량 8분",
+      "hospital": "안양시 의료원 차량 8분",
+      "park": "안양시 근린공원 도보 10분",
+      "commute": "강남역 기준 약 52분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 391092387
+      },
+      {
+        "month": "1월",
+        "price": 403361626
+      },
+      {
+        "month": "2월",
+        "price": 399550617
+      },
+      {
+        "month": "3월",
+        "price": 401363066
+      },
+      {
+        "month": "4월",
+        "price": 410947119
+      },
+      {
+        "month": "5월",
+        "price": 346456790
+      }
+    ]
+  },
+  {
+    "id": "gm-066",
+    "title": "청솔마을(한라) 59",
+    "address": "경기도 성남시 분당구 금곡동",
+    "coordinates": {
+      "lat": 37.412463,
+      "lng": 127.120151
+    },
+    "region": "경기 성남시",
+    "propertyType": "아파트",
+    "price": 1445189622,
+    "actualTransactionPrice": 1550000000,
+    "discountRate": 6.8,
+    "urgentScore": 77,
+    "area": 59,
+    "supplyArea": 78,
+    "floor": "12층",
+    "builtYear": 1995,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-09",
+    "recentTransactionDate": "2026-04-26",
+    "description": "경기 성남시 생활권의 실거래 대비 6.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 380000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 844,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "성남시 지하철역 도보 5분",
+      "school": "성남시 중학교 도보 6분",
+      "mart": "롯데마트 성남시점 차량 4분",
+      "hospital": "성남시 의료원 차량 8분",
+      "park": "성남시 체육공원 도보 12분",
+      "commute": "강남역 기준 약 63분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 1586922930
+      },
+      {
+        "month": "1월",
+        "price": 1540820396
+      },
+      {
+        "month": "2월",
+        "price": 1564156906
+      },
+      {
+        "month": "3월",
+        "price": 1555034311
+      },
+      {
+        "month": "4월",
+        "price": 1521776685
+      },
+      {
+        "month": "5월",
+        "price": 1445189622
+      }
+    ]
+  },
+  {
+    "id": "gm-067",
+    "title": "상현마을금호베스트빌4단지 175",
+    "address": "경기도 용인시 수지구 상현동",
+    "coordinates": {
+      "lat": 37.248787,
+      "lng": 127.178764
+    },
+    "region": "경기 용인시",
+    "propertyType": "아파트",
+    "price": 735047685,
+    "actualTransactionPrice": 780000000,
+    "discountRate": 5.8,
+    "urgentScore": 75,
+    "area": 175,
+    "supplyArea": 233,
+    "floor": "8층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-18",
+    "description": "경기 용인시 생활권의 실거래 대비 5.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 450000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 4,
+    "bathrooms": 2,
+    "unitCount": 141,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "용인시 지하철역 도보 7분",
+      "school": "용인시 고등학교 도보 5분",
+      "mart": "홈플러스 용인시점 차량 5분",
+      "hospital": "용인시 의료원 차량 8분",
+      "park": "용인시 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 63분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 790655988
+      },
+      {
+        "month": "1월",
+        "price": 778831003
+      },
+      {
+        "month": "2월",
+        "price": 774649537
+      },
+      {
+        "month": "3월",
+        "price": 773633812
+      },
+      {
+        "month": "4월",
+        "price": 779972716
+      },
+      {
+        "month": "5월",
+        "price": 735047685
+      }
+    ]
+  },
+  {
+    "id": "gm-068",
+    "title": "길음뉴타운경남아너스빌 115",
+    "address": "서울특별시 성북구 정릉동",
+    "coordinates": {
+      "lat": 37.589811,
+      "lng": 127.022377
+    },
+    "region": "서울 성북구",
+    "propertyType": "아파트",
+    "price": 828996528,
+    "actualTransactionPrice": 900000000,
+    "discountRate": 7.9,
+    "urgentScore": 80,
+    "area": 115,
+    "supplyArea": 152,
+    "floor": "15층",
+    "builtYear": 1999,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-18",
+    "description": "서울 성북구 생활권의 실거래 대비 7.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 180000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 4,
+    "bathrooms": 2,
+    "unitCount": 665,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "성북구 지하철역 도보 4분",
+      "school": "성북구 고등학교 도보 15분",
+      "mart": "이마트 성북구점 차량 9분",
+      "hospital": "성북구 종합병원 차량 6분",
+      "park": "성북구 수변공원 도보 6분",
+      "commute": "강남역 기준 약 39분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 893026620
+      },
+      {
+        "month": "1월",
+        "price": 906007407
+      },
+      {
+        "month": "2월",
+        "price": 896307639
+      },
+      {
+        "month": "3월",
+        "price": 912760648
+      },
+      {
+        "month": "4월",
+        "price": 906199769
+      },
+      {
+        "month": "5월",
+        "price": 828996528
+      }
+    ]
+  },
+  {
+    "id": "gm-069",
+    "title": "설악 44",
+    "address": "경기도 군포시 산본동",
+    "coordinates": {
+      "lat": 37.359735,
+      "lng": 126.93859
+    },
+    "region": "경기 군포시",
+    "propertyType": "아파트",
+    "price": 200165432,
+    "actualTransactionPrice": 224000000,
+    "discountRate": 10.6,
+    "urgentScore": 87,
+    "area": 44,
+    "supplyArea": 58,
+    "floor": "4층",
+    "builtYear": 1996,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-05",
+    "recentTransactionDate": "2026-04-20",
+    "description": "경기 군포시 생활권의 실거래 대비 10.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 200000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 1238,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "군포시 지하철역 도보 12분",
+      "school": "군포시 초등학교 도보 5분",
+      "mart": "코스트코 군포시점 차량 5분",
+      "hospital": "군포시 의료원 차량 11분",
+      "park": "군포시 근린공원 도보 5분",
+      "commute": "강남역 기준 약 32분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 225028626
+      },
+      {
+        "month": "1월",
+        "price": 224806066
+      },
+      {
+        "month": "2월",
+        "price": 224538568
+      },
+      {
+        "month": "3월",
+        "price": 222940206
+      },
+      {
+        "month": "4월",
+        "price": 221213942
+      },
+      {
+        "month": "5월",
+        "price": 200165432
+      }
+    ]
+  },
+  {
+    "id": "gm-070",
+    "title": "부천범박힐스테이트3단지 85",
+    "address": "경기도 부천시 소사구 범박동",
+    "coordinates": {
+      "lat": 37.50016,
+      "lng": 126.771703
+    },
+    "region": "경기 부천시",
+    "propertyType": "아파트",
+    "price": 486658758,
+    "actualTransactionPrice": 550000000,
+    "discountRate": 11.5,
+    "urgentScore": 89,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "13층",
+    "builtYear": 2004,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-05-17",
+    "description": "경기 부천시 생활권의 실거래 대비 11.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 420000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 610,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부천시 지하철역 도보 6분",
+      "school": "부천시 중학교 도보 12분",
+      "mart": "이마트 부천시점 차량 7분",
+      "hospital": "부천시 의료원 차량 7분",
+      "park": "부천시 근린공원 도보 4분",
+      "commute": "강남역 기준 약 29분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 536625296
+      },
+      {
+        "month": "1월",
+        "price": 535849666
+      },
+      {
+        "month": "2월",
+        "price": 548713696
+      },
+      {
+        "month": "3월",
+        "price": 539059979
+      },
+      {
+        "month": "4월",
+        "price": 542842220
+      },
+      {
+        "month": "5월",
+        "price": 486658758
+      }
+    ]
+  },
+  {
+    "id": "gm-071",
+    "title": "옥정역로제비앙메트로파크1단지 85",
+    "address": "경기도 양주시 삼숭동",
+    "coordinates": {
+      "lat": 37.777584,
+      "lng": 127.038716
+    },
+    "region": "경기 양주시",
+    "propertyType": "아파트",
+    "price": 348612739,
+    "actualTransactionPrice": 379000000,
+    "discountRate": 8,
+    "urgentScore": 80,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "7층",
+    "builtYear": 2022,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-15",
+    "recentTransactionDate": "2026-04-02",
+    "description": "경기 양주시 생활권의 실거래 대비 8% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 400000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 1770,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "양주시 지하철역 도보 6분",
+      "school": "양주시 중학교 도보 7분",
+      "mart": "롯데마트 양주시점 차량 6분",
+      "hospital": "양주시 대학병원 차량 5분",
+      "park": "양주시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 15분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 382988078
+      },
+      {
+        "month": "1월",
+        "price": 387980682
+      },
+      {
+        "month": "2월",
+        "price": 389107252
+      },
+      {
+        "month": "3월",
+        "price": 384192047
+      },
+      {
+        "month": "4월",
+        "price": 375270437
+      },
+      {
+        "month": "5월",
+        "price": 348612739
+      }
+    ]
+  },
+  {
+    "id": "gm-072",
+    "title": "다산e편한세상더퍼스트 85",
+    "address": "경기도 남양주시 다산동",
+    "coordinates": {
+      "lat": 37.632808,
+      "lng": 127.210529
+    },
+    "region": "경기 남양주시",
+    "propertyType": "아파트",
+    "price": 780409008,
+    "actualTransactionPrice": 845000000,
+    "discountRate": 7.6,
+    "urgentScore": 79,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "1층",
+    "builtYear": 2019,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-24",
+    "description": "경기 남양주시 생활권의 실거래 대비 7.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 400000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 680,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "남양주시 지하철역 도보 10분",
+      "school": "남양주시 초등학교 도보 12분",
+      "mart": "이마트 남양주시점 차량 8분",
+      "hospital": "남양주시 대학병원 차량 11분",
+      "park": "남양주시 중앙공원 도보 4분",
+      "commute": "강남역 기준 약 33분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 823125410
+      },
+      {
+        "month": "1월",
+        "price": 859254594
+      },
+      {
+        "month": "2월",
+        "price": 857189255
+      },
+      {
+        "month": "3월",
+        "price": 862778470
+      },
+      {
+        "month": "4월",
+        "price": 829860199
+      },
+      {
+        "month": "5월",
+        "price": 780409008
+      }
+    ]
+  },
+  {
+    "id": "gm-073",
+    "title": "대우 52",
+    "address": "경기도 김포시 북변동",
+    "coordinates": {
+      "lat": 37.621732,
+      "lng": 126.719042
+    },
+    "region": "경기 김포시",
+    "propertyType": "아파트",
+    "price": 198025617,
+    "actualTransactionPrice": 215000000,
+    "discountRate": 7.9,
+    "urgentScore": 80,
+    "area": 52,
+    "supplyArea": 70,
+    "floor": "2층",
+    "builtYear": 1995,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-04-19",
+    "description": "경기 김포시 생활권의 실거래 대비 7.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 330000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 2801,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "김포시 지하철역 도보 5분",
+      "school": "김포시 초등학교 도보 12분",
+      "mart": "롯데마트 김포시점 차량 10분",
+      "hospital": "김포시 종합병원 차량 13분",
+      "park": "김포시 근린공원 도보 10분",
+      "commute": "강남역 기준 약 68분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 208862436
+      },
+      {
+        "month": "1월",
+        "price": 214740485
+      },
+      {
+        "month": "2월",
+        "price": 216275401
+      },
+      {
+        "month": "3월",
+        "price": 212232926
+      },
+      {
+        "month": "4월",
+        "price": 216667688
+      },
+      {
+        "month": "5월",
+        "price": 198025617
+      }
+    ]
+  },
+  {
+    "id": "gm-074",
+    "title": "현대 77",
+    "address": "경기도 부천시 소사구 송내동",
+    "coordinates": {
+      "lat": 37.504656,
+      "lng": 126.767755
+    },
+    "region": "경기 부천시",
+    "propertyType": "아파트",
+    "price": 194955864,
+    "actualTransactionPrice": 208000000,
+    "discountRate": 6.3,
+    "urgentScore": 76,
+    "area": 77,
+    "supplyArea": 103,
+    "floor": "1층",
+    "builtYear": 1989,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-15",
+    "recentTransactionDate": "2026-04-09",
+    "description": "경기 부천시 생활권의 실거래 대비 6.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 460000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 400,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부천시 지하철역 도보 7분",
+      "school": "부천시 초등학교 도보 5분",
+      "mart": "롯데마트 부천시점 차량 10분",
+      "hospital": "부천시 대학병원 차량 7분",
+      "park": "부천시 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 51분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 205409041
+      },
+      {
+        "month": "1월",
+        "price": 211009045
+      },
+      {
+        "month": "2월",
+        "price": 205127321
+      },
+      {
+        "month": "3월",
+        "price": 211529794
+      },
+      {
+        "month": "4월",
+        "price": 206373502
+      },
+      {
+        "month": "5월",
+        "price": 194955864
+      }
+    ]
+  },
+  {
+    "id": "gm-075",
+    "title": "하얀마을(5단지)(주공) 39",
+    "address": "경기도 성남시 분당구 구미동",
+    "coordinates": {
+      "lat": 37.41308,
+      "lng": 127.127768
+    },
+    "region": "경기 성남시",
+    "propertyType": "아파트",
+    "price": 778387133,
+    "actualTransactionPrice": 867500000,
+    "discountRate": 10.3,
+    "urgentScore": 86,
+    "area": 39,
+    "supplyArea": 52,
+    "floor": "10층",
+    "builtYear": 1996,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-14",
+    "recentTransactionDate": "2026-04-15",
+    "description": "경기 성남시 생활권의 실거래 대비 10.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 350000,
+    "moveInDate": "협의 가능",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 366,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "성남시 지하철역 도보 6분",
+      "school": "성남시 초등학교 도보 8분",
+      "mart": "코스트코 성남시점 차량 7분",
+      "hospital": "성남시 의료원 차량 13분",
+      "park": "성남시 근린공원 도보 6분",
+      "commute": "강남역 기준 약 23분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 873905399
+      },
+      {
+        "month": "1월",
+        "price": 857862227
+      },
+      {
+        "month": "2월",
+        "price": 867670019
+      },
+      {
+        "month": "3월",
+        "price": 846298684
+      },
+      {
+        "month": "4월",
+        "price": 850457016
+      },
+      {
+        "month": "5월",
+        "price": 778387133
+      }
+    ]
+  },
+  {
+    "id": "gm-076",
+    "title": "후곡마을(롯데) 71",
+    "address": "경기도 고양시 일산서구 일산동",
+    "coordinates": {
+      "lat": 37.651804,
+      "lng": 126.829781
+    },
+    "region": "경기 고양시",
+    "propertyType": "아파트",
+    "price": 435226890,
+    "actualTransactionPrice": 470000000,
+    "discountRate": 7.4,
+    "urgentScore": 79,
+    "area": 71,
+    "supplyArea": 94,
+    "floor": "1층",
+    "builtYear": 1995,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-05-01",
+    "description": "경기 고양시 생활권의 실거래 대비 7.4% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 260000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 1785,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "고양시 지하철역 도보 7분",
+      "school": "고양시 중학교 도보 12분",
+      "mart": "홈플러스 고양시점 차량 7분",
+      "hospital": "고양시 의료원 차량 6분",
+      "park": "고양시 근린공원 도보 12분",
+      "commute": "강남역 기준 약 27분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 477507791
+      },
+      {
+        "month": "1월",
+        "price": 482719979
+      },
+      {
+        "month": "2월",
+        "price": 457287878
+      },
+      {
+        "month": "3월",
+        "price": 483113338
+      },
+      {
+        "month": "4월",
+        "price": 478120435
+      },
+      {
+        "month": "5월",
+        "price": 435226890
+      }
+    ]
+  },
+  {
+    "id": "gm-077",
+    "title": "일루미스테이트 85",
+    "address": "경기도 부천시 소사구 범박동",
+    "coordinates": {
+      "lat": 37.502528,
+      "lng": 126.769294
+    },
+    "region": "경기 부천시",
+    "propertyType": "아파트",
+    "price": 701418032,
+    "actualTransactionPrice": 739500000,
+    "discountRate": 5.1,
+    "urgentScore": 73,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "13층",
+    "builtYear": 2024,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-03",
+    "recentTransactionDate": "2026-04-17",
+    "description": "경기 부천시 생활권의 실거래 대비 5.1% 저렴한 매물입니다.",
+    "parking": "세대당 0.8대",
+    "maintenanceFee": 460000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 2363,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부천시 지하철역 도보 8분",
+      "school": "부천시 중학교 도보 8분",
+      "mart": "홈플러스 부천시점 차량 7분",
+      "hospital": "부천시 종합병원 차량 5분",
+      "park": "부천시 근린공원 도보 5분",
+      "commute": "강남역 기준 약 48분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 738253425
+      },
+      {
+        "month": "1월",
+        "price": 735053680
+      },
+      {
+        "month": "2월",
+        "price": 746495579
+      },
+      {
+        "month": "3월",
+        "price": 723963843
+      },
+      {
+        "month": "4월",
+        "price": 760169862
+      },
+      {
+        "month": "5월",
+        "price": 701418032
+      }
+    ]
+  },
+  {
+    "id": "gm-078",
+    "title": "삼보 63",
+    "address": "인천광역시 부평구 삼산동",
+    "coordinates": {
+      "lat": 37.512852,
+      "lng": 126.719607
+    },
+    "region": "인천 부평구",
+    "propertyType": "아파트",
+    "price": 157929118,
+    "actualTransactionPrice": 177500000,
+    "discountRate": 11,
+    "urgentScore": 88,
+    "area": 63,
+    "supplyArea": 83,
+    "floor": "9층",
+    "builtYear": 1990,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-01",
+    "recentTransactionDate": "2026-04-28",
+    "description": "인천 부평구 생활권의 실거래 대비 11% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 150000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 1566,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부평구 지하철역 도보 8분",
+      "school": "부평구 초등학교 도보 8분",
+      "mart": "이마트 부평구점 차량 5분",
+      "hospital": "부평구 대학병원 차량 7분",
+      "park": "부평구 수변공원 도보 8분",
+      "commute": "강남역 기준 약 17분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 177394313
+      },
+      {
+        "month": "1월",
+        "price": 176552329
+      },
+      {
+        "month": "2월",
+        "price": 173012236
+      },
+      {
+        "month": "3월",
+        "price": 176405051
+      },
+      {
+        "month": "4월",
+        "price": 177034017
+      },
+      {
+        "month": "5월",
+        "price": 157929118
+      }
+    ]
+  },
+  {
+    "id": "gm-079",
+    "title": "덕유마을(주공4) 40",
+    "address": "경기도 부천시 원미구 중동",
+    "coordinates": {
+      "lat": 37.496776,
+      "lng": 126.75932
+    },
+    "region": "경기 부천시",
+    "propertyType": "아파트",
+    "price": 363012924,
+    "actualTransactionPrice": 415000000,
+    "discountRate": 12.5,
+    "urgentScore": 91,
+    "area": 40,
+    "supplyArea": 53,
+    "floor": "6층",
+    "builtYear": 1997,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-13",
+    "recentTransactionDate": "2026-04-27",
+    "description": "경기 부천시 생활권의 실거래 대비 12.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 300000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 973,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부천시 지하철역 도보 5분",
+      "school": "부천시 고등학교 도보 10분",
+      "mart": "홈플러스 부천시점 차량 8분",
+      "hospital": "부천시 대학병원 차량 10분",
+      "park": "부천시 수변공원 도보 6분",
+      "commute": "강남역 기준 약 31분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 416761615
+      },
+      {
+        "month": "1월",
+        "price": 420845117
+      },
+      {
+        "month": "2월",
+        "price": 404095363
+      },
+      {
+        "month": "3월",
+        "price": 413929945
+      },
+      {
+        "month": "4월",
+        "price": 402777567
+      },
+      {
+        "month": "5월",
+        "price": 363012924
+      }
+    ]
+  },
+  {
+    "id": "gm-080",
+    "title": "현대모닝사이드2 85",
+    "address": "경기도 광주시 쌍령동",
+    "coordinates": {
+      "lat": 37.4355,
+      "lng": 127.257133
+    },
+    "region": "경기 광주시",
+    "propertyType": "아파트",
+    "price": 364423833,
+    "actualTransactionPrice": 392500000,
+    "discountRate": 7.2,
+    "urgentScore": 78,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "3층",
+    "builtYear": 2003,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-04-07",
+    "description": "경기 광주시 생활권의 실거래 대비 7.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.2대",
+    "maintenanceFee": 480000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 269,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "광주시 지하철역 도보 4분",
+      "school": "광주시 초등학교 도보 10분",
+      "mart": "홈플러스 광주시점 차량 6분",
+      "hospital": "광주시 종합병원 차량 11분",
+      "park": "광주시 체육공원 도보 8분",
+      "commute": "강남역 기준 약 21분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 391650290
+      },
+      {
+        "month": "1월",
+        "price": 383573855
+      },
+      {
+        "month": "2월",
+        "price": 389156179
+      },
+      {
+        "month": "3월",
+        "price": 382594019
+      },
+      {
+        "month": "4월",
+        "price": 389545246
+      },
+      {
+        "month": "5월",
+        "price": 364423833
+      }
+    ]
+  },
+  {
+    "id": "gm-081",
+    "title": "형석1 59",
+    "address": "충청북도 청주시 흥덕구 가경동",
+    "coordinates": {
+      "lat": 36.649924,
+      "lng": 127.492346
+    },
+    "region": "충청북 청주시",
+    "propertyType": "아파트",
+    "price": 120882037,
+    "actualTransactionPrice": 138000000,
+    "discountRate": 12.4,
+    "urgentScore": 91,
+    "area": 59,
+    "supplyArea": 79,
+    "floor": "8층",
+    "builtYear": 1992,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-10",
+    "recentTransactionDate": "2026-04-16",
+    "description": "충청북 청주시 생활권의 실거래 대비 12.4% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 230000,
+    "moveInDate": "협의 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 1925,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "청주시 지하철역 도보 15분",
+      "school": "청주시 중학교 도보 5분",
+      "mart": "홈플러스 청주시점 차량 4분",
+      "hospital": "청주시 종합병원 차량 7분",
+      "park": "청주시 근린공원 도보 12분",
+      "commute": "강남역 기준 약 28분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 141474207
+      },
+      {
+        "month": "1월",
+        "price": 136507094
+      },
+      {
+        "month": "2월",
+        "price": 139792296
+      },
+      {
+        "month": "3월",
+        "price": 133977591
+      },
+      {
+        "month": "4월",
+        "price": 136364090
+      },
+      {
+        "month": "5월",
+        "price": 120882037
+      }
+    ]
+  },
+  {
+    "id": "gm-082",
+    "title": "청주비하계룡리슈빌2차 85",
+    "address": "충청북도 청주시 흥덕구 비하동",
+    "coordinates": {
+      "lat": 36.636548,
+      "lng": 127.482859
+    },
+    "region": "충청북 청주시",
+    "propertyType": "아파트",
+    "price": 331652716,
+    "actualTransactionPrice": 352000000,
+    "discountRate": 5.8,
+    "urgentScore": 75,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "14층",
+    "builtYear": 2009,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-04",
+    "recentTransactionDate": "2026-04-20",
+    "description": "충청북 청주시 생활권의 실거래 대비 5.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 190000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 906,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "청주시 지하철역 도보 10분",
+      "school": "청주시 초등학교 도보 4분",
+      "mart": "코스트코 청주시점 차량 8분",
+      "hospital": "청주시 종합병원 차량 7분",
+      "park": "청주시 체육공원 도보 12분",
+      "commute": "강남역 기준 약 39분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 355965523
+      },
+      {
+        "month": "1월",
+        "price": 343149119
+      },
+      {
+        "month": "2월",
+        "price": 360182099
+      },
+      {
+        "month": "3월",
+        "price": 341683720
+      },
+      {
+        "month": "4월",
+        "price": 352904354
+      },
+      {
+        "month": "5월",
+        "price": 331652716
+      }
+    ]
+  },
+  {
+    "id": "gm-083",
+    "title": "대우푸르지오 85",
+    "address": "충청남도 아산시 실옥동",
+    "coordinates": {
+      "lat": 36.783572,
+      "lng": 127.004272
+    },
+    "region": "충청남 아산시",
+    "propertyType": "아파트",
+    "price": 254376817,
+    "actualTransactionPrice": 298500000,
+    "discountRate": 14.8,
+    "urgentScore": 97,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "4층",
+    "builtYear": 2006,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-05-12",
+    "description": "충청남 아산시 생활권의 실거래 대비 14.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 250000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 191,
+    "agent": {
+      "name": "이수민",
+      "office": "동부공인중개사",
+      "phone": "031-704-2210",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "아산시 지하철역 도보 4분",
+      "school": "아산시 중학교 도보 15분",
+      "mart": "롯데마트 아산시점 차량 9분",
+      "hospital": "아산시 종합병원 차량 7분",
+      "park": "아산시 근린공원 도보 7분",
+      "commute": "강남역 기준 약 39분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 298830131
+      },
+      {
+        "month": "1월",
+        "price": 292314801
+      },
+      {
+        "month": "2월",
+        "price": 300664586
+      },
+      {
+        "month": "3월",
+        "price": 304255875
+      },
+      {
+        "month": "4월",
+        "price": 304691725
+      },
+      {
+        "month": "5월",
+        "price": 254376817
+      }
+    ]
+  },
+  {
+    "id": "gm-084",
+    "title": "신우희가로아파트 85",
+    "address": "충청북도 충주시 중앙탑면 용전리",
+    "coordinates": {
+      "lat": 36.993397,
+      "lng": 127.931785
+    },
+    "region": "충청북 충주시",
+    "propertyType": "아파트",
+    "price": 217835764,
+    "actualTransactionPrice": 234000000,
+    "discountRate": 6.9,
+    "urgentScore": 77,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "13층",
+    "builtYear": 2018,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-05-12",
+    "description": "충청북 충주시 생활권의 실거래 대비 6.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 340000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 281,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "충주시 지하철역 도보 10분",
+      "school": "충주시 중학교 도보 8분",
+      "mart": "홈플러스 충주시점 차량 5분",
+      "hospital": "충주시 대학병원 차량 5분",
+      "park": "충주시 수변공원 도보 6분",
+      "commute": "강남역 기준 약 15분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 229248921
+      },
+      {
+        "month": "1월",
+        "price": 231063926
+      },
+      {
+        "month": "2월",
+        "price": 236341986
+      },
+      {
+        "month": "3월",
+        "price": 229699769
+      },
+      {
+        "month": "4월",
+        "price": 240473940
+      },
+      {
+        "month": "5월",
+        "price": 217835764
+      }
+    ]
+  },
+  {
+    "id": "gm-085",
+    "title": "삼일원앙 38",
+    "address": "충청남도 천안시 서북구 성거읍 저리",
+    "coordinates": {
+      "lat": 36.815121,
+      "lng": 127.117298
+    },
+    "region": "충청남 천안시",
+    "propertyType": "아파트",
+    "price": 74079660,
+    "actualTransactionPrice": 82000000,
+    "discountRate": 9.7,
+    "urgentScore": 84,
+    "area": 38,
+    "supplyArea": 50,
+    "floor": "4층",
+    "builtYear": 1998,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-15",
+    "description": "충청남 천안시 생활권의 실거래 대비 9.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 360000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 1487,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "천안시 지하철역 도보 6분",
+      "school": "천안시 고등학교 도보 12분",
+      "mart": "이마트 천안시점 차량 9분",
+      "hospital": "천안시 종합병원 차량 10분",
+      "park": "천안시 근린공원 도보 6분",
+      "commute": "강남역 기준 약 64분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 81346995
+      },
+      {
+        "month": "1월",
+        "price": 80718855
+      },
+      {
+        "month": "2월",
+        "price": 83354265
+      },
+      {
+        "month": "3월",
+        "price": 83862484
+      },
+      {
+        "month": "4월",
+        "price": 82683882
+      },
+      {
+        "month": "5월",
+        "price": 74079660
+      }
+    ]
+  },
+  {
+    "id": "gm-086",
+    "title": "삼환 85",
+    "address": "부산광역시 부산진구 초읍동",
+    "coordinates": {
+      "lat": 35.161745,
+      "lng": 129.059111
+    },
+    "region": "부산 부산진구",
+    "propertyType": "아파트",
+    "price": 450903056,
+    "actualTransactionPrice": 504000000,
+    "discountRate": 10.5,
+    "urgentScore": 86,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "2층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-05-12",
+    "description": "부산 부산진구 생활권의 실거래 대비 10.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 230000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 237,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부산진구 지하철역 도보 12분",
+      "school": "부산진구 초등학교 도보 7분",
+      "mart": "홈플러스 부산진구점 차량 3분",
+      "hospital": "부산진구 종합병원 차량 6분",
+      "park": "부산진구 체육공원 도보 4분",
+      "commute": "강남역 기준 약 61분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 515655907
+      },
+      {
+        "month": "1월",
+        "price": 511585148
+      },
+      {
+        "month": "2월",
+        "price": 509933278
+      },
+      {
+        "month": "3월",
+        "price": 507806963
+      },
+      {
+        "month": "4월",
+        "price": 507912870
+      },
+      {
+        "month": "5월",
+        "price": 450903056
+      }
+    ]
+  },
+  {
+    "id": "gm-087",
+    "title": "율량7단지선광로즈웰1차 104",
+    "address": "충청북도 청주시 청원구 율량동",
+    "coordinates": {
+      "lat": 36.636669,
+      "lng": 127.482424
+    },
+    "region": "충청북 청주시",
+    "propertyType": "아파트",
+    "price": 449014838,
+    "actualTransactionPrice": 483000000,
+    "discountRate": 7,
+    "urgentScore": 78,
+    "area": 104,
+    "supplyArea": 138,
+    "floor": "17층",
+    "builtYear": 2014,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-10",
+    "recentTransactionDate": "2026-05-24",
+    "description": "충청북 청주시 생활권의 실거래 대비 7% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 210000,
+    "moveInDate": "협의 가능",
+    "rooms": 4,
+    "bathrooms": 2,
+    "unitCount": 754,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "청주시 지하철역 도보 15분",
+      "school": "청주시 초등학교 도보 4분",
+      "mart": "코스트코 청주시점 차량 10분",
+      "hospital": "청주시 의료원 차량 15분",
+      "park": "청주시 수변공원 도보 7분",
+      "commute": "강남역 기준 약 47분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 482018099
+      },
+      {
+        "month": "1월",
+        "price": 485160704
+      },
+      {
+        "month": "2월",
+        "price": 473716412
+      },
+      {
+        "month": "3월",
+        "price": 473892444
+      },
+      {
+        "month": "4월",
+        "price": 488282688
+      },
+      {
+        "month": "5월",
+        "price": 449014838
+      }
+    ]
+  },
+  {
+    "id": "gm-088",
+    "title": "북천안자이포레스트 44",
+    "address": "충청남도 천안시 서북구 성거읍 송남리",
+    "coordinates": {
+      "lat": 36.813993,
+      "lng": 127.107837
+    },
+    "region": "충청남 천안시",
+    "propertyType": "아파트",
+    "price": 142339805,
+    "actualTransactionPrice": 152500000,
+    "discountRate": 6.7,
+    "urgentScore": 77,
+    "area": 44,
+    "supplyArea": 58,
+    "floor": "8층",
+    "builtYear": 2016,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-04-18",
+    "description": "충청남 천안시 생활권의 실거래 대비 6.7% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 200000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 742,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "천안시 지하철역 도보 6분",
+      "school": "천안시 고등학교 도보 8분",
+      "mart": "홈플러스 천안시점 차량 3분",
+      "hospital": "천안시 의료원 차량 10분",
+      "park": "천안시 근린공원 도보 4분",
+      "commute": "강남역 기준 약 65분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 155787497
+      },
+      {
+        "month": "1월",
+        "price": 152141186
+      },
+      {
+        "month": "2월",
+        "price": 156851780
+      },
+      {
+        "month": "3월",
+        "price": 150743818
+      },
+      {
+        "month": "4월",
+        "price": 152936280
+      },
+      {
+        "month": "5월",
+        "price": 142339805
+      }
+    ]
+  },
+  {
+    "id": "gm-089",
+    "title": "한마을 85",
+    "address": "대전광역시 유성구 송강동",
+    "coordinates": {
+      "lat": 36.353917,
+      "lng": 127.36015
+    },
+    "region": "대전 유성구",
+    "propertyType": "아파트",
+    "price": 288567901,
+    "actualTransactionPrice": 310000000,
+    "discountRate": 6.9,
+    "urgentScore": 77,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "6층",
+    "builtYear": 1999,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-07",
+    "recentTransactionDate": "2026-04-13",
+    "description": "대전 유성구 생활권의 실거래 대비 6.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 500000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 1048,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "유성구 지하철역 도보 12분",
+      "school": "유성구 초등학교 도보 8분",
+      "mart": "코스트코 유성구점 차량 5분",
+      "hospital": "유성구 대학병원 차량 12분",
+      "park": "유성구 근린공원 도보 12분",
+      "commute": "강남역 기준 약 44분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 315858266
+      },
+      {
+        "month": "1월",
+        "price": 303666926
+      },
+      {
+        "month": "2월",
+        "price": 316213395
+      },
+      {
+        "month": "3월",
+        "price": 314518043
+      },
+      {
+        "month": "4월",
+        "price": 318845684
+      },
+      {
+        "month": "5월",
+        "price": 288567901
+      }
+    ]
+  },
+  {
+    "id": "gm-090",
+    "title": "가야롯데캐슬골드아너 60",
+    "address": "부산광역시 부산진구 가야동",
+    "coordinates": {
+      "lat": 35.166241,
+      "lng": 129.055162
+    },
+    "region": "부산 부산진구",
+    "propertyType": "아파트",
+    "price": 594306896,
+    "actualTransactionPrice": 627500000,
+    "discountRate": 5.3,
+    "urgentScore": 73,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "18층",
+    "builtYear": 2022,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-09",
+    "recentTransactionDate": "2026-05-03",
+    "description": "부산 부산진구 생활권의 실거래 대비 5.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 270000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 95,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "부산진구 지하철역 도보 4분",
+      "school": "부산진구 초등학교 도보 12분",
+      "mart": "코스트코 부산진구점 차량 6분",
+      "hospital": "부산진구 의료원 차량 6분",
+      "park": "부산진구 근린공원 도보 6분",
+      "commute": "강남역 기준 약 27분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 611804914
+      },
+      {
+        "month": "1월",
+        "price": 624515824
+      },
+      {
+        "month": "2월",
+        "price": 627688347
+      },
+      {
+        "month": "3월",
+        "price": 617720167
+      },
+      {
+        "month": "4월",
+        "price": 635631193
+      },
+      {
+        "month": "5월",
+        "price": 594306896
+      }
+    ]
+  },
+  {
+    "id": "gm-091",
+    "title": "광명 60",
+    "address": "충청남도 천안시 서북구 쌍용동",
+    "coordinates": {
+      "lat": 36.809865,
+      "lng": 127.115375
+    },
+    "region": "충청남 천안시",
+    "propertyType": "아파트",
+    "price": 108850926,
+    "actualTransactionPrice": 120000000,
+    "discountRate": 9.3,
+    "urgentScore": 83,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "1층",
+    "builtYear": 1993,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-08",
+    "recentTransactionDate": "2026-04-09",
+    "description": "충청남 천안시 생활권의 실거래 대비 9.3% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 160000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 415,
+    "agent": {
+      "name": "강민호",
+      "office": "센트럴공인중개사",
+      "phone": "051-742-3308",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "천안시 지하철역 도보 12분",
+      "school": "천안시 고등학교 도보 5분",
+      "mart": "이마트 천안시점 차량 3분",
+      "hospital": "천안시 종합병원 차량 12분",
+      "park": "천안시 근린공원 도보 7분",
+      "commute": "강남역 기준 약 55분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 119379383
+      },
+      {
+        "month": "1월",
+        "price": 123560154
+      },
+      {
+        "month": "2월",
+        "price": 121716852
+      },
+      {
+        "month": "3월",
+        "price": 120360586
+      },
+      {
+        "month": "4월",
+        "price": 120135802
+      },
+      {
+        "month": "5월",
+        "price": 108850926
+      }
+    ]
+  },
+  {
+    "id": "gm-092",
+    "title": "데시앙해링턴플레이스파크시티 60",
+    "address": "부산광역시 남구 용호동",
+    "coordinates": {
+      "lat": 35.131989,
+      "lng": 129.082288
+    },
+    "region": "부산 남구",
+    "propertyType": "아파트",
+    "price": 346256906,
+    "actualTransactionPrice": 370000000,
+    "discountRate": 6.4,
+    "urgentScore": 76,
+    "area": 60,
+    "supplyArea": 79,
+    "floor": "5층",
+    "builtYear": 2023,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-23",
+    "description": "부산 남구 생활권의 실거래 대비 6.4% 저렴한 매물입니다.",
+    "parking": "세대당 1.7대",
+    "maintenanceFee": 430000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 2033,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "남구 지하철역 도보 15분",
+      "school": "남구 중학교 도보 7분",
+      "mart": "롯데마트 남구점 차량 10분",
+      "hospital": "남구 종합병원 차량 5분",
+      "park": "남구 체육공원 도보 12분",
+      "commute": "강남역 기준 약 59분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 371264833
+      },
+      {
+        "month": "1월",
+        "price": 372901379
+      },
+      {
+        "month": "2월",
+        "price": 365213696
+      },
+      {
+        "month": "3월",
+        "price": 368277711
+      },
+      {
+        "month": "4월",
+        "price": 361880460
+      },
+      {
+        "month": "5월",
+        "price": 346256906
+      }
+    ]
+  },
+  {
+    "id": "gm-093",
+    "title": "익산부영2차아파트 40",
+    "address": "전북특별자치도 익산시 어양동",
+    "coordinates": {
+      "lat": 35.717713,
+      "lng": 127.147701
+    },
+    "region": "전북 익산시",
+    "propertyType": "아파트",
+    "price": 51499074,
+    "actualTransactionPrice": 60000000,
+    "discountRate": 14.2,
+    "urgentScore": 96,
+    "area": 40,
+    "supplyArea": 53,
+    "floor": "10층",
+    "builtYear": 1998,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-14",
+    "recentTransactionDate": "2026-04-12",
+    "description": "전북 익산시 생활권의 실거래 대비 14.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 270000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 2611,
+    "agent": {
+      "name": "박지영",
+      "office": "한솔공인중개사",
+      "phone": "02-3445-7821",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "익산시 지하철역 도보 5분",
+      "school": "익산시 초등학교 도보 5분",
+      "mart": "롯데마트 익산시점 차량 10분",
+      "hospital": "익산시 대학병원 차량 15분",
+      "park": "익산시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 24분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 59145525
+      },
+      {
+        "month": "1월",
+        "price": 58485910
+      },
+      {
+        "month": "2월",
+        "price": 61414259
+      },
+      {
+        "month": "3월",
+        "price": 60386127
+      },
+      {
+        "month": "4월",
+        "price": 59323735
+      },
+      {
+        "month": "5월",
+        "price": 51499074
+      }
+    ]
+  },
+  {
+    "id": "gm-094",
+    "title": "동화골든빌 58",
+    "address": "대구광역시 북구 동천동",
+    "coordinates": {
+      "lat": 35.892937,
+      "lng": 128.580814
+    },
+    "region": "대구 북구",
+    "propertyType": "아파트",
+    "price": 166417921,
+    "actualTransactionPrice": 185000000,
+    "discountRate": 10,
+    "urgentScore": 85,
+    "area": 58,
+    "supplyArea": 77,
+    "floor": "5층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-05-23",
+    "description": "대구 북구 생활권의 실거래 대비 10% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 310000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 1814,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "북구 지하철역 도보 5분",
+      "school": "북구 초등학교 도보 6분",
+      "mart": "홈플러스 북구점 차량 9분",
+      "hospital": "북구 의료원 차량 6분",
+      "park": "북구 중앙공원 도보 8분",
+      "commute": "강남역 기준 약 49분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 182567069
+      },
+      {
+        "month": "1월",
+        "price": 180456175
+      },
+      {
+        "month": "2월",
+        "price": 182933167
+      },
+      {
+        "month": "3월",
+        "price": 188936008
+      },
+      {
+        "month": "4월",
+        "price": 188358216
+      },
+      {
+        "month": "5월",
+        "price": 166417921
+      }
+    ]
+  },
+  {
+    "id": "gm-095",
+    "title": "직산월드메르디앙레이크파크 60",
+    "address": "충청남도 천안시 서북구 직산읍 삼은리",
+    "coordinates": {
+      "lat": 36.810361,
+      "lng": 127.107427
+    },
+    "region": "충청남 천안시",
+    "propertyType": "아파트",
+    "price": 185754398,
+    "actualTransactionPrice": 210000000,
+    "discountRate": 11.5,
+    "urgentScore": 89,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "2층",
+    "builtYear": 2020,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-07",
+    "recentTransactionDate": "2026-05-21",
+    "description": "충청남 천안시 생활권의 실거래 대비 11.5% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 470000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 535,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "천안시 지하철역 도보 10분",
+      "school": "천안시 고등학교 도보 7분",
+      "mart": "홈플러스 천안시점 차량 4분",
+      "hospital": "천안시 의료원 차량 9분",
+      "park": "천안시 수변공원 도보 7분",
+      "commute": "강남역 기준 약 63분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 208254753
+      },
+      {
+        "month": "1월",
+        "price": 208921103
+      },
+      {
+        "month": "2월",
+        "price": 207445324
+      },
+      {
+        "month": "3월",
+        "price": 215221860
+      },
+      {
+        "month": "4월",
+        "price": 208178488
+      },
+      {
+        "month": "5월",
+        "price": 185754398
+      }
+    ]
+  },
+  {
+    "id": "gm-096",
+    "title": "오룡마을휴먼시아 75",
+    "address": "전라남도 무안군 삼향읍 남악리",
+    "coordinates": {
+      "lat": 36.507885,
+      "lng": 127.50204
+    },
+    "region": "전라남 무안군",
+    "propertyType": "아파트",
+    "price": 174755242,
+    "actualTransactionPrice": 186250000,
+    "discountRate": 6.2,
+    "urgentScore": 76,
+    "area": 75,
+    "supplyArea": 99,
+    "floor": "13층",
+    "builtYear": 2009,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-04-01",
+    "description": "전라남 무안군 생활권의 실거래 대비 6.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 290000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 81,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "무안군 지하철역 도보 8분",
+      "school": "무안군 고등학교 도보 6분",
+      "mart": "롯데마트 무안군점 차량 9분",
+      "hospital": "무안군 대학병원 차량 10분",
+      "park": "무안군 수변공원 도보 8분",
+      "commute": "강남역 기준 약 53분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 183508321
+      },
+      {
+        "month": "1월",
+        "price": 189609207
+      },
+      {
+        "month": "2월",
+        "price": 187291477
+      },
+      {
+        "month": "3월",
+        "price": 186660919
+      },
+      {
+        "month": "4월",
+        "price": 188717765
+      },
+      {
+        "month": "5월",
+        "price": 174755242
+      }
+    ]
+  },
+  {
+    "id": "gm-097",
+    "title": "장자마을부영(9단지) 59",
+    "address": "충청북도 청주시 상당구 금천동",
+    "coordinates": {
+      "lat": 36.63591,
+      "lng": 127.492553
+    },
+    "region": "충청북 청주시",
+    "propertyType": "아파트",
+    "price": 147923858,
+    "actualTransactionPrice": 167000000,
+    "discountRate": 11.4,
+    "urgentScore": 89,
+    "area": 59,
+    "supplyArea": 79,
+    "floor": "9층",
+    "builtYear": 2002,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-04",
+    "recentTransactionDate": "2026-05-10",
+    "description": "충청북 청주시 생활권의 실거래 대비 11.4% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 400000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 793,
+    "agent": {
+      "name": "최우진",
+      "office": "한강뷰공인중개사",
+      "phone": "02-2666-1900",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "청주시 지하철역 도보 8분",
+      "school": "청주시 중학교 도보 12분",
+      "mart": "롯데마트 청주시점 차량 7분",
+      "hospital": "청주시 대학병원 차량 6분",
+      "park": "청주시 체육공원 도보 12분",
+      "commute": "강남역 기준 약 60분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 169107516
+      },
+      {
+        "month": "1월",
+        "price": 172003256
+      },
+      {
+        "month": "2월",
+        "price": 171525494
+      },
+      {
+        "month": "3월",
+        "price": 166715524
+      },
+      {
+        "month": "4월",
+        "price": 168490200
+      },
+      {
+        "month": "5월",
+        "price": 147923858
+      }
+    ]
+  },
+  {
+    "id": "gm-098",
+    "title": "신흥SKVIEW 75",
+    "address": "대전광역시 동구 신흥동",
+    "coordinates": {
+      "lat": 36.308034,
+      "lng": 127.448866
+    },
+    "region": "대전 동구",
+    "propertyType": "아파트",
+    "price": 429413056,
+    "actualTransactionPrice": 504000000,
+    "discountRate": 14.8,
+    "urgentScore": 97,
+    "area": 75,
+    "supplyArea": 100,
+    "floor": "13층",
+    "builtYear": 2022,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-15",
+    "recentTransactionDate": "2026-04-14",
+    "description": "대전 동구 생활권의 실거래 대비 14.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.2대",
+    "maintenanceFee": 350000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 969,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "동구 지하철역 도보 6분",
+      "school": "동구 고등학교 도보 10분",
+      "mart": "이마트 동구점 차량 4분",
+      "hospital": "동구 대학병원 차량 6분",
+      "park": "동구 수변공원 도보 12분",
+      "commute": "강남역 기준 약 15분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 503349907
+      },
+      {
+        "month": "1월",
+        "price": 511879148
+      },
+      {
+        "month": "2월",
+        "price": 492587278
+      },
+      {
+        "month": "3월",
+        "price": 503060963
+      },
+      {
+        "month": "4월",
+        "price": 515766870
+      },
+      {
+        "month": "5월",
+        "price": 429413056
+      }
+    ]
+  },
+  {
+    "id": "gm-099",
+    "title": "에스케이뷰 85",
+    "address": "충청남도 보령시 궁촌동",
+    "coordinates": {
+      "lat": 36.495758,
+      "lng": 127.501579
+    },
+    "region": "충청남 보령시",
+    "propertyType": "아파트",
+    "price": 202569637,
+    "actualTransactionPrice": 235000000,
+    "discountRate": 13.8,
+    "urgentScore": 95,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "6층",
+    "builtYear": 2006,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-04-06",
+    "description": "충청남 보령시 생활권의 실거래 대비 13.8% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 420000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 74,
+    "agent": {
+      "name": "최우진",
+      "office": "한강뷰공인중개사",
+      "phone": "02-2666-1900",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "보령시 지하철역 도보 8분",
+      "school": "보령시 중학교 도보 8분",
+      "mart": "코스트코 보령시점 차량 5분",
+      "hospital": "보령시 대학병원 차량 6분",
+      "park": "보령시 근린공원 도보 7분",
+      "commute": "강남역 기준 약 15분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 232309347
+      },
+      {
+        "month": "1월",
+        "price": 239713358
+      },
+      {
+        "month": "2월",
+        "price": 240020224
+      },
+      {
+        "month": "3월",
+        "price": 231880871
+      },
+      {
+        "month": "4월",
+        "price": 230657335
+      },
+      {
+        "month": "5월",
+        "price": 202569637
+      }
+    ]
+  },
+  {
+    "id": "gm-100",
+    "title": "진주포레스트부영 60",
+    "address": "경상남도 진주시 충무공동",
+    "coordinates": {
+      "lat": 35.184382,
+      "lng": 128.113692
+    },
+    "region": "경상남 진주시",
+    "propertyType": "아파트",
+    "price": 364065174,
+    "actualTransactionPrice": 387000000,
+    "discountRate": 5.9,
+    "urgentScore": 75,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "16층",
+    "builtYear": 2020,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-04-06",
+    "description": "경상남 진주시 생활권의 실거래 대비 5.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 150000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 331,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "진주시 지하철역 도보 5분",
+      "school": "진주시 중학교 도보 6분",
+      "mart": "롯데마트 진주시점 차량 8분",
+      "hospital": "진주시 의료원 차량 15분",
+      "park": "진주시 중앙공원 도보 6분",
+      "commute": "강남역 기준 약 47분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 397503447
+      },
+      {
+        "month": "1월",
+        "price": 397925185
+      },
+      {
+        "month": "2월",
+        "price": 396334285
+      },
+      {
+        "month": "3월",
+        "price": 390509079
+      },
+      {
+        "month": "4월",
+        "price": 382527900
+      },
+      {
+        "month": "5월",
+        "price": 364065174
+      }
+    ]
+  },
+  {
+    "id": "gm-101",
+    "title": "전주아중롯데(1차) 85",
+    "address": "전북특별자치도 전주시 덕진구 우아동2가",
+    "coordinates": {
+      "lat": 35.826206,
+      "lng": 127.151605
+    },
+    "region": "전북 전주시",
+    "propertyType": "아파트",
+    "price": 258671069,
+    "actualTransactionPrice": 283250000,
+    "discountRate": 8.7,
+    "urgentScore": 82,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "5층",
+    "builtYear": 1998,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-11",
+    "recentTransactionDate": "2026-04-09",
+    "description": "전북 전주시 생활권의 실거래 대비 8.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.3대",
+    "maintenanceFee": 170000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 683,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "전주시 지하철역 도보 15분",
+      "school": "전주시 중학교 도보 8분",
+      "mart": "홈플러스 전주시점 차량 4분",
+      "hospital": "전주시 대학병원 차량 9분",
+      "park": "전주시 체육공원 도보 6분",
+      "commute": "강남역 기준 약 40분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 277437984
+      },
+      {
+        "month": "1월",
+        "price": 290374889
+      },
+      {
+        "month": "2월",
+        "price": 274929968
+      },
+      {
+        "month": "3월",
+        "price": 280462159
+      },
+      {
+        "month": "4월",
+        "price": 291497616
+      },
+      {
+        "month": "5월",
+        "price": 258671069
+      }
+    ]
+  },
+  {
+    "id": "gm-102",
+    "title": "현대 118",
+    "address": "대전광역시 유성구 도룡동",
+    "coordinates": {
+      "lat": 36.36203,
+      "lng": 127.362818
+    },
+    "region": "대전 유성구",
+    "propertyType": "아파트",
+    "price": 341887292,
+    "actualTransactionPrice": 378000000,
+    "discountRate": 9.6,
+    "urgentScore": 84,
+    "area": 118,
+    "supplyArea": 157,
+    "floor": "10층",
+    "builtYear": 1989,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-01",
+    "recentTransactionDate": "2026-05-06",
+    "description": "대전 유성구 생활권의 실거래 대비 9.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.6대",
+    "maintenanceFee": 390000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 4,
+    "bathrooms": 2,
+    "unitCount": 287,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "유성구 지하철역 도보 7분",
+      "school": "유성구 고등학교 도보 4분",
+      "mart": "롯데마트 유성구점 차량 7분",
+      "hospital": "유성구 대학병원 차량 5분",
+      "park": "유성구 체육공원 도보 4분",
+      "commute": "강남역 기준 약 37분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 381995931
+      },
+      {
+        "month": "1월",
+        "price": 376422861
+      },
+      {
+        "month": "2월",
+        "price": 387783958
+      },
+      {
+        "month": "3월",
+        "price": 368549222
+      },
+      {
+        "month": "4월",
+        "price": 388788653
+      },
+      {
+        "month": "5월",
+        "price": 341887292
+      }
+    ]
+  },
+  {
+    "id": "gm-103",
+    "title": "영무예다음 85",
+    "address": "전북특별자치도 익산시 송학동",
+    "coordinates": {
+      "lat": 35.712954,
+      "lng": 127.137831
+    },
+    "region": "전북 익산시",
+    "propertyType": "아파트",
+    "price": 361689082,
+    "actualTransactionPrice": 385000000,
+    "discountRate": 6.1,
+    "urgentScore": 75,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "6층",
+    "builtYear": 2006,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-04",
+    "recentTransactionDate": "2026-04-18",
+    "description": "전북 익산시 생활권의 실거래 대비 6.1% 저렴한 매물입니다.",
+    "parking": "세대당 0.8대",
+    "maintenanceFee": 370000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 816,
+    "agent": {
+      "name": "박지영",
+      "office": "한솔공인중개사",
+      "phone": "02-3445-7821",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "익산시 지하철역 도보 8분",
+      "school": "익산시 초등학교 도보 12분",
+      "mart": "이마트 익산시점 차량 6분",
+      "hospital": "익산시 종합병원 차량 14분",
+      "park": "익산시 수변공원 도보 7분",
+      "commute": "강남역 기준 약 23분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 379383436
+      },
+      {
+        "month": "1월",
+        "price": 379321745
+      },
+      {
+        "month": "2월",
+        "price": 383032816
+      },
+      {
+        "month": "3월",
+        "price": 388306465
+      },
+      {
+        "month": "4월",
+        "price": 374110283
+      },
+      {
+        "month": "5월",
+        "price": 361689082
+      }
+    ]
+  },
+  {
+    "id": "gm-104",
+    "title": "중흥S클래스에듀힐스 85",
+    "address": "경상북도 구미시 옥계동",
+    "coordinates": {
+      "lat": 36.120478,
+      "lng": 128.338844
+    },
+    "region": "경상북 구미시",
+    "propertyType": "아파트",
+    "price": 285786748,
+    "actualTransactionPrice": 303000000,
+    "discountRate": 5.7,
+    "urgentScore": 74,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "2층",
+    "builtYear": 2016,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-05-12",
+    "description": "경상북 구미시 생활권의 실거래 대비 5.7% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 370000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 804,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "구미시 지하철역 도보 15분",
+      "school": "구미시 고등학교 도보 5분",
+      "mart": "롯데마트 구미시점 차량 7분",
+      "hospital": "구미시 종합병원 차량 9분",
+      "park": "구미시 근린공원 도보 4분",
+      "commute": "강남역 기준 약 41분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 305727546
+      },
+      {
+        "month": "1월",
+        "price": 296462744
+      },
+      {
+        "month": "2월",
+        "price": 297742155
+      },
+      {
+        "month": "3월",
+        "price": 307826335
+      },
+      {
+        "month": "4월",
+        "price": 310162505
+      },
+      {
+        "month": "5월",
+        "price": 285786748
+      }
+    ]
+  },
+  {
+    "id": "gm-105",
+    "title": "동아 76",
+    "address": "경상북도 상주시 신봉동",
+    "coordinates": {
+      "lat": 36.494502,
+      "lng": 127.503657
+    },
+    "region": "경상북 상주시",
+    "propertyType": "아파트",
+    "price": 138279815,
+    "actualTransactionPrice": 147000000,
+    "discountRate": 5.9,
+    "urgentScore": 75,
+    "area": 76,
+    "supplyArea": 101,
+    "floor": "1층",
+    "builtYear": 1991,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-02",
+    "recentTransactionDate": "2026-05-07",
+    "description": "경상북 상주시 생활권의 실거래 대비 5.9% 저렴한 매물입니다.",
+    "parking": "세대당 1.9대",
+    "maintenanceFee": 300000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 574,
+    "agent": {
+      "name": "한지수",
+      "office": "베스트공인중개사",
+      "phone": "053-261-7745",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "상주시 지하철역 도보 6분",
+      "school": "상주시 고등학교 도보 5분",
+      "mart": "이마트 상주시점 차량 9분",
+      "hospital": "상주시 의료원 차량 11분",
+      "park": "상주시 체육공원 도보 12분",
+      "commute": "강남역 기준 약 20분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 147932285
+      },
+      {
+        "month": "1월",
+        "price": 149991231
+      },
+      {
+        "month": "2월",
+        "price": 143200685
+      },
+      {
+        "month": "3월",
+        "price": 144356760
+      },
+      {
+        "month": "4월",
+        "price": 145428900
+      },
+      {
+        "month": "5월",
+        "price": 138279815
+      }
+    ]
+  },
+  {
+    "id": "gm-106",
+    "title": "갤러리빌 40",
+    "address": "대전광역시 서구 둔산동",
+    "coordinates": {
+      "lat": 36.360126,
+      "lng": 127.38667
+    },
+    "region": "대전 서구",
+    "propertyType": "아파트",
+    "price": 85691744,
+    "actualTransactionPrice": 100000000,
+    "discountRate": 14.3,
+    "urgentScore": 96,
+    "area": 40,
+    "supplyArea": 53,
+    "floor": "12층",
+    "builtYear": 2004,
+    "imageLabel": "",
+    "verified": false,
+    "lastVerifiedAt": "2026-05-04",
+    "recentTransactionDate": "2026-04-25",
+    "description": "대전 서구 생활권의 실거래 대비 14.3% 저렴한 매물입니다.",
+    "parking": "세대당 2.0대",
+    "maintenanceFee": 430000,
+    "moveInDate": "협의 가능",
+    "rooms": 1,
+    "bathrooms": 1,
+    "unitCount": 60,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "서구 지하철역 도보 8분",
+      "school": "서구 고등학교 도보 8분",
+      "mart": "이마트 서구점 차량 10분",
+      "hospital": "서구 종합병원 차량 5분",
+      "park": "서구 근린공원 도보 6분",
+      "commute": "강남역 기준 약 59분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 102243236
+      },
+      {
+        "month": "1월",
+        "price": 97602212
+      },
+      {
+        "month": "2월",
+        "price": 101441127
+      },
+      {
+        "month": "3월",
+        "price": 101185905
+      },
+      {
+        "month": "4월",
+        "price": 97373585
+      },
+      {
+        "month": "5월",
+        "price": 85691744
+      }
+    ]
+  },
+  {
+    "id": "gm-107",
+    "title": "대주파크빌 76",
+    "address": "전라남도 순천시 연향동",
+    "coordinates": {
+      "lat": 34.94735,
+      "lng": 127.488883
+    },
+    "region": "전라남 순천시",
+    "propertyType": "아파트",
+    "price": 314498711,
+    "actualTransactionPrice": 343000000,
+    "discountRate": 8.3,
+    "urgentScore": 81,
+    "area": 76,
+    "supplyArea": 101,
+    "floor": "7층",
+    "builtYear": 1998,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-03",
+    "recentTransactionDate": "2026-05-03",
+    "description": "전라남 순천시 생활권의 실거래 대비 8.3% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 320000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 1,
+    "unitCount": 96,
+    "agent": {
+      "name": "한지수",
+      "office": "베스트공인중개사",
+      "phone": "053-261-7745",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "순천시 지하철역 도보 7분",
+      "school": "순천시 고등학교 도보 15분",
+      "mart": "홈플러스 순천시점 차량 7분",
+      "hospital": "순천시 대학병원 차량 11분",
+      "park": "순천시 체육공원 도보 7분",
+      "commute": "강남역 기준 약 31분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 336919513
+      },
+      {
+        "month": "1월",
+        "price": 346582886
+      },
+      {
+        "month": "2월",
+        "price": 352747446
+      },
+      {
+        "month": "3월",
+        "price": 332864121
+      },
+      {
+        "month": "4월",
+        "price": 350514947
+      },
+      {
+        "month": "5월",
+        "price": 314498711
+      }
+    ]
+  },
+  {
+    "id": "gm-108",
+    "title": "테넌바움294 85",
+    "address": "부산광역시 수영구 민락동",
+    "coordinates": {
+      "lat": 35.142874,
+      "lng": 129.111196
+    },
+    "region": "부산 수영구",
+    "propertyType": "아파트",
+    "price": 903090297,
+    "actualTransactionPrice": 955000000,
+    "discountRate": 5.4,
+    "urgentScore": 74,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "4층",
+    "builtYear": 2023,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-12",
+    "recentTransactionDate": "2026-04-17",
+    "description": "부산 수영구 생활권의 실거래 대비 5.4% 저렴한 매물입니다.",
+    "parking": "세대당 0.8대",
+    "maintenanceFee": 230000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 820,
+    "agent": {
+      "name": "김도현",
+      "office": "프라임공인중개사",
+      "phone": "02-548-9031",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "수영구 지하철역 도보 8분",
+      "school": "수영구 초등학교 도보 4분",
+      "mart": "코스트코 수영구점 차량 6분",
+      "hospital": "수영구 대학병원 차량 15분",
+      "park": "수영구 체육공원 도보 12분",
+      "commute": "강남역 기준 약 34분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 946274081
+      },
+      {
+        "month": "1월",
+        "price": 944131471
+      },
+      {
+        "month": "2월",
+        "price": 956122272
+      },
+      {
+        "month": "3월",
+        "price": 976764077
+      },
+      {
+        "month": "4월",
+        "price": 953885588
+      },
+      {
+        "month": "5월",
+        "price": 903090297
+      }
+    ]
+  },
+  {
+    "id": "gm-109",
+    "title": "S-클래스더제니스 60",
+    "address": "광주광역시 북구 임동",
+    "coordinates": {
+      "lat": 35.177198,
+      "lng": 126.915709
+    },
+    "region": "광주 북구",
+    "propertyType": "아파트",
+    "price": 425385031,
+    "actualTransactionPrice": 490000000,
+    "discountRate": 13.2,
+    "urgentScore": 93,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "16층",
+    "builtYear": 2024,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-09",
+    "recentTransactionDate": "2026-05-06",
+    "description": "광주 북구 생활권의 실거래 대비 13.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.4대",
+    "maintenanceFee": 430000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 964,
+    "agent": {
+      "name": "박지영",
+      "office": "한솔공인중개사",
+      "phone": "02-3445-7821",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "북구 지하철역 도보 10분",
+      "school": "북구 초등학교 도보 15분",
+      "mart": "코스트코 북구점 차량 6분",
+      "hospital": "북구 의료원 차량 13분",
+      "park": "북구 체육공원 도보 6분",
+      "commute": "강남역 기준 약 56분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 476869563
+      },
+      {
+        "month": "1월",
+        "price": 497616047
+      },
+      {
+        "month": "2월",
+        "price": 479064228
+      },
+      {
+        "month": "3월",
+        "price": 477201145
+      },
+      {
+        "month": "4월",
+        "price": 494658277
+      },
+      {
+        "month": "5월",
+        "price": 425385031
+      }
+    ]
+  },
+  {
+    "id": "gm-110",
+    "title": "우림필유1차 85",
+    "address": "충청북도 청주시 청원구 오창읍 각리",
+    "coordinates": {
+      "lat": 36.636022,
+      "lng": 127.487222
+    },
+    "region": "충청북 청주시",
+    "propertyType": "아파트",
+    "price": 254623920,
+    "actualTransactionPrice": 280000000,
+    "discountRate": 9.1,
+    "urgentScore": 83,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "16층",
+    "builtYear": 2006,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-07",
+    "recentTransactionDate": "2026-05-17",
+    "description": "충청북 청주시 생활권의 실거래 대비 9.1% 저렴한 매물입니다.",
+    "parking": "세대당 1.1대",
+    "maintenanceFee": 480000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 765,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "청주시 지하철역 도보 10분",
+      "school": "청주시 고등학교 도보 15분",
+      "mart": "롯데마트 청주시점 차량 5분",
+      "hospital": "청주시 종합병원 차량 5분",
+      "park": "청주시 중앙공원 도보 8분",
+      "commute": "강남역 기준 약 24분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 272802171
+      },
+      {
+        "month": "1월",
+        "price": 284540638
+      },
+      {
+        "month": "2월",
+        "price": 280822932
+      },
+      {
+        "month": "3월",
+        "price": 276841646
+      },
+      {
+        "month": "4월",
+        "price": 274100484
+      },
+      {
+        "month": "5월",
+        "price": 254623920
+      }
+    ]
+  },
+  {
+    "id": "gm-111",
+    "title": "청주테크노폴리스푸르지오 85",
+    "address": "충청북도 청주시 흥덕구 송절동",
+    "coordinates": {
+      "lat": 36.639647,
+      "lng": 127.482735
+    },
+    "region": "충청북 청주시",
+    "propertyType": "아파트",
+    "price": 496369560,
+    "actualTransactionPrice": 555000000,
+    "discountRate": 10.6,
+    "urgentScore": 87,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "16층",
+    "builtYear": 2018,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-02",
+    "recentTransactionDate": "2026-04-16",
+    "description": "충청북 청주시 생활권의 실거래 대비 10.6% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 270000,
+    "moveInDate": "협의 가능",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 597,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "청주시 지하철역 도보 6분",
+      "school": "청주시 중학교 도보 4분",
+      "mart": "롯데마트 청주시점 차량 7분",
+      "hospital": "청주시 종합병원 차량 8분",
+      "park": "청주시 중앙공원 도보 7분",
+      "commute": "강남역 기준 약 39분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 543419228
+      },
+      {
+        "month": "1월",
+        "price": 541480297
+      },
+      {
+        "month": "2월",
+        "price": 556080023
+      },
+      {
+        "month": "3월",
+        "price": 550732296
+      },
+      {
+        "month": "4월",
+        "price": 561717670
+      },
+      {
+        "month": "5월",
+        "price": 496369560
+      }
+    ]
+  },
+  {
+    "id": "gm-112",
+    "title": "주공 51",
+    "address": "전라남도 순천시 풍덕동",
+    "coordinates": {
+      "lat": 34.944471,
+      "lng": 127.489448
+    },
+    "region": "전라남 순천시",
+    "propertyType": "아파트",
+    "price": 180138619,
+    "actualTransactionPrice": 190000000,
+    "discountRate": 5.2,
+    "urgentScore": 73,
+    "area": 51,
+    "supplyArea": 68,
+    "floor": "1층",
+    "builtYear": 1989,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-06",
+    "recentTransactionDate": "2026-05-23",
+    "description": "전라남 순천시 생활권의 실거래 대비 5.2% 저렴한 매물입니다.",
+    "parking": "세대당 1.8대",
+    "maintenanceFee": 450000,
+    "moveInDate": "즉시 입주 가능",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 2343,
+    "agent": {
+      "name": "정하늘",
+      "office": "시티공인중개사",
+      "phone": "02-577-8312",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "순천시 지하철역 도보 5분",
+      "school": "순천시 고등학교 도보 4분",
+      "mart": "코스트코 순천시점 차량 5분",
+      "hospital": "순천시 의료원 차량 9분",
+      "park": "순천시 수변공원 도보 8분",
+      "commute": "강남역 기준 약 28분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 184817564
+      },
+      {
+        "month": "1월",
+        "price": 189774619
+      },
+      {
+        "month": "2월",
+        "price": 193743557
+      },
+      {
+        "month": "3월",
+        "price": 195633637
+      },
+      {
+        "month": "4월",
+        "price": 185065229
+      },
+      {
+        "month": "5월",
+        "price": 180138619
+      }
+    ]
+  },
+  {
+    "id": "gm-113",
+    "title": "아산반도유보라 60",
+    "address": "충청남도 아산시 온천동",
+    "coordinates": {
+      "lat": 36.785295,
+      "lng": 127.006661
+    },
+    "region": "충청남 아산시",
+    "propertyType": "아파트",
+    "price": 179117284,
+    "actualTransactionPrice": 200000000,
+    "discountRate": 10.4,
+    "urgentScore": 86,
+    "area": 60,
+    "supplyArea": 80,
+    "floor": "10층",
+    "builtYear": 2016,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-16",
+    "recentTransactionDate": "2026-04-04",
+    "description": "충청남 아산시 생활권의 실거래 대비 10.4% 저렴한 매물입니다.",
+    "parking": "세대당 0.9대",
+    "maintenanceFee": 200000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 855,
+    "agent": {
+      "name": "최우진",
+      "office": "한강뷰공인중개사",
+      "phone": "02-2666-1900",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "아산시 지하철역 도보 4분",
+      "school": "아산시 초등학교 도보 8분",
+      "mart": "코스트코 아산시점 차량 3분",
+      "hospital": "아산시 의료원 차량 5분",
+      "park": "아산시 체육공원 도보 12분",
+      "commute": "강남역 기준 약 36분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 200012860
+      },
+      {
+        "month": "1월",
+        "price": 202147479
+      },
+      {
+        "month": "2월",
+        "price": 196241975
+      },
+      {
+        "month": "3월",
+        "price": 205148200
+      },
+      {
+        "month": "4월",
+        "price": 205940226
+      },
+      {
+        "month": "5월",
+        "price": 179117284
+      }
+    ]
+  },
+  {
+    "id": "gm-114",
+    "title": "청솔3차 48",
+    "address": "광주광역시 북구 일곡동",
+    "coordinates": {
+      "lat": 35.172319,
+      "lng": 126.906274
+    },
+    "region": "광주 북구",
+    "propertyType": "아파트",
+    "price": 68945988,
+    "actualTransactionPrice": 80000000,
+    "discountRate": 13.8,
+    "urgentScore": 95,
+    "area": 48,
+    "supplyArea": 64,
+    "floor": "1층",
+    "builtYear": 2000,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-10",
+    "recentTransactionDate": "2026-04-08",
+    "description": "광주 북구 생활권의 실거래 대비 13.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.5대",
+    "maintenanceFee": 160000,
+    "moveInDate": "잔금 후 1개월",
+    "rooms": 2,
+    "bathrooms": 1,
+    "unitCount": 531,
+    "agent": {
+      "name": "윤서연",
+      "office": "플러스공인중개사",
+      "phone": "032-451-9087",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "북구 지하철역 도보 12분",
+      "school": "북구 고등학교 도보 6분",
+      "mart": "이마트 북구점 차량 7분",
+      "hospital": "북구 의료원 차량 5분",
+      "park": "북구 수변공원 도보 12분",
+      "commute": "강남역 기준 약 46분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 78892366
+      },
+      {
+        "month": "1월",
+        "price": 79712881
+      },
+      {
+        "month": "2월",
+        "price": 79317346
+      },
+      {
+        "month": "3월",
+        "price": 82046502
+      },
+      {
+        "month": "4월",
+        "price": 78729979
+      },
+      {
+        "month": "5월",
+        "price": 68945988
+      }
+    ]
+  },
+  {
+    "id": "gm-115",
+    "title": "동도미소드림 85",
+    "address": "전북특별자치도 전주시 완산구 평화동2가",
+    "coordinates": {
+      "lat": 35.821943,
+      "lng": 127.149787
+    },
+    "region": "전북 전주시",
+    "propertyType": "아파트",
+    "price": 235825490,
+    "actualTransactionPrice": 270500000,
+    "discountRate": 12.8,
+    "urgentScore": 92,
+    "area": 85,
+    "supplyArea": 113,
+    "floor": "6층",
+    "builtYear": 2004,
+    "imageLabel": "",
+    "verified": true,
+    "lastVerifiedAt": "2026-05-17",
+    "recentTransactionDate": "2026-04-28",
+    "description": "전북 전주시 생활권의 실거래 대비 12.8% 저렴한 매물입니다.",
+    "parking": "세대당 1.0대",
+    "maintenanceFee": 220000,
+    "moveInDate": "잔금 후 2개월",
+    "rooms": 3,
+    "bathrooms": 2,
+    "unitCount": 79,
+    "agent": {
+      "name": "최우진",
+      "office": "한강뷰공인중개사",
+      "phone": "02-2666-1900",
+      "verified": true
+    },
+    "lifestyle": {
+      "subway": "전주시 지하철역 도보 5분",
+      "school": "전주시 초등학교 도보 6분",
+      "mart": "이마트 전주시점 차량 8분",
+      "hospital": "전주시 의료원 차량 5분",
+      "park": "전주시 체육공원 도보 7분",
+      "commute": "강남역 기준 약 47분"
+    },
+    "priceHistory": [
+      {
+        "month": "12월",
+        "price": 264006609
+      },
+      {
+        "month": "1월",
+        "price": 270725765
+      },
+      {
+        "month": "2월",
+        "price": 263865654
+      },
+      {
+        "month": "3월",
+        "price": 274333405
+      },
+      {
+        "month": "4월",
+        "price": 271121705
+      },
+      {
+        "month": "5월",
+        "price": 235825490
+      }
+    ]
+  }
+]

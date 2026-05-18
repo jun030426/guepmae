@@ -40,24 +40,8 @@ const initialFilters = {
   minDiscount: 5,
 };
 
-// 단지 세대수 — mock 데이터 (id 기반 매핑). 추후 properties 테이블에 unit_count 컬럼 추가 시 제거.
-const UNIT_COUNT_BY_ID = {
-  'gm-001': 1450,
-  'gm-002': 880,
-  'gm-003': 1280,
-  'gm-004': 1620,
-  'gm-005': 1180,
-  'gm-006': 720,
-  'gm-007': 380,
-  'gm-008': 540,
-  'gm-009': 96,
-  'gm-010': 240,
-  'gm-011': 78,
-  'gm-012': 1980,
-  'gm-013': 1340,
-};
 function getUnitCount(property) {
-  return UNIT_COUNT_BY_ID[property.id] ?? 500;
+  return property.unitCount ?? 500;
 }
 
 function getPaginationItems(currentPage, totalPages) {

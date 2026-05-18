@@ -63,7 +63,7 @@ function Properties() {
       });
 
     return result;
-  }, [filters, keyword, sort]);
+  }, [urgentProperties, filters, keyword, sort]);
 
   useEffect(() => {
     setCurrentPage(1);

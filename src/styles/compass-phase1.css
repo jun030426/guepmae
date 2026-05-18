@@ -1828,20 +1828,24 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: 100%;
 }
 
 .map-filter-room-row select {
-  flex: 1;
+  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
   height: 38px; /* 욕실 스테퍼와 동일 높이 */
-  padding: 0 8px;
+  padding: 0 10px;
   border-radius: 8px;
   border: 1px solid var(--color-border);
   background: var(--color-bg);
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--color-text);
   font-family: inherit;
   cursor: pointer;
+  text-align: center;
+  text-align-last: center;
 }
 
 .map-filter-room-dash {

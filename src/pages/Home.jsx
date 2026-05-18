@@ -74,7 +74,7 @@ function Home() {
           <div className="section-heading-row">
             <SectionTitle
               eyebrow="추천 급매"
-              title="오늘의 검증 급매"
+              title="오늘의 급매 순위"
               description="가격 차이와 최근 확인일을 함께 보고 비교하세요."
             />
             <Link to="/properties" className="text-arrow-link">

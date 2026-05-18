@@ -21,13 +21,17 @@ const UNIT_COUNT_OPTIONS = [
   { value: 'gte1000', label: '1000세대 이상', test: (n) => n >= 1000 },
 ];
 
-const MAX_BUDGET_EOK = 50;
+const BUDGET_MIN = 0;
+const BUDGET_MAX = 30; // 억
+const BUDGET_TICKS = [5, 10, 15, 20, 25];
 const PYEONG_MIN = 0;
 const PYEONG_MAX = 80;
+const PYEONG_TICKS = [20, 40, 60];
 const MAX_BATHS = 3;
 
 const initialFilters = {
-  maxBudget: MAX_BUDGET_EOK,
+  budgetMin: BUDGET_MIN,
+  budgetMax: BUDGET_MAX,
   minRooms: '전체',
   maxRooms: '전체',
   minBaths: 0, // 0 = 전체
@@ -118,7 +122,8 @@ function MapListCard({ property, selected, onSelect, registerRef }) {
 }
 
 // 듀얼 핸들 슬라이더 — 한 트랙 위에 두 input[type=range] 겹치고 핸들만 인터랙티브.
-function DualRangeSlider({ min, max, valueMin, valueMax, onChange, unit }) {
+// 위에는 현재 범위 툴팁(전체 범위면 "전체"), 아래에는 최소/최대/중간 틱 라벨.
+function DualRangeSlider({ min, max, valueMin, valueMax, onChange, unit, ticks = [] }) {
   const range = max - min;
   const minPct = range === 0 ? 0 : ((valueMin - min) / range) * 100;
   const maxPct = range === 0 ? 100 : ((valueMax - min) / range) * 100;
@@ -132,53 +137,60 @@ function DualRangeSlider({ min, max, valueMin, valueMax, onChange, unit }) {
     onChange({ min: valueMin, max: v });
   };
 
-  const formatValue = (v) => {
-    if (v === min) return '최소';
-    if (v === max) return '최대';
-    return `${v}${unit}`;
-  };
-
-  // 핸들 너비 16px 보정 — 핸들 중심이 양쪽 끝에서 8px씩 안쪽으로 이동하므로 버블도 동일 보정
+  // 핸들 너비 16px 보정 — 핸들 중심이 양쪽 끝에서 8px씩 안쪽으로 이동
   const minOffsetPx = 8 - (minPct / 100) * 16;
   const maxOffsetPx = 8 - (maxPct / 100) * 16;
 
+  const isFullRange = valueMin === min && valueMax === max;
+  const tooltipLabel = isFullRange ? '전체' : `${valueMin}${unit} ~ ${valueMax}${unit}`;
+
   return (
     <div className="dual-range">
-      <div className="dual-range-track" />
-      <div
-        className="dual-range-fill"
-        style={{
-          left: `calc(${minPct}% + ${minOffsetPx}px)`,
-          width: `calc(${maxPct - minPct}% + ${maxOffsetPx - minOffsetPx}px)`,
-        }}
-      />
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={valueMin}
-        onChange={updateMin}
-        aria-label="최소"
-      />
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={valueMax}
-        onChange={updateMax}
-        aria-label="최대"
-      />
-      <div
-        className="dual-range-bubble"
-        style={{ left: `calc(${minPct}% + ${minOffsetPx}px)` }}
-      >
-        {formatValue(valueMin)}
+      <div className="dual-range-tooltip">{tooltipLabel}</div>
+
+      <div className="dual-range-slider">
+        <div className="dual-range-track" />
+        <div
+          className="dual-range-fill"
+          style={{
+            left: `calc(${minPct}% + ${minOffsetPx}px)`,
+            width: `calc(${maxPct - minPct}% + ${maxOffsetPx - minOffsetPx}px)`,
+          }}
+        />
+        <input
+          type="range"
+          min={min}
+          max={max}
+          value={valueMin}
+          onChange={updateMin}
+          aria-label="최소"
+        />
+        <input
+          type="range"
+          min={min}
+          max={max}
+          value={valueMax}
+          onChange={updateMax}
+          aria-label="최대"
+        />
       </div>
-      <div
-        className="dual-range-bubble"
-        style={{ left: `calc(${maxPct}% + ${maxOffsetPx}px)` }}
-      >
-        {formatValue(valueMax)}
+
+      <div className="dual-range-labels">
+        <span className="dual-range-label-end dual-range-label-end--min">최소</span>
+        {ticks.map((tickValue) => {
+          const pct = ((tickValue - min) / range) * 100;
+          const offset = 8 - (pct / 100) * 16;
+          return (
+            <span
+              key={tickValue}
+              className="dual-range-label-tick"
+              style={{ left: `calc(${pct}% + ${offset}px)` }}
+            >
+              {tickValue}{unit}
+            </span>
+          );
+        })}
+        <span className="dual-range-label-end dual-range-label-end--max">최대</span>
       </div>
     </div>
   );
@@ -189,34 +201,27 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 
   const reset = () => onChange(initialFilters);
 
-  const budgetLabel =
-    filters.maxBudget >= MAX_BUDGET_EOK ? '전체' : `${filters.maxBudget}억 이하`;
-  const budgetPercent = (filters.maxBudget / MAX_BUDGET_EOK) * 100;
-
   const bathLabel = filters.minBaths === 0 ? '전체' : `${filters.minBaths}+`;
   const decBath = () => update({ minBaths: Math.max(0, filters.minBaths - 1) });
   const incBath = () => update({ minBaths: Math.min(MAX_BATHS, filters.minBaths + 1) });
 
+  // 적용된 필터 개수 (초기값과 다른 항목)
+  const activeFilterCount = [
+    filters.budgetMin !== BUDGET_MIN || filters.budgetMax !== BUDGET_MAX,
+    filters.minRooms !== '전체',
+    filters.maxRooms !== '전체',
+    filters.minBaths !== 0,
+    filters.pyeongMin !== PYEONG_MIN || filters.pyeongMax !== PYEONG_MAX,
+    filters.unitBucket !== 'all',
+    filters.minDiscount !== 5,
+  ].filter(Boolean).length;
+
   return (
     <div className={`map-filter-bar ${expanded ? 'is-expanded' : ''}`}>
       <div className="map-filter-summary">
-        <div className="map-filter-budget">
-          <div className="map-filter-budget-row">
-            <span className="map-filter-budget-label">최대 예산</span>
-            <span className="map-filter-budget-value">{budgetLabel}</span>
-          </div>
-          <input
-            type="range"
-            min={1}
-            max={MAX_BUDGET_EOK}
-            step={1}
-            value={filters.maxBudget}
-            onChange={(event) => update({ maxBudget: Number(event.target.value) })}
-            className="map-filter-budget-slider"
-            style={{ '--fill': `${budgetPercent}%` }}
-            aria-label="최대 예산 (억)"
-          />
-        </div>
+        <span className="map-filter-summary-text">
+          {resultCount}건의 급매
+        </span>
         <button
           type="button"
           className="map-filter-toggle"
@@ -231,7 +236,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
           ) : (
             <>
               <SlidersHorizontal size={15} />
-              <span>필터</span>
+              <span>필터{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
             </>
           )}
         </button>
@@ -239,6 +244,20 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 
       {expanded && (
         <div className="map-filter-detail" role="region" aria-label="상세 필터">
+          {/* 매매가 듀얼 슬라이더 */}
+          <fieldset>
+            <legend>매매가</legend>
+            <DualRangeSlider
+              min={BUDGET_MIN}
+              max={BUDGET_MAX}
+              valueMin={filters.budgetMin}
+              valueMax={filters.budgetMax}
+              onChange={({ min: a, max: b }) => update({ budgetMin: a, budgetMax: b })}
+              unit="억"
+              ticks={BUDGET_TICKS}
+            />
+          </fieldset>
+
           {/* 방 + 욕실 — 회색 박스 묶음 */}
           <div className="map-filter-room-box">
             <div className="map-filter-room-col">
@@ -295,7 +314,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
           </div>
 
           {/* 평형 듀얼 슬라이더 */}
-          <fieldset className="map-filter-area">
+          <fieldset>
             <legend>평형(공급면적)</legend>
             <DualRangeSlider
               min={PYEONG_MIN}
@@ -304,6 +323,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
               valueMax={filters.pyeongMax}
               onChange={({ min: a, max: b }) => update({ pyeongMin: a, pyeongMax: b })}
               unit="평"
+              ticks={PYEONG_TICKS}
             />
           </fieldset>
 
@@ -364,14 +384,15 @@ function MapPage() {
   const cardRefsMap = useRef(new Map());
 
   const filteredProperties = useMemo(() => {
+    const minP = filters.budgetMin <= BUDGET_MIN ? 0 : filters.budgetMin * 100000000;
     const maxP =
-      filters.maxBudget >= MAX_BUDGET_EOK ? Infinity : filters.maxBudget * 100000000;
+      filters.budgetMax >= BUDGET_MAX ? Infinity : filters.budgetMax * 100000000;
     const minRoomsNum = filters.minRooms === '전체' ? 0 : Number(filters.minRooms);
     const maxRoomsNum = filters.maxRooms === '전체' ? Infinity : Number(filters.maxRooms);
     const unitOption = UNIT_COUNT_OPTIONS.find((o) => o.value === filters.unitBucket);
 
     return urgentProperties.filter((p) => {
-      if (p.price > maxP) return false;
+      if (p.price < minP || p.price > maxP) return false;
       if (p.rooms < minRoomsNum) return false;
       if (p.rooms > maxRoomsNum) return false;
       if (filters.minBaths > 0 && p.bathrooms < filters.minBaths) return false;

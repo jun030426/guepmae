@@ -1726,87 +1726,16 @@ body {
 
 .map-filter-summary {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
 }
 
-.map-filter-budget {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.map-filter-budget-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.map-filter-budget-label {
-  font-size: 12px;
+.map-filter-summary-text {
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text-muted);
-  letter-spacing: 0.02em;
-}
-
-.map-filter-budget-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-/* 슬라이더 — 트랙은 회색, 채워진 부분은 검정, 핸들은 검정 원 */
-.map-filter-budget-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(
-    to right,
-    var(--color-text) 0%,
-    var(--color-text) var(--fill, 50%),
-    var(--color-border) var(--fill, 50%),
-    var(--color-border) 100%
-  );
-  border-radius: 999px;
-  outline: none;
-  cursor: pointer;
-  padding: 0;
-  margin: 0;
-}
-
-.map-filter-budget-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-text);
-  border: 2px solid var(--color-bg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-  transition: transform 0.1s ease;
-}
-
-.map-filter-budget-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
-}
-
-.map-filter-budget-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--color-text);
-  border: 2px solid var(--color-bg);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  cursor: pointer;
-}
-
-.map-filter-budget-slider::-moz-range-track {
-  background: transparent;
+  letter-spacing: 0.01em;
 }
 
 /* 필터 / 필터 닫기 버튼 */
@@ -1959,23 +1888,58 @@ body {
   padding: 8px 4px;
 }
 
-/* 듀얼 핸들 슬라이더 (평형) */
-.map-filter-area {
-  padding-top: 4px;
+/* ----------------------------- 듀얼 핸들 슬라이더 ----------------------------- */
+/* 위에서부터: 툴팁(전체/X~Y) → 슬라이더(트랙+핸들) → 라벨(최소/틱/최대) */
+.dual-range {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0 2px;
 }
 
-.dual-range {
+/* 툴팁 — 가운데 정렬, 작은 칩 모양 */
+.dual-range-tooltip {
+  align-self: center;
+  padding: 4px 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-text);
   position: relative;
-  height: 56px;
-  padding: 28px 8px 0;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.dual-range-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 슬라이더 본체 */
+.dual-range-slider {
+  position: relative;
+  height: 20px;
+  padding: 0 8px;
 }
 
 .dual-range-track {
   position: absolute;
-  top: 36px;
+  top: 50%;
   left: 8px;
   right: 8px;
   height: 3px;
+  transform: translateY(-50%);
   background: var(--color-border);
   border-radius: 999px;
   pointer-events: none;
@@ -1983,28 +1947,30 @@ body {
 
 .dual-range-fill {
   position: absolute;
-  top: 36px;
+  top: 50%;
   height: 3px;
+  transform: translateY(-50%);
   background: var(--color-text);
   border-radius: 999px;
   pointer-events: none;
 }
 
-.dual-range input[type='range'] {
+.dual-range-slider input[type='range'] {
   position: absolute;
-  top: 32px;
+  top: 50%;
   left: 0;
   width: 100%;
-  height: 12px;
+  height: 16px;
+  transform: translateY(-50%);
   background: transparent;
   -webkit-appearance: none;
   appearance: none;
-  pointer-events: none; /* track shouldn't grab events */
+  pointer-events: none;
   padding: 0;
   margin: 0;
 }
 
-.dual-range input[type='range']::-webkit-slider-thumb {
+.dual-range-slider input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   pointer-events: auto;
@@ -2018,12 +1984,12 @@ body {
   transition: transform 0.1s ease;
 }
 
-.dual-range input[type='range']::-webkit-slider-thumb:active {
+.dual-range-slider input[type='range']::-webkit-slider-thumb:active {
   cursor: grabbing;
   transform: scale(1.15);
 }
 
-.dual-range input[type='range']::-moz-range-thumb {
+.dual-range-slider input[type='range']::-moz-range-thumb {
   pointer-events: auto;
   width: 16px;
   height: 16px;
@@ -2034,14 +2000,34 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
 }
 
-.dual-range-bubble {
+/* 슬라이더 아래 라벨 행 (최소 / 틱 / 최대) */
+.dual-range-labels {
+  position: relative;
+  height: 14px;
+  padding: 0 8px;
+}
+
+.dual-range-label-end,
+.dual-range-label-tick {
   position: absolute;
   top: 0;
   font-size: 11px;
   color: var(--color-text-muted);
-  transform: translateX(-50%);
   white-space: nowrap;
-  pointer-events: none;
+}
+
+.dual-range-label-end--min {
+  left: 8px;
+  transform: translateX(-50%);
+}
+
+.dual-range-label-end--max {
+  right: 8px;
+  transform: translateX(50%);
+}
+
+.dual-range-label-tick {
+  transform: translateX(-50%);
 }
 
 .map-filter-chips {

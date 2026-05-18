@@ -1241,6 +1241,24 @@ body {
   margin-top: var(--space-3);
 }
 
+/* ----------------------------- 홈 — 생활권 카드 가운데 정렬 ----------------------------- */
+.neighborhood-card > div {
+  text-align: center;
+}
+
+.neighborhood-card h3 {
+  text-align: center;
+}
+
+.neighborhood-card p {
+  text-align: center;
+}
+
+.neighborhood-card span {
+  display: inline-flex;
+  justify-content: center;
+}
+
 /* ----------------------------- AI Teaser ----------------------------- */
 .ai-teaser-section {
   margin-top: var(--space-5);

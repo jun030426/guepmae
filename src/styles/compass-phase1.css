@@ -1139,6 +1139,13 @@ body {
   border-color: #F0D900;
 }
 
+/* 준비 중 상태 — disabled 와 동일한 시각, 단 cursor만 not-allowed */
+.social-login-button.is-coming-soon {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
+}
+
 /* ----------------------------- Auth: 이메일 인증 대기 패널 ----------------------------- */
 .verification-pending {
   display: flex;

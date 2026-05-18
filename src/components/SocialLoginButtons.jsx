@@ -37,12 +37,13 @@ function KakaoLogo({ size = 18 }) {
   );
 }
 
-function SocialLoginButtons({ disabled = false, label = '로그인' }) {
+function SocialLoginButtons({ disabled = false, label = '로그인', comingSoon = false }) {
   const { signInWithProvider, isConfigured } = useAuth();
   const [pendingProvider, setPendingProvider] = useState(null);
   const [error, setError] = useState('');
 
   const handleClick = async (provider) => {
+    if (comingSoon) return; // 준비 중 상태에선 OAuth 호출 자체를 차단
     setError('');
     setPendingProvider(provider);
     try {
@@ -54,27 +55,30 @@ function SocialLoginButtons({ disabled = false, label = '로그인' }) {
     }
   };
 
-  const isDisabled = disabled || !isConfigured;
+  const isDisabled = disabled || !isConfigured || comingSoon;
+  const suffix = comingSoon ? ' (준비 중)' : '';
 
   return (
     <div className="social-login-stack">
       <button
         type="button"
-        className="social-login-button google"
+        className={`social-login-button google ${comingSoon ? 'is-coming-soon' : ''}`}
         onClick={() => handleClick('google')}
         disabled={isDisabled || pendingProvider !== null}
+        aria-label={comingSoon ? 'Google 로그인 준비 중' : `Google로 ${label}`}
       >
         <GoogleLogo size={18} />
-        <span>{pendingProvider === 'google' ? '이동 중...' : `Google로 ${label}`}</span>
+        <span>{pendingProvider === 'google' ? '이동 중...' : `Google로 ${label}${suffix}`}</span>
       </button>
       <button
         type="button"
-        className="social-login-button kakao"
+        className={`social-login-button kakao ${comingSoon ? 'is-coming-soon' : ''}`}
         onClick={() => handleClick('kakao')}
         disabled={isDisabled || pendingProvider !== null}
+        aria-label={comingSoon ? '카카오 로그인 준비 중' : `카카오로 ${label}`}
       >
         <KakaoLogo size={18} />
-        <span>{pendingProvider === 'kakao' ? '이동 중...' : `카카오로 ${label}`}</span>
+        <span>{pendingProvider === 'kakao' ? '이동 중...' : `카카오로 ${label}${suffix}`}</span>
       </button>
       {error && <p className="form-status error">{error}</p>}
     </div>

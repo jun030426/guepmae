@@ -236,8 +236,6 @@ function Login() {
               <p>급매 찾기 여정을 시작하세요.</p>
             </div>
 
-            <SocialLoginButtons label="로그인" disabled={isSubmitting} />
-
             {!showEmailLogin && (
               <div className="auth-start-actions">
                 <button type="button" className="email-login-button" onClick={() => setShowEmailLogin(true)}>
@@ -285,6 +283,8 @@ function Login() {
               <span />
             </div>
 
+            <SocialLoginButtons label="로그인" disabled={isSubmitting} comingSoon />
+
             <div className="auth-footer-link">
               아직 회원이 아니신가요?
               <button type="button" onClick={switchToSignup}>
@@ -304,7 +304,7 @@ function Login() {
               <p>급매 서비스 이용을 위해 아래 정보를 입력해주세요.</p>
             </div>
 
-            <SocialLoginButtons label="간편 가입" disabled={isSubmitting} />
+            <SocialLoginButtons label="간편 가입" disabled={isSubmitting} comingSoon />
 
             <div className="auth-divider">
               <span />

@@ -1,0 +1,1492 @@
+/*
+ * Compass Phase 1 — 전역 톤 통일 (Header / Footer / PropertyCard / UrgentBadge / SectionTitle)
+ * tokens.css의 변수를 사용. global.css 이후에 import 되어 cascade로 이김.
+ * 페이지 레이아웃은 건드리지 않고 톤만 교체.
+ */
+
+/* ----------------------------- Global ----------------------------- */
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+/* ----------------------------- Header ----------------------------- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.header-inner {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--space-3);
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.logo,
+.footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 26px;
+  letter-spacing: var(--ls-tight);
+  background: none;
+}
+
+.logo-mark {
+  display: none;
+}
+
+.desktop-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.nav-link {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+  padding: 4px 0;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.nav-link::after {
+  display: none;
+}
+
+.nav-link.active,
+.nav-link:hover {
+  color: var(--color-text);
+  opacity: 1;
+}
+
+.nav-link.active {
+  text-decoration: underline;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 1px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.login-link,
+.header-actions .signup-button,
+.agent-signup-button {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+}
+
+.login-link {
+  border: none;
+  padding: 8px 4px;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.agent-signup-button,
+.header-actions .signup-button {
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.agent-signup-button:hover,
+.header-actions .signup-button:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.account-chip {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* ----------------------------- Footer ----------------------------- */
+.site-footer {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--space-7);
+}
+
+.footer-inner {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-3) var(--space-4);
+  display: grid;
+  grid-template-columns: 1.2fr 3fr;
+  gap: var(--space-5);
+}
+
+@media (max-width: 768px) {
+  .footer-inner {
+    grid-template-columns: 1fr;
+  }
+}
+
+.footer-brand p {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-2);
+  line-height: var(--lh-normal);
+}
+
+.footer-disclaimer {
+  font-size: 12px !important;
+  color: var(--color-text-subtle) !important;
+  margin-top: var(--space-1) !important;
+}
+
+.footer-menu {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+}
+
+@media (max-width: 768px) {
+  .footer-menu {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.footer-column h3 {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--color-text);
+  margin: 0 0 var(--space-2);
+}
+
+.footer-column a {
+  display: block;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 4px 0;
+  letter-spacing: 0.01em;
+}
+
+.footer-column a:hover {
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-bottom {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--color-text-subtle);
+  letter-spacing: 0.02em;
+}
+
+/* ----------------------------- Section title ----------------------------- */
+.section-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.section-title h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: var(--fs-h2);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  color: var(--color-text);
+  margin: 0 0 var(--space-2);
+}
+
+.section-title p:not(.section-eyebrow) {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+  max-width: 60ch;
+}
+
+/* ----------------------------- Property Card ----------------------------- */
+.property-card {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.property-card:hover {
+  transform: none;
+  box-shadow: none;
+  opacity: 0.92;
+}
+
+.property-image-link {
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.property-image-placeholder {
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.property-image-placeholder::before {
+  display: none;
+}
+
+.property-image-placeholder span {
+  position: absolute;
+  bottom: var(--space-1);
+  left: var(--space-1);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+  padding: 4px 8px;
+  border-radius: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.property-card-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.property-card-body {
+  padding: var(--space-2) 0 0;
+  background: transparent;
+}
+
+.property-card-topline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.property-title-link {
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.property-card-body h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 20px;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-snug);
+  margin: 4px 0;
+  color: var(--color-text);
+}
+
+.property-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-2);
+}
+
+.price-stack {
+  display: flex;
+  gap: var(--space-3);
+  margin: var(--space-1) 0 var(--space-2);
+}
+
+.price-stack > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-stack span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--color-text-subtle);
+}
+
+.price-stack strong {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--color-text);
+  letter-spacing: var(--ls-tight);
+  line-height: 1.2;
+}
+
+.price-stack > div:nth-child(2) strong {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.property-metrics {
+  display: flex;
+  gap: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.property-metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.property-metrics span {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  letter-spacing: 0.02em;
+}
+
+.property-metrics strong {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.discount-metric {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text) !important;
+  font-weight: 500;
+}
+
+.property-card-actions {
+  display: flex;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.property-card-actions .outline-button,
+.property-card-actions .contact-button {
+  flex: 1;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 14px;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 0;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.property-card-actions .outline-button {
+  background: transparent;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.property-card-actions .outline-button:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.property-card-actions .contact-button {
+  background: var(--color-text);
+  border: 1px solid var(--color-text);
+  color: var(--color-bg);
+}
+
+.property-card-actions .contact-button:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+/* ----------------------------- Urgent Badge ----------------------------- */
+.urgent-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 0;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: none;
+}
+
+.urgent-badge.hot {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.urgent-badge.urgent {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.urgent-badge.pending {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.urgent-badge.neutral {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.verified-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: 0;
+}
+
+/* ----------------------------- Hero (background image) ----------------------------- */
+.hero-section {
+  background: #0f0f0f;
+}
+
+.hero-visual {
+  background:
+    /* 텍스트 가독성용 어두운 그라데이션 (위에서 아래로 점점 진하게) */
+    linear-gradient(180deg, rgba(15, 15, 15, 0.35) 0%, rgba(15, 15, 15, 0.55) 60%, rgba(15, 15, 15, 0.65) 100%),
+    url('/images/hero-home.png') center/cover no-repeat;
+}
+
+.hero-visual::before {
+  display: none; /* 그리드 패턴 오버레이 제거 */
+}
+
+.hero-overlay {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.28) 100%);
+}
+
+/* 사진이 시각적으로 대신하므로 스카이라인 placeholder 제거 */
+.skyline,
+.skyline-a,
+.skyline-b,
+.skyline-c,
+.skyline-d {
+  display: none;
+}
+
+/* ----------------------------- Map page — full viewport split view ----------------------------- */
+/* /map 라우트에서만 사용. body 전체는 고정되고 .map-card-list 만 독립 스크롤. */
+
+.main-fullscreen {
+  height: calc(100vh - var(--header-height));
+  overflow: hidden;
+}
+
+.map-page {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.map-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.map-list-panel {
+  width: 420px;
+  min-width: 340px;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+  border-right: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.map-list-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.map-list-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 4px;
+}
+
+.map-list-header h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 22px;
+  letter-spacing: var(--ls-tight);
+  margin: 0;
+  color: var(--color-text);
+}
+
+.map-list-count {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.map-card-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  scroll-behavior: smooth;
+}
+
+/* 스크롤바 미니멀 */
+.map-card-list::-webkit-scrollbar {
+  width: 8px;
+}
+.map-card-list::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+.map-card-list::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-subtle);
+}
+
+/* MapListCard — 지도 패널 전용 카드 */
+.map-list-card {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  transition: all 0.15s ease;
+}
+
+.map-list-card:hover {
+  background: var(--color-accent-soft);
+}
+
+.map-list-card.selected {
+  background: var(--color-accent-soft);
+  border-color: var(--color-border-strong);
+}
+
+.map-list-card-photo {
+  flex: 0 0 110px;
+  aspect-ratio: 4 / 3;
+  background: var(--color-accent-soft);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+}
+
+.map-list-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.map-list-card-photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-subtle);
+}
+
+.map-list-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.map-list-card-discount {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+
+.map-list-card-body h3 {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: var(--ls-tight);
+  color: var(--color-text);
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-list-card-region {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.map-list-card-price {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-top: 4px;
+  letter-spacing: var(--ls-tight);
+}
+
+.map-list-card-spec {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.map-list-card-link {
+  font-size: 12px;
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: 4px;
+  align-self: flex-start;
+  letter-spacing: 0.02em;
+}
+
+.map-list-card-link:hover {
+  color: var(--color-text-muted);
+}
+
+/* 페이지네이션 — 패널 하단 고정 */
+.map-pagination {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--space-2);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.map-page-arrow,
+.map-page-number {
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 0;
+  padding: 0 8px;
+}
+
+.map-page-arrow:hover:not(:disabled),
+.map-page-number:hover {
+  background: var(--color-accent-soft);
+}
+
+.map-page-number.active {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.map-page-arrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.map-page-ellipsis {
+  color: var(--color-text-subtle);
+  padding: 0 4px;
+  font-size: 13px;
+}
+
+/* 오른쪽 지도 영역 — 남은 공간 모두 차지 */
+.map-layout > .map-view {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--color-accent-soft);
+}
+
+.map-layout > .map-view > .map-canvas-wrapper {
+  flex: 1;
+}
+
+.map-layout > .map-view > .map-legend {
+  flex-shrink: 0;
+}
+
+/* 모바일 — split view는 모바일에선 별로라 임시로 세로 스택 */
+@media (max-width: 768px) {
+  .map-layout {
+    flex-direction: column;
+  }
+  .map-list-panel {
+    width: 100%;
+    max-width: 100%;
+    max-height: 45%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+}
+
+/* ----------------------------- Report page (Compass tone) ----------------------------- */
+.report-hero-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: var(--space-4);
+  align-items: end;
+}
+
+@media (max-width: 768px) {
+  .report-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.report-source-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-soft);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  align-self: flex-end;
+}
+
+.report-source-meta strong {
+  display: block;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.report-source-meta span {
+  display: block;
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  margin-top: 2px;
+}
+
+.report-insight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .report-insight-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.report-insight {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-insight-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--color-text-muted);
+}
+
+.report-insight strong {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: var(--ls-tight);
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.report-insight-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text);
+  margin-top: 4px;
+}
+
+.report-insight-delta em {
+  color: var(--color-text-subtle);
+  font-style: normal;
+}
+
+.report-insight.up .report-insight-delta {
+  color: var(--color-text);
+}
+
+.report-insight.down .report-insight-delta {
+  color: var(--color-text-muted);
+}
+
+.report-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .report-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chart-card {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.chart-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.chart-title-row h3 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: var(--ls-tight);
+  margin: 0;
+  color: var(--color-text);
+}
+
+.chart-title-row span {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+}
+
+.report-table-card {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  margin-top: var(--space-4);
+}
+
+.report-table-wrap {
+  overflow-x: auto;
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+.report-table th {
+  text-align: left;
+  padding: var(--space-2) var(--space-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.report-table td {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.report-table tr:last-child td {
+  border-bottom: none;
+}
+
+.report-table tr:hover td {
+  background: var(--color-bg-soft);
+}
+
+.report-table td strong {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: var(--ls-tight);
+}
+
+.report-disclaimer {
+  margin-top: var(--space-5);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.report-disclaimer p {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: var(--lh-normal);
+  max-width: 720px;
+}
+
+/* ----------------------------- Detail page anchors + map ----------------------------- */
+/* 스티키 헤더에 가려지지 않도록 앵커 섹션마다 스크롤 offset 적용 */
+.detail-page [id="overview"],
+.detail-page [id="open-house"],
+.detail-page [id="price-report"],
+.detail-page [id="property-info"],
+.detail-page [id="location"],
+.detail-page [id="lifestyle"] {
+  scroll-margin-top: 140px; /* header 72px + 탭바 ~68px */
+}
+
+/* 문의(담당 중개사) 사이드바는 사용자 요청대로 조금 더 아래로 */
+.detail-page [id="agent"] {
+  scroll-margin-top: 180px;
+}
+
+/* 새 Google Map (위치 섹션) */
+.detail-map-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: 320px;
+  height: 320px;
+  border: 1px solid var(--color-border);
+  background: var(--color-accent-soft);
+  overflow: hidden;
+}
+
+.detail-map-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.detail-map-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: var(--space-3);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* ----------------------------- AI Teaser ----------------------------- */
+.ai-teaser-section {
+  margin-top: var(--space-5);
+}
+
+.ai-teaser-card {
+  border: 1px solid var(--color-border-strong);
+  background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
+  color: var(--color-bg);
+  padding: var(--space-5);
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--space-5);
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .ai-teaser-card {
+    grid-template-columns: 1fr;
+    padding: var(--space-4);
+  }
+}
+
+.ai-teaser-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.ai-teaser-header {
+  position: relative;
+  z-index: 1;
+}
+
+.ai-teaser-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: var(--color-bg);
+  margin-bottom: var(--space-3);
+}
+
+.ai-teaser-header h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: clamp(28px, 3.2vw, 40px);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  color: var(--color-bg);
+  margin: 0 0 var(--space-2);
+}
+
+.ai-teaser-header p {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: var(--lh-normal);
+  margin: 0;
+  max-width: 48ch;
+}
+
+.ai-teaser-header p strong {
+  color: var(--color-bg);
+  font-weight: 500;
+}
+
+.ai-teaser-preview {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  z-index: 1;
+}
+
+.ai-teaser-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ai-teaser-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ai-teaser-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ai-teaser-chips span {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 3px 8px;
+}
+
+.ai-teaser-row p {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.7;
+  margin: 0;
+  filter: blur(0.4px);
+}
+
+.ai-teaser-lock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.02em;
+}
+
+.ai-teaser-meta {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 600px) {
+  .ai-teaser-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ai-teaser-meta strong {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: var(--space-2);
+}
+
+.ai-teaser-meta ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ai-teaser-meta li {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  padding: 4px 0;
+}
+
+/* Recharts 기본 색 톤다운 (tooltip, axis) */
+.recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--color-bg) !important;
+  border: 1px solid var(--color-border) !important;
+  border-radius: 0 !important;
+  font-family: var(--font-sans);
+  font-size: 12px;
+}
+
+.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
+  color: var(--color-text-muted) !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+}
+
+/* ----------------------------- Map canvas wrapper ----------------------------- */
+/* Google/Naver Maps SDK가 .map-canvas div를 점유하기 때문에
+ * status overlay와 같은 형제 요소로 분리해야 React unmount 시 removeChild 오류가 발생하지 않음 */
+.map-canvas-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.map-canvas-wrapper > .map-canvas {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+}
+
+/* 거리뷰 토글: 지도와 거리뷰 캔버스가 같은 영역을 차지 — 활성화된 것만 보임 */
+.map-canvas-wrapper > .google-js-map-canvas,
+.map-canvas-wrapper > .google-street-view-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.map-canvas-wrapper > .google-js-map-canvas.is-hidden,
+.map-canvas-wrapper > .google-street-view-canvas.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* 토글 버튼 — 지도 좌상단 (Google의 우상단 컨트롤과 안 겹치도록) */
+.map-view-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: inline-flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  font-family: var(--font-sans);
+}
+
+.map-view-toggle button {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+}
+
+.map-view-toggle button.active {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+.map-view-toggle button:not(.active):hover {
+  background: var(--color-accent-soft);
+}
+
+/* 실내 360 투어 (Pannellum) — viewer 모달 내부 */
+.viewer-indoor-tour {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+}
+
+.indoor-tour-canvas {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  background: #000;
+}
+
+.indoor-tour-canvas .pnlm-load-box,
+.indoor-tour-canvas .pnlm-about-msg {
+  font-family: var(--font-sans);
+}
+
+/* 거리뷰 커버리지 없을 때 안내 */
+.street-view-no-coverage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  z-index: 9;
+  max-width: 360px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-sans);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.street-view-no-coverage strong {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.street-view-no-coverage span {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.map-canvas-wrapper > .map-status-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-text);
+  font-size: 14px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ----------------------------- Compact card (Map page) ----------------------------- */
+.property-card.compact {
+  flex-direction: row;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+.property-card.compact .property-image-placeholder {
+  flex: 0 0 140px;
+  aspect-ratio: 4 / 3;
+  width: 140px;
+}
+
+.property-card.compact .property-card-body {
+  flex: 1;
+  padding: 0;
+}
+
+.property-card.compact .property-card-actions {
+  display: none;
+}
+
+/* ----------------------------- Map InfoWindow (지도 위 팝업) ----------------------------- */
+.map-info-window {
+  padding: 8px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 180px;
+  font-family: var(--font-sans);
+}
+
+.map-info-window strong {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--color-text);
+  letter-spacing: var(--ls-tight);
+}
+
+.map-info-window span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.map-info-window b {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-top: 4px;
+  letter-spacing: var(--ls-tight);
+}
+
+.map-info-window em {
+  font-size: 11px;
+  font-style: normal;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.map-info-window a {
+  font-size: 12px;
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  margin-top: 6px;
+  align-self: flex-start;
+}

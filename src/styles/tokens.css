@@ -1,0 +1,104 @@
+/*
+ * Design tokens — Compass.com 레퍼런스 톤
+ * Phase 1: 컬러/타이포/스페이싱 변수 + 전역 reset
+ * 기존 global.css의 클래스들은 점진 마이그레이션됨
+ */
+
+:root {
+  /* Color — 흑백 중심 */
+  --color-bg: #ffffff;
+  --color-bg-soft: #fafafa;
+  --color-text: #0f0f0f;
+  --color-text-muted: #6e6e6e;
+  --color-text-subtle: #8a8a8a;
+  --color-border: #e5e5e5;
+  --color-border-strong: #1a1a1a;
+  --color-accent: #1f2937;
+  --color-accent-soft: #f3f4f6;
+
+  /* Status — 최소한의 컬러 */
+  --color-success: #1a6b4a;
+  --color-danger: #a01717;
+
+  /* Typography */
+  --font-serif: 'Noto Serif KR', 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-sans:
+    'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+    'Malgun Gothic', system-ui, sans-serif;
+
+  --fs-display: clamp(48px, 6vw, 88px);
+  --fs-h1: clamp(36px, 4.5vw, 56px);
+  --fs-h2: clamp(28px, 3vw, 40px);
+  --fs-h3: 22px;
+  --fs-body: 16px;
+  --fs-small: 14px;
+  --fs-micro: 12px;
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.3;
+  --lh-normal: 1.6;
+
+  --ls-tight: -0.02em;
+  --ls-normal: 0;
+  --ls-wide: 0.08em;
+
+  /* Layout */
+  --content-width: 1280px;
+  --content-width-wide: 1440px;
+
+  /* Spacing scale */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 48px;
+  --space-6: 64px;
+  --space-7: 96px;
+  --space-8: 128px;
+
+  /* Radius — 거의 안 쓰지만 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Header height (sticky 계산용) */
+  --header-height: 72px;
+}
+
+/* 전역 reset / 베이스 — 기존 global.css와 충돌하지 않도록 :where 사용 */
+:where(html) {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:where(body) {
+  font-size: var(--fs-body);
+  line-height: var(--lh-normal);
+}
+
+/* Serif 헤드라인 헬퍼 클래스 — SerifHeadline 컴포넌트와 일반 .serif 양쪽에서 사용 */
+.serif,
+.serif-headline {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+}
+
+/* 콘텐츠 컨테이너 폭 통일 */
+.compass-container {
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 0 var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .compass-container {
+    padding: 0 var(--space-5);
+  }
+}

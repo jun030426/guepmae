@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, Lock, ShieldCheck, Users, XCircle } from 'lucide-react';
+import { AlertTriangle, Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, FileText, Lock, ShieldCheck, Users, X, XCircle } from 'lucide-react';
 import SectionTitle from '../components/SectionTitle.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -15,14 +15,133 @@ import {
   setUserRole,
   setUserSuspended,
 } from '../services/userManagement.js';
+import {
+  approveAgentApplication,
+  fetchAgentApplications,
+  getApplicationDocumentUrl,
+  rejectAgentApplication,
+} from '../services/agentApplications.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+
+const APPLICATION_STATUS_LABEL = {
+  pending: '대기 중',
+  reviewing: '검토 중',
+  approved: '승인됨',
+  rejected: '거부됨',
+};
 
 const ROLE_ORDER = ['owner', 'admin', 'agent', 'user'];
 
 function formatDate(iso) {
   if (!iso) return '-';
   return new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+// 중개사 가입 신청 상세 모달
+function AgentApplicationModal({ application, onClose, onApprove, onReject, isUpdating }) {
+  const [docUrls, setDocUrls] = useState({});
+
+  useEffect(() => {
+    const docs = application.document_paths ?? [];
+    docs.forEach((doc) => {
+      getApplicationDocumentUrl(doc.path).then((url) => {
+        setDocUrls((prev) => ({ ...prev, [doc.path]: url }));
+      }).catch(() => {});
+    });
+  }, [application]);
+
+  const rows = [
+    ['중개사무소명', application.office_name],
+    ['사업자등록번호', application.office_registration_number],
+    ['사무소 주소', application.office_address || '-'],
+    ['대표자명', application.representative_name],
+    ['대표자 연락처', application.representative_phone],
+    ['연락 이메일', application.contact_email],
+    ['추가 연락처', application.contact_phone || '-'],
+    ['신청일', new Date(application.created_at).toLocaleString('ko-KR')],
+    ['현재 상태', APPLICATION_STATUS_LABEL[application.status] ?? application.status],
+  ];
+
+  return (
+    <div className="admin-modal-backdrop" onClick={onClose}>
+      <div className="admin-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <header className="admin-modal-header">
+          <h2>중개사 가입 신청 상세</h2>
+          <button type="button" className="admin-modal-close" onClick={onClose} aria-label="닫기">
+            <X size={20} />
+          </button>
+        </header>
+
+        <div className="admin-modal-body">
+          <table className="admin-modal-table">
+            <tbody>
+              {rows.map(([label, value]) => (
+                <tr key={label}>
+                  <th>{label}</th>
+                  <td>{value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {application.document_paths?.length > 0 && (
+            <div className="admin-modal-docs">
+              <h3>첨부 문서</h3>
+              <ul>
+                {application.document_paths.map((doc) => (
+                  <li key={doc.path}>
+                    <strong>{doc.label === 'business-registration' ? '사업자등록증' : doc.label === 'broker-license' ? '공인중개사 자격증' : doc.label}</strong>
+                    {' — '}
+                    {docUrls[doc.path] ? (
+                      <a href={docUrls[doc.path]} target="_blank" rel="noopener noreferrer">
+                        {doc.originalName} 보기
+                      </a>
+                    ) : (
+                      <span>로딩 중...</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {application.reviewer_note && (
+            <div className="admin-modal-note">
+              <strong>운영팀 메모:</strong> {application.reviewer_note}
+            </div>
+          )}
+        </div>
+
+        <footer className="admin-modal-footer">
+          {(application.status === 'pending' || application.status === 'reviewing') ? (
+            <>
+              <button
+                type="button"
+                className="admin-approve-button"
+                disabled={isUpdating}
+                onClick={onApprove}
+              >
+                <CheckCircle2 size={14} /> 승인
+              </button>
+              <button
+                type="button"
+                className="admin-reject-button"
+                disabled={isUpdating}
+                onClick={onReject}
+              >
+                <XCircle size={14} /> 거부
+              </button>
+            </>
+          ) : (
+            <p style={{ color: 'var(--color-text-muted)', fontSize: 13 }}>
+              이미 {APPLICATION_STATUS_LABEL[application.status]} 처리된 신청입니다.
+            </p>
+          )}
+        </footer>
+      </div>
+    </div>
+  );
 }
 
 function Admin() {
@@ -32,8 +151,10 @@ function Admin() {
   const [error, setError] = useState('');
   const [profiles, setProfiles] = useState([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
+  const [applications, setApplications] = useState([]);
+  const [appsLoading, setAppsLoading] = useState(true);
+  const [activeApp, setActiveApp] = useState(null); // 상세 모달 표시용
 
-  // 모든 사용자 프로필 가져오기
   useEffect(() => {
     let active = true;
     fetchAllProfiles()
@@ -42,6 +163,50 @@ function Admin() {
       .finally(() => active && setProfilesLoading(false));
     return () => { active = false; };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetchAgentApplications()
+      .then((data) => active && setApplications(data))
+      .catch((err) => active && setError(`중개사 신청 목록 로드 실패: ${err.message}`))
+      .finally(() => active && setAppsLoading(false));
+    return () => { active = false; };
+  }, []);
+
+  const pendingApplications = applications.filter((a) => a.status === 'pending' || a.status === 'reviewing');
+
+  const handleApproveApplication = async (app) => {
+    if (!confirm(`${app.office_name} 신청을 승인하시겠습니까?\n해당 이메일(${app.contact_email})로 가입된 사용자에게 중개사 권한이 부여됩니다.`)) return;
+    setUpdating(app.id);
+    try {
+      const result = await approveAgentApplication(app);
+      alert(result.message);
+      setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, status: 'approved' } : a)));
+      // 프로필 목록도 갱신
+      const fresh = await fetchAllProfiles();
+      setProfiles(fresh);
+      setActiveApp(null);
+    } catch (err) {
+      setError(`승인 실패: ${err.message}`);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleRejectApplication = async (app) => {
+    const note = prompt('거부 사유 (선택 — 신청자에게 안내):') ?? null;
+    if (!confirm(`${app.office_name} 신청을 거부하시겠습니까?`)) return;
+    setUpdating(app.id);
+    try {
+      await rejectAgentApplication(app.id, note);
+      setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, status: 'rejected', reviewer_note: note } : a)));
+      setActiveApp(null);
+    } catch (err) {
+      setError(`거부 실패: ${err.message}`);
+    } finally {
+      setUpdating(null);
+    }
+  };
 
   const groupedProfiles = profiles.reduce((acc, p) => {
     const role = p.role || 'user';
@@ -145,16 +310,17 @@ function Admin() {
           description="플랫폼 전체 노출 중"
         />
         <StatCard
+          icon={FileText}
+          label="중개사 가입 신청"
+          value={`${pendingApplications.length}건`}
+          description="검토 대기 중"
+          tone={pendingApplications.length > 0 ? 'accent' : undefined}
+        />
+        <StatCard
           icon={Users}
           label="중개사"
           value={`${(groupedProfiles.agent ?? []).length}명`}
           description="매물 등록 권한 보유"
-        />
-        <StatCard
-          icon={ShieldCheck}
-          label="관리자"
-          value={`${(groupedProfiles.admin ?? []).length}명`}
-          description="운영팀 권한"
         />
       </section>
 
@@ -163,6 +329,78 @@ function Admin() {
           <p className="form-status error">{error}</p>
         </section>
       )}
+
+      {/* ----------------------------- 중개사 가입 신청 ----------------------------- */}
+      <section className="container admin-grid">
+        <div className="admin-panel wide">
+          <div className="admin-panel-header">
+            <h2>중개사 가입 신청 ({pendingApplications.length})</h2>
+            <span>승인 시 신청 이메일과 매칭되는 사용자에게 중개사 권한이 자동 부여됩니다</span>
+          </div>
+          {appsLoading ? (
+            <p className="admin-empty">불러오는 중...</p>
+          ) : pendingApplications.length === 0 ? (
+            <p className="admin-empty">대기 중인 신청이 없습니다.</p>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>중개사무소</th>
+                    <th>대표자</th>
+                    <th>연락처</th>
+                    <th>이메일</th>
+                    <th>신청일</th>
+                    <th>액션</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingApplications.map((app) => (
+                    <tr key={app.id}>
+                      <td>
+                        <button
+                          type="button"
+                          className="admin-link admin-app-link"
+                          onClick={() => setActiveApp(app)}
+                        >
+                          {app.office_name}
+                          <FileText size={12} />
+                        </button>
+                      </td>
+                      <td>{app.representative_name}</td>
+                      <td>{app.representative_phone}</td>
+                      <td>{app.contact_email}</td>
+                      <td>{formatDate(app.created_at)}</td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="admin-approve-button"
+                            disabled={updating === app.id}
+                            onClick={() => handleApproveApplication(app)}
+                          >
+                            <CheckCircle2 size={14} />
+                            {updating === app.id ? '처리 중...' : '승인'}
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-reject-button"
+                            disabled={updating === app.id}
+                            onClick={() => handleRejectApplication(app)}
+                          >
+                            <XCircle size={14} />
+                            거부
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
 
       <section className="container admin-grid">
         <div className="admin-panel wide">
@@ -379,6 +617,16 @@ function Admin() {
           );
         })}
       </section>
+
+      {activeApp && (
+        <AgentApplicationModal
+          application={activeApp}
+          onClose={() => setActiveApp(null)}
+          onApprove={() => handleApproveApplication(activeApp)}
+          onReject={() => handleRejectApplication(activeApp)}
+          isUpdating={updating === activeApp.id}
+        />
+      )}
     </div>
   );
 }

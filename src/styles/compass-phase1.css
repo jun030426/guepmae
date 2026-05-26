@@ -1747,6 +1747,144 @@ tr.is-suspended {
   opacity: 0.7;
 }
 
+.admin-app-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 500;
+}
+
+.admin-app-link:hover {
+  text-decoration: underline;
+}
+
+/* Application 상세 모달 */
+.admin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  padding: var(--space-3);
+}
+
+.admin-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.admin-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-modal-header h2 {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+}
+
+.admin-modal-close {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 4px;
+}
+
+.admin-modal-body {
+  padding: var(--space-4);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.admin-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-modal-table tr {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-modal-table th,
+.admin-modal-table td {
+  padding: 10px 0;
+  text-align: left;
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.admin-modal-table th {
+  width: 130px;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.admin-modal-table td {
+  color: var(--color-text);
+}
+
+.admin-modal-docs {
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  background: #fafafa;
+  border-radius: var(--radius-sm);
+}
+
+.admin-modal-docs h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 var(--space-1);
+}
+
+.admin-modal-docs ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-modal-docs li {
+  font-size: 13px;
+}
+
+.admin-modal-docs a {
+  color: var(--color-text);
+  text-decoration: underline;
+}
+
+.admin-modal-note {
+  margin-top: var(--space-3);
+  padding: var(--space-2);
+  background: #fff8e6;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+
+.admin-modal-footer {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  justify-content: flex-end;
+}
+
 /* 매물 카드/상세에서 의도치 않은 줄무늬가 나오지 않도록 방어적 override */
 .property-image-placeholder::before,
 .property-image-placeholder.has-photo::before,

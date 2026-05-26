@@ -9,7 +9,6 @@ import Properties from './pages/Properties.jsx';
 import MapPage from './pages/MapPage.jsx';
 import PropertyDetail from './pages/PropertyDetail.jsx';
 import Report from './pages/Report.jsx';
-import RegisterProperty from './pages/RegisterProperty.jsx';
 import Login from './pages/Login.jsx';
 import Admin from './pages/Admin.jsx';
 import AgentSignup from './pages/AgentSignup.jsx';
@@ -44,7 +43,6 @@ function App() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/properties/:id" element={<PropertyDetail />} />
           <Route path="/report" element={<Report />} />
-          <Route path="/register" element={<RegisterProperty />} />
           <Route path="/login" element={<Login />} />
 
           {/* ----------------------------- 중개사 portal ----------------------------- */}

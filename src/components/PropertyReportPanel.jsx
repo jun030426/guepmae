@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, AlertTriangle, RefreshCw, Sparkles } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Sparkles } from 'lucide-react';
 import { fetchPropertyReport, regeneratePropertyReport } from '../services/propertyReports.js';
 import { formatPrice } from '../utils/priceUtils.js';
 
@@ -189,15 +189,6 @@ function PropertyReportPanel({ property }) {
           이 리포트는 AI가 생성한 보조 분석으로, 실제 매수 의사결정 전 반드시 직접 확인이 필요합니다.
           {' · '}생성일: {new Date(state.report.generated_at).toLocaleString('ko-KR')}
         </small>
-        <button
-          type="button"
-          className="report-regenerate-button"
-          onClick={handleRegenerate}
-          disabled={state.generating}
-        >
-          <RefreshCw size={14} className={state.generating ? 'spin' : ''} />
-          {state.generating ? '재생성 중...' : '리포트 새로 생성'}
-        </button>
       </footer>
     </div>
   );

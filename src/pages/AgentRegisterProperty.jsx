@@ -39,6 +39,7 @@ const initialForm = {
   description: '',
   agencyName: '',
   agentPhone: '',
+  photos: [], // File[] — 사진 업로드용
 };
 
 function AgentRegisterProperty() {
@@ -248,7 +249,27 @@ function AgentRegisterProperty() {
           </div>
         </fieldset>
 
-        {/* Section 6: 추가 설명 + 중개사무소 */}
+        {/* Section 6: 매물 사진 (선택) */}
+        <fieldset className="register-section">
+          <legend>매물 사진 <small>(선택 — 최대 10장)</small></legend>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(event) => {
+              const files = Array.from(event.target.files ?? []).slice(0, 10);
+              setForm((s) => ({ ...s, photos: files }));
+            }}
+          />
+          {form.photos.length > 0 && (
+            <p className="register-hint">
+              <strong>{form.photos.length}장</strong> 선택됨 — {form.photos.map((f) => f.name).join(', ')}
+            </p>
+          )}
+          <p className="register-hint">사진을 안 올려도 등록 가능 (placeholder 이미지로 표시).</p>
+        </fieldset>
+
+        {/* Section 7: 추가 설명 + 중개사무소 */}
         <fieldset className="register-section">
           <legend>매물 설명 *</legend>
           <textarea

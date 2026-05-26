@@ -16,22 +16,31 @@ const PROPERTY_PHOTO_POOL = [
 function getSeedFromProperty(property) {
   const rawId = property?.id ?? '';
   const numericId = Number(rawId.replace(/\D/g, ''));
-
   return Number.isFinite(numericId) && numericId > 0 ? numericId : 1;
 }
 
 function withImageParams(src, width, quality) {
+  // Supabase Storage URL 은 query 변환 안 하고 그대로 반환
+  if (src.includes('supabase')) return src;
   const separator = src.includes('?') ? '&' : '?';
   return `${src}${separator}auto=format&fit=crop&w=${width}&q=${quality}`;
 }
 
 export function getPropertyPhotos(property, count = 8) {
-  const seed = getSeedFromProperty(property);
+  // 1순위: 매물에 등록된 실 사진 (property.media)
+  if (Array.isArray(property?.media) && property.media.length > 0) {
+    return property.media.slice(0, count).map((item, index) => ({
+      src: withImageParams(item.src, index === 0 ? 1800 : 640, index === 0 ? 84 : 76),
+      label: item.label || `사진 ${index + 1}`,
+      alt: item.alt || `${property?.title ?? '매물'} 사진 ${index + 1}`,
+    }));
+  }
 
+  // 2순위: stock 풀에서 seed 기반 배정 (옛 mock 매물 호환용)
+  const seed = getSeedFromProperty(property);
   return Array.from({ length: count }, (_, index) => {
     const source = PROPERTY_PHOTO_POOL[(seed + index - 1) % PROPERTY_PHOTO_POOL.length];
     const isHero = index === 0;
-
     return {
       src: withImageParams(source.src, isHero ? 1800 : 640, isHero ? 84 : 76),
       label: source.label,

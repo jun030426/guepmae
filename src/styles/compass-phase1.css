@@ -1608,6 +1608,79 @@ body {
   .report-price-grid { grid-template-columns: 1fr; }
 }
 
+/* ----------------------------- Admin (운영 관리) ----------------------------- */
+.admin-empty {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.admin-link:hover {
+  text-decoration: underline;
+}
+
+.admin-approve-button,
+.admin-reject-button,
+.admin-revoke-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid;
+  background: var(--color-bg);
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.admin-approve-button {
+  border-color: #2e7d32;
+  color: #2e7d32;
+}
+
+.admin-approve-button:hover:not(:disabled) {
+  background: #2e7d32;
+  color: var(--color-bg);
+}
+
+.admin-reject-button,
+.admin-revoke-button {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.admin-reject-button:hover:not(:disabled),
+.admin-revoke-button:hover:not(:disabled) {
+  background: #c0392b;
+  color: var(--color-bg);
+}
+
+.admin-approve-button:disabled,
+.admin-reject-button:disabled,
+.admin-revoke-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 매물 카드/상세에서 의도치 않은 줄무늬가 나오지 않도록 방어적 override */
+.property-image-placeholder::before,
+.property-image-placeholder.has-photo::before,
+.gallery-stage::before {
+  display: none !important;
+}
+
 /* 방문 일정 — 비어있을 때 안내 카드 */
 .open-house-empty {
   display: flex;

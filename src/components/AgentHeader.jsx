@@ -6,6 +6,7 @@ const agentNavItems = [
   { label: '대시보드', path: '/agent/dashboard' },
   { label: '새 매물 등록', path: '/agent/properties/new' },
   { label: '내 등록 매물', path: '/agent/properties' },
+  { label: '운영 관리', path: '/agent/admin' },
 ];
 
 function AgentHeader() {

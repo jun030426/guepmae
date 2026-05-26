@@ -76,8 +76,16 @@ function App() {
               </RequireRole>
             }
           />
+          <Route
+            path="/agent/admin"
+            element={
+              <RequireRole allowedRoles={['admin', 'agent']}>
+                <Admin />
+              </RequireRole>
+            }
+          />
 
-          {/* ----------------------------- Admin ----------------------------- */}
+          {/* ----------------------------- 옛 /admin → /agent/admin 리다이렉트 ----------------------------- */}
           <Route
             path="/admin"
             element={

@@ -1,13 +1,11 @@
 /*
- * propertyRegistration.js — 중개사 매물 등록 + AI 리포트 자동 생성.
+ * propertyRegistration.js — 중개사 매물 등록 + 사진 업로드 + AI 리포트 자동 생성.
  *
  * Flow:
- *   1) properties 테이블에 INSERT (agent role 의 RLS 통과)
- *   2) /api/property-report?id=newId 호출 → 서버에서 AI 리포트 생성 + property_reports 저장
- *   3) 새 매물 id 반환
- *
- * AI 리포트 생성 실패는 fatal 아님 — 매물은 등록되지만 리포트 없는 상태.
- * (사용자가 매물 상세에서 다시 클릭하면 그때 생성됨)
+ *   1) 사진 파일들이 있으면 Supabase Storage(property-photos) 에 업로드 → public URL 배열
+ *   2) properties 테이블에 INSERT (media 컬럼에 URL 배열 저장)
+ *   3) /api/property-report?id=newId 호출 → 서버에서 AI 리포트 생성
+ *   4) 새 매물 id 반환
  */
 
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
@@ -18,6 +16,32 @@ function generatePropertyId() {
   return `gm-${ts}${rand}`;
 }
 
+async function uploadPropertyPhotos(files, propertyId) {
+  const photos = [];
+  for (let i = 0; i < files.length; i += 1) {
+    const file = files[i];
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const filePath = `${propertyId}/${Date.now()}-${i}-${safeName}`;
+    const { error } = await supabase.storage
+      .from('property-photos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+    if (error) throw new Error(`사진 업로드 실패 (${file.name}): ${error.message}`);
+
+    const { data: pub } = supabase.storage
+      .from('property-photos')
+      .getPublicUrl(filePath);
+    photos.push({
+      src: pub.publicUrl,
+      label: i === 0 ? '대표 사진' : `사진 ${i + 1}`,
+      alt: `${propertyId} 사진 ${i + 1}`,
+    });
+  }
+  return photos;
+}
+
 export async function registerProperty(form, agentProfile) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
@@ -26,7 +50,11 @@ export async function registerProperty(form, agentProfile) {
   const id = generatePropertyId();
   const now = new Date().toISOString().slice(0, 10);
 
-  // 폼 → DB row (snake_case)
+  // 1) 사진 업로드 먼저 (있을 때만)
+  const photoFiles = Array.isArray(form.photos) ? form.photos.filter(Boolean) : [];
+  const media = photoFiles.length > 0 ? await uploadPropertyPhotos(photoFiles, id) : [];
+
+  // 2) 매물 INSERT
   const row = {
     id,
     title: form.title,
@@ -37,13 +65,13 @@ export async function registerProperty(form, agentProfile) {
     price: Number(form.price),
     actual_transaction_price: Number(form.actualTransactionPrice) || Number(form.price),
     discount_rate: calculateDiscount(form),
-    urgent_score: 0, // AI 리포트가 score 계산
+    urgent_score: 0,
     area: Number(form.area),
     supply_area: Number(form.supplyArea) || Math.round(Number(form.area) * 1.33),
     floor: form.floor,
     built_year: Number(form.builtYear) || null,
     image_label: '',
-    verified: false, // 운영팀 검토 전엔 false (RLS 정책에서 verified=true 만 노출하면 자동 숨김)
+    verified: false, // 관리자 승인 전엔 false
     last_verified_at: now,
     recent_transaction_date: now,
     description: form.description,
@@ -57,10 +85,10 @@ export async function registerProperty(form, agentProfile) {
       name: agentProfile?.full_name || '담당자',
       office: form.agencyName || '',
       phone: agentProfile?.phone || form.agentPhone || '',
+      email: agentProfile?.email || '',
       verified: true,
     },
     lifestyle: {
-      // 매도 사유는 description 에 녹이고, lifestyle 은 비워둠 — AI 가 좌표로 추정
       subway: '',
       school: '',
       mart: '',
@@ -69,6 +97,7 @@ export async function registerProperty(form, agentProfile) {
       commute: '',
     },
     price_history: [],
+    media,
   };
 
   const { data, error } = await supabase
@@ -78,7 +107,7 @@ export async function registerProperty(form, agentProfile) {
     .single();
   if (error) throw error;
 
-  // AI 리포트 백그라운드 생성 시도 (실패해도 등록 자체는 성공)
+  // 3) AI 리포트 백그라운드 생성 (실패해도 등록 자체는 성공)
   triggerReportGeneration(data.id).catch((err) => {
     console.warn('AI 리포트 생성 실패 (등록은 완료됨):', err);
   });
@@ -98,4 +127,16 @@ async function triggerReportGeneration(propertyId) {
   const res = await fetch(`/api/property-report?id=${encodeURIComponent(propertyId)}`);
   if (!res.ok) throw new Error(`AI report failed: ${res.status}`);
   return res.json();
+}
+
+// 운영팀 승인 토글 — properties.verified true/false 변경
+export async function setPropertyVerified(propertyId, verified) {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+  }
+  const { error } = await supabase
+    .from('properties')
+    .update({ verified, last_verified_at: new Date().toISOString().slice(0, 10) })
+    .eq('id', propertyId);
+  if (error) throw error;
 }

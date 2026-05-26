@@ -16,10 +16,9 @@ function Header() {
 
   const closeMenu = () => setIsOpen(false);
   // agent/admin 로그인 사용자에겐 "중개사 portal" 바로가기 노출
-  const visibleNavItems =
-    isAdmin || isAgent
-      ? [...navItems, { label: '중개사 portal', path: '/agent/dashboard' }]
-      : navItems;
+  const visibleNavItems = isAdmin || isAgent
+    ? [...navItems, { label: '중개사 portal', path: '/agent/dashboard' }]
+    : navItems;
 
   const handleSignOut = async () => {
     await signOut();

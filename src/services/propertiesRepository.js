@@ -53,6 +53,7 @@ function normalizeProperty(row) {
     agent: { ...defaultAgent, ...(row.agent ?? {}) },
     lifestyle: { ...defaultLifestyle, ...(row.lifestyle ?? {}) },
     priceHistory,
+    media: Array.isArray(row.media) ? row.media : [],
   };
 }
 

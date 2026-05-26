@@ -1272,6 +1272,342 @@ body {
   letter-spacing: 0.5em;
 }
 
+/* ----------------------------- AI 매물 리포트 패널 ----------------------------- */
+.property-report {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+.property-report.loading,
+.property-report.error {
+  align-items: center;
+  text-align: center;
+  padding: var(--space-7) var(--space-3);
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+}
+
+.property-report .report-action-button {
+  margin-top: var(--space-2);
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  border: 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.report-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+}
+
+.report-eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-1);
+}
+
+.report-header-left h2 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 500;
+  margin: 0 0 var(--space-1);
+}
+
+.report-subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.report-header-right {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.report-grade-pill,
+.report-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  min-width: 76px;
+}
+
+.report-grade-pill {
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+.report-grade-pill strong {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.report-grade-pill span,
+.report-pill span {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+.report-grade-pill span {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.report-pill strong {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.report-pill.discount strong {
+  color: #c0392b;
+}
+
+.report-section {
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.report-section:last-of-type {
+  border-bottom: 0;
+}
+
+.report-section h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 20px;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text);
+}
+
+.report-section h4 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0 0 var(--space-1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.report-section p {
+  font-size: 14px;
+  line-height: var(--lh-normal);
+  color: var(--color-text);
+  margin: 0;
+}
+
+.report-section-key {
+  background: #fafafa;
+  margin: 0 calc(var(--space-4) * -1);
+  padding: var(--space-4);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.report-merits,
+.report-cautions {
+  padding: var(--space-2);
+  border-radius: 8px;
+}
+
+.report-merits {
+  background: #e8f5ed;
+}
+
+.report-cautions {
+  background: #fdecea;
+}
+
+.report-merits ul,
+.report-cautions ul {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-1) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-merits li,
+.report-cautions li {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.report-merits li::before { content: '✓ '; color: #2e7d32; font-weight: 700; }
+.report-cautions li::before { content: '! '; color: #c0392b; font-weight: 700; }
+
+.report-note {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  background: #fff9e6;
+  border-radius: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.report-price-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.report-price-grid > div {
+  padding: var(--space-2);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-price-grid span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.report-price-grid strong {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.report-price-grid .highlight {
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
+}
+
+.report-price-grid .highlight span {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.report-text-block {
+  margin-top: var(--space-2);
+}
+
+.risk-낮음 { color: #2e7d32; font-style: normal; font-weight: 700; margin-left: 6px; }
+.risk-보통 { color: #ef6c00; font-style: normal; font-weight: 700; margin-left: 6px; }
+.risk-높음 { color: #c0392b; font-style: normal; font-weight: 700; margin-left: 6px; }
+
+.report-location-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.report-location-grid > div {
+  padding: var(--space-2);
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.report-target-buyer {
+  padding: var(--space-2);
+  background: #f4f5f7;
+  border-radius: 8px;
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.report-target-buyer span {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.report-target-buyer strong {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.report-final-opinion {
+  font-size: 14px;
+  line-height: var(--lh-normal);
+  white-space: pre-line;
+}
+
+.report-footer {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.report-footer small {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+}
+
+.report-regenerate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-strong, #c8c8c8);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.report-regenerate-button:hover:not(:disabled) {
+  border-color: var(--color-text);
+}
+
+.report-regenerate-button .spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 720px) {
+  .report-header { grid-template-columns: 1fr; }
+  .report-summary-grid,
+  .report-location-grid { grid-template-columns: 1fr; }
+  .report-price-grid { grid-template-columns: 1fr; }
+}
+
 /* 매물 상세 앵커 탭 — 가로 스크롤 자체는 유지하되 스크롤바만 숨김 */
 .detail-anchor-list {
   scrollbar-width: none; /* Firefox */

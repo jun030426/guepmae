@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Compass, Expand, FileText, MapPin, Minus, Plus, Sparkles, X } from 'lucide-react';
+import { Compass, Expand, MapPin, Minus, Plus, X } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
 import { loadPannellum } from '../utils/pannellumLoader.js';
 import { formatPrice } from '../utils/priceUtils.js';
+import PropertyReportPanel from './PropertyReportPanel.jsx';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const NAVER_MAP_CLIENT_ID = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
@@ -519,37 +520,6 @@ function PropertyPhotoGrid({ photos, property }) {
         </figure>
       ))}
       <span className="viewer-photo-note">{property.title} 등록 사진</span>
-    </div>
-  );
-}
-
-// AI 매물 리포트 — 향후 Vercel AI Gateway 연결 예정. 현재는 placeholder
-function PropertyReportPanel({ property }) {
-  return (
-    <div className="viewer-report-placeholder">
-      <div className="viewer-report-icon" aria-hidden="true">
-        <Sparkles size={36} />
-      </div>
-      <h3>매물 리포트 — 곧 출시 예정</h3>
-      <p>
-        AI가 <strong>{property.title}</strong> 의 시세, 입지, 단지 특성, 인근 거래 패턴을 종합 분석해서
-        이 매물의 강점과 주의할 점을 한눈에 정리해드릴 예정입니다.
-      </p>
-      <ul>
-        <li>
-          <FileText size={15} />
-          한 줄 평가 — 추천 대상 / 강점 / 주의할 점
-        </li>
-        <li>
-          <FileText size={15} />
-          시세 분석 — 인근 같은 평형 비교 + 해석
-        </li>
-        <li>
-          <FileText size={15} />
-          생활권 점수 — 출퇴근/학군/생활편의/자산가치 잠재력
-        </li>
-      </ul>
-      <p className="viewer-report-coming-soon">2026년 상반기 출시 예정</p>
     </div>
   );
 }

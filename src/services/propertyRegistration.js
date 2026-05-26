@@ -151,13 +151,18 @@ async function triggerReportGeneration(propertyId) {
 }
 
 // 운영팀 승인 토글 — properties.verified true/false 변경
+// .select() 로 실제로 업데이트된 row 가져와서 RLS silent 차단 (0 rows) 도 에러로 처리
 export async function setPropertyVerified(propertyId, verified) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
   }
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('properties')
     .update({ verified, last_verified_at: new Date().toISOString().slice(0, 10) })
-    .eq('id', propertyId);
+    .eq('id', propertyId)
+    .select('id');
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error('권한이 없거나 매물이 존재하지 않아 변경되지 않았습니다.');
+  }
 }

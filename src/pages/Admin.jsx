@@ -274,8 +274,15 @@ function Admin() {
     setUpdating(id);
     setError('');
     try {
-      const { error: delError } = await supabase.from('properties').delete().eq('id', id);
+      const { data, error: delError } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', id)
+        .select('id');
       if (delError) throw delError;
+      if (!data || data.length === 0) {
+        throw new Error('권한이 없거나 매물이 존재하지 않아 삭제되지 않았습니다.');
+      }
       window.location.reload();
     } catch (err) {
       setError(`반려/삭제 실패: ${err.message}`);

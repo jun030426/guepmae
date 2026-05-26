@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { registerProperty } from '../services/propertyRegistration.js';
+import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const SALE_REASONS = [
   { value: '양도세 마감 임박', label: '양도세 마감 임박' },
@@ -50,7 +51,9 @@ function AgentRegisterProperty() {
   const [error, setError] = useState('');
 
   const update = (key) => (event) => {
-    setForm((s) => ({ ...s, [key]: event.target.value }));
+    const raw = event.target.value;
+    const nextValue = key === 'agentPhone' ? formatPhone(raw) : raw;
+    setForm((s) => ({ ...s, [key]: nextValue }));
   };
 
   // 필수 항목 — key: 사람이 읽는 라벨
@@ -290,7 +293,14 @@ function AgentRegisterProperty() {
             </label>
             <label>
               연락처
-              <input type="text" value={form.agentPhone} onChange={update('agentPhone')} placeholder="예: 02-548-9031" />
+              <input
+                type="text"
+                value={form.agentPhone}
+                onChange={update('agentPhone')}
+                placeholder="예: 02-548-9031"
+                inputMode="numeric"
+                maxLength={PHONE_MAX_LENGTH}
+              />
             </label>
           </div>
         </fieldset>

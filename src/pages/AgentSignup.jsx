@@ -3,6 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, FileUp, MailCheck, Search, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { createAgentApplication } from '../services/agentApplications.js';
+import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
+
+const PHONE_FIELDS = new Set(['representativePhone', 'contactPhone']);
 
 const initialForm = {
   email: '',
@@ -75,10 +78,8 @@ function AgentSignup() {
 
   const updateForm = (event) => {
     const { name, value, files } = event.target;
-    setForm((current) => ({
-      ...current,
-      [name]: files ? files[0] ?? null : value,
-    }));
+    const nextValue = files ? files[0] ?? null : PHONE_FIELDS.has(name) ? formatPhone(value) : value;
+    setForm((current) => ({ ...current, [name]: nextValue }));
     if (name === 'officeName' || name === 'officeRegistrationNumber') setOfficeChecked(false);
     if (name === 'representativeName' || name === 'representativePhone') setRepresentativeVerified(false);
   };
@@ -344,7 +345,15 @@ function AgentSignup() {
             </div>
             <div className="agent-section-controls">
               <input name="representativeName" value={form.representativeName} onChange={updateForm} placeholder="대표자명" required />
-              <input name="representativePhone" value={form.representativePhone} onChange={updateForm} placeholder="대표자 연락처" required />
+              <input
+                name="representativePhone"
+                value={form.representativePhone}
+                onChange={updateForm}
+                placeholder="대표자 연락처 (예: 010-1234-5678)"
+                inputMode="numeric"
+                maxLength={PHONE_MAX_LENGTH}
+                required
+              />
               <button type="button" className="agent-outline-button" onClick={handleRepresentativeVerify} disabled={!officeChecked}>
                 <ShieldCheck size={16} /> 인증하기
               </button>
@@ -376,7 +385,14 @@ function AgentSignup() {
               <p>이메일 외 연락 가능한 번호가 있다면 입력해주세요.</p>
             </div>
             <div className="agent-section-controls">
-              <input name="contactPhone" value={form.contactPhone} onChange={updateForm} placeholder="추가 연락처" />
+              <input
+                name="contactPhone"
+                value={form.contactPhone}
+                onChange={updateForm}
+                placeholder="추가 연락처 (예: 02-1234-5678)"
+                inputMode="numeric"
+                maxLength={PHONE_MAX_LENGTH}
+              />
             </div>
           </section>
 

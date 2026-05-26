@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { ArrowRight, CheckCircle2, Mail, MailCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import SocialLoginButtons from '../components/SocialLoginButtons.jsx';
+import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const initialLoginForm = {
   email: '',
@@ -112,7 +113,8 @@ function Login() {
 
   const updateSignupForm = (event) => {
     const { name, value } = event.target;
-    setSignupForm((current) => ({ ...current, [name]: value }));
+    const nextValue = name === 'phone' ? formatPhone(value) : value;
+    setSignupForm((current) => ({ ...current, [name]: nextValue }));
   };
 
   const handleLogin = async (event) => {
@@ -417,6 +419,8 @@ function Login() {
                 onChange={updateSignupForm}
                 placeholder="010-0000-0000"
                 autoComplete="tel"
+                inputMode="numeric"
+                maxLength={PHONE_MAX_LENGTH}
                 required
               />
             </label>

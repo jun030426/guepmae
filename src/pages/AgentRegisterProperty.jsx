@@ -52,21 +52,35 @@ function AgentRegisterProperty() {
     setForm((s) => ({ ...s, [key]: event.target.value }));
   };
 
-  const canSubmit =
-    form.title &&
-    form.address &&
-    form.region &&
-    form.area &&
-    form.floor &&
-    form.price &&
-    form.actualTransactionPrice &&
-    form.builtYear &&
-    form.description;
+  // 필수 항목 — key: 사람이 읽는 라벨
+  const REQUIRED_FIELDS = {
+    title: '매물 타이틀',
+    region: '지역',
+    address: '주소',
+    area: '전용면적',
+    floor: '층',
+    builtYear: '건축연도',
+    price: '매도 호가',
+    actualTransactionPrice: '기준 실거래가',
+    description: '매물 설명',
+  };
+
+  // 비어있는 필수 항목 목록
+  const missingFields = Object.entries(REQUIRED_FIELDS)
+    .filter(([key]) => !form[key])
+    .map(([, label]) => label);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!canSubmit) {
-      setError('필수 항목을 모두 입력해주세요.');
+    if (missingFields.length > 0) {
+      setError(`다음 항목을 입력해주세요: ${missingFields.join(', ')}`);
+      // 첫 번째 빠진 필드로 스크롤 + 포커스
+      const firstMissingKey = Object.keys(REQUIRED_FIELDS).find((k) => !form[k]);
+      const el = document.querySelector(`[name="${firstMissingKey}"], [data-field="${firstMissingKey}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (typeof el.focus === 'function') setTimeout(() => el.focus(), 300);
+      }
       return;
     }
     setError('');
@@ -108,7 +122,7 @@ function AgentRegisterProperty() {
           <div className="register-grid-2">
             <label>
               매물 타이틀 *
-              <input type="text" value={form.title} onChange={update('title')} placeholder="예: 마포래미안푸르지오 84A" required />
+              <input type="text" name="title" value={form.title} onChange={update('title')} placeholder="예: 마포래미안푸르지오 84A" required />
             </label>
             <label>
               지역 (시·구) *
@@ -267,7 +281,7 @@ function AgentRegisterProperty() {
             <Sparkles size={16} />
             <span>등록 즉시 AI가 매물 리포트를 자동으로 생성합니다 (10~20초 소요)</span>
           </div>
-          <button type="submit" className="primary-link-button" disabled={!canSubmit || submitting}>
+          <button type="submit" className="primary-link-button" disabled={submitting}>
             {submitting ? '등록 중...' : '매물 등록 완료'}
             {!submitting && <ArrowRight size={17} />}
           </button>

@@ -1,16 +1,19 @@
 /*
- * /api/lookup-lifestyle — 좌표(lat,lng) 받아 Google Places Nearby Search 로
- * 주변 편의시설 6종 검색 후 lifestyle 객체 반환.
+ * /api/lookup-lifestyle — 좌표 또는 주소를 받아 주변 편의시설 6종 + 좌표를 반환.
+ *
+ * 입력 (둘 중 하나):
+ *   - lat, lng: 좌표 직접
+ *   - address: 주소 (서버에서 Geocoding API로 좌표 변환)
  *
  * 응답:
  *   {
+ *     coordinates: { lat, lng } | null,
  *     lifestyle: { subway, school, mart, hospital, convenience, gym },
  *     nearest: { place, label, minutes, type, distance } | null
  *   }
  *
  * 환경변수:
- *   GOOGLE_PLACES_API_KEY  — 서버 사이드용 Google Maps API 키 (Places API 활성화 필요)
- *   (옵션: KAKAO_REST_API_KEY 가 설정되어 있고 GOOGLE_PLACES_API_KEY 가 없으면 Kakao 사용)
+ *   GOOGLE_PLACES_API_KEY  — 서버 사이드용 Google API 키 (Places API + Geocoding API 활성화 필요)
  */
 
 const CATEGORIES = [
@@ -40,6 +43,23 @@ function minutesFromMeters(meters, mode) {
   // 도보 80m/분, 차량 500m/분 (도심 평균)
   const minutes = mode === 'walk' ? meters / 80 : meters / 500;
   return Math.max(1, Math.round(minutes));
+}
+
+async function googleGeocode({ apiKey, address }) {
+  const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+  url.searchParams.set('address', address);
+  url.searchParams.set('language', 'ko');
+  url.searchParams.set('region', 'kr');
+  url.searchParams.set('key', apiKey);
+  const res = await fetch(url.toString());
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (data.status !== 'OK' || !data.results?.length) {
+    console.warn('[Geocoding] status:', data.status, data.error_message);
+    return null;
+  }
+  const loc = data.results[0].geometry?.location;
+  return loc ? { lat: loc.lat, lng: loc.lng } : null;
 }
 
 async function googleNearbySearch({ apiKey, type, lat, lng, radius }) {
@@ -74,15 +94,30 @@ async function googleNearbySearch({ apiKey, type, lat, lng, radius }) {
 }
 
 export default async function handler(req, res) {
-  const lat = Number(req.query.lat);
-  const lng = Number(req.query.lng);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-    return res.status(400).json({ error: 'lat, lng 쿼리 파라미터가 필요합니다 (숫자).' });
+  // GOOGLE_PLACES_API_KEY 우선 (별도 서버용 키). 없으면 기존 VITE_GOOGLE_MAPS_API_KEY 재사용.
+  // ⚠️ 후자는 HTTP 리퍼러 제한이 걸려있으면 서버 호출 시 REQUEST_DENIED 반환됨 — 제한 해제 필요.
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY || process.env.VITE_GOOGLE_MAPS_API_KEY;
+  if (!apiKey) {
+    return res.status(500).json({
+      error: 'GOOGLE_PLACES_API_KEY 또는 VITE_GOOGLE_MAPS_API_KEY 환경변수가 필요합니다.',
+    });
   }
 
-  const apiKey = process.env.GOOGLE_PLACES_API_KEY;
-  if (!apiKey) {
-    return res.status(500).json({ error: 'GOOGLE_PLACES_API_KEY 환경변수가 설정되지 않았습니다.' });
+  let lat = Number(req.query.lat);
+  let lng = Number(req.query.lng);
+  const address = req.query.address;
+
+  // 좌표 없으면 주소로 Geocoding
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    if (!address) {
+      return res.status(400).json({ error: 'lat/lng 또는 address 가 필요합니다.' });
+    }
+    const geo = await googleGeocode({ apiKey, address });
+    if (!geo) {
+      return res.status(404).json({ error: '입력하신 주소의 좌표를 찾을 수 없습니다.' });
+    }
+    lat = geo.lat;
+    lng = geo.lng;
   }
 
   const lifestyle = {
@@ -123,7 +158,11 @@ export default async function handler(req, res) {
       }
     }
 
-    return res.status(200).json({ lifestyle, nearest });
+    return res.status(200).json({
+      coordinates: { lat, lng },
+      lifestyle,
+      nearest,
+    });
   } catch (err) {
     console.error('[lookup-lifestyle] failed:', err);
     return res.status(500).json({ error: err.message ?? 'unknown error' });

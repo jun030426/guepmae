@@ -20,8 +20,6 @@ const initialForm = {
   title: '',
   address: '',
   region: '',
-  lat: '',
-  lng: '',
   area: '',
   supplyArea: '',
   floor: '',
@@ -136,17 +134,10 @@ function AgentRegisterProperty() {
           <label>
             주소 *
             <input type="text" value={form.address} onChange={update('address')} placeholder="예: 서울특별시 마포구 아현동 1-1" required />
+            <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
+              ※ 주소를 정확히 입력하면 지도 좌표와 주변 시설을 자동으로 찾아드립니다.
+            </small>
           </label>
-          <div className="register-grid-2">
-            <label>
-              위도 (선택)
-              <input type="text" value={form.lat} onChange={update('lat')} placeholder="예: 37.5663" />
-            </label>
-            <label>
-              경도 (선택)
-              <input type="text" value={form.lng} onChange={update('lng')} placeholder="예: 126.9019" />
-            </label>
-          </div>
         </fieldset>
 
         {/* Section 2: 평형/구조 */}

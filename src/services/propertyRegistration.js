@@ -42,15 +42,23 @@ async function uploadPropertyPhotos(files, propertyId) {
   return photos;
 }
 
-async function fetchLifestyleByCoords(lat, lng) {
+// 좌표가 있으면 그걸로, 없으면 주소로 lookup → 좌표 + lifestyle 한 번에 받음
+async function fetchLifestyleAndCoords({ lat, lng, address }) {
   try {
-    const res = await fetch(`/api/lookup-lifestyle?lat=${lat}&lng=${lng}`);
-    if (!res.ok) return { lifestyle: null, nearest: null };
+    const params = lat && lng
+      ? `lat=${lat}&lng=${lng}`
+      : `address=${encodeURIComponent(address)}`;
+    const res = await fetch(`/api/lookup-lifestyle?${params}`);
+    if (!res.ok) return { lifestyle: null, coordinates: null, nearest: null };
     const data = await res.json();
-    return { lifestyle: data.lifestyle, nearest: data.nearest };
+    return {
+      lifestyle: data.lifestyle,
+      coordinates: data.coordinates,
+      nearest: data.nearest,
+    };
   } catch (err) {
     console.warn('lifestyle lookup failed:', err);
-    return { lifestyle: null, nearest: null };
+    return { lifestyle: null, coordinates: null, nearest: null };
   }
 }
 
@@ -62,24 +70,24 @@ export async function registerProperty(form, agentProfile) {
   const id = generatePropertyId();
   const now = new Date().toISOString().slice(0, 10);
 
-  // 1) 사진 업로드 + 좌표 있으면 Kakao 로 lifestyle 조회 (병렬)
+  // 1) 사진 업로드 + 주소로 좌표/lifestyle 자동 조회 (병렬)
   const photoFiles = Array.isArray(form.photos) ? form.photos.filter(Boolean) : [];
-  const hasCoords = form.lat && form.lng;
-  const [media, lifestyleResult] = await Promise.all([
+  const [media, lookupResult] = await Promise.all([
     photoFiles.length > 0 ? uploadPropertyPhotos(photoFiles, id) : Promise.resolve([]),
-    hasCoords ? fetchLifestyleByCoords(form.lat, form.lng) : Promise.resolve({ lifestyle: null }),
+    form.address ? fetchLifestyleAndCoords({ address: form.address }) : Promise.resolve({ lifestyle: null, coordinates: null }),
   ]);
 
-  const lifestyle = lifestyleResult.lifestyle ?? {
+  const lifestyle = lookupResult.lifestyle ?? {
     subway: '', school: '', mart: '', hospital: '', convenience: '', gym: '',
   };
+  const coordinates = lookupResult.coordinates ?? null;
 
   // 2) 매물 INSERT
   const row = {
     id,
     title: form.title,
     address: form.address,
-    coordinates: form.lat && form.lng ? { lat: Number(form.lat), lng: Number(form.lng) } : null,
+    coordinates,
     region: form.region,
     property_type: '아파트',
     price: Number(form.price),

@@ -1674,6 +1674,28 @@ body {
   cursor: not-allowed;
 }
 
+.admin-role-select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.admin-role-select:focus {
+  outline: none;
+  border-color: var(--color-text);
+}
+
+.admin-role-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* 매물 카드/상세에서 의도치 않은 줄무늬가 나오지 않도록 방어적 override */
 .property-image-placeholder::before,
 .property-image-placeholder.has-photo::before,

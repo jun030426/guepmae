@@ -1,18 +1,59 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Building2, CheckCircle2, ClipboardCheck, ExternalLink, ShieldCheck, XCircle } from 'lucide-react';
+import { AlertTriangle, Building2, CheckCircle2, ClipboardCheck, ExternalLink, ShieldCheck, Users, XCircle } from 'lucide-react';
 import SectionTitle from '../components/SectionTitle.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { useProperties } from '../hooks/useProperties.js';
 import { setPropertyVerified } from '../services/propertyRegistration.js';
+import { fetchAllProfiles, setUserRole } from '../services/userManagement.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
 
+const ROLE_LABEL = { admin: '관리자', agent: '중개사', user: '일반회원' };
+const ROLE_ORDER = ['admin', 'agent', 'user'];
+
+function formatDate(iso) {
+  if (!iso) return '-';
+  return new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
 function Admin() {
   const { properties } = useProperties();
-  const [refreshTick, setRefreshTick] = useState(0);
   const [updating, setUpdating] = useState(null);
   const [error, setError] = useState('');
+  const [profiles, setProfiles] = useState([]);
+  const [profilesLoading, setProfilesLoading] = useState(true);
+
+  // 모든 사용자 프로필 가져오기 (admin RLS 통과)
+  useEffect(() => {
+    let active = true;
+    fetchAllProfiles()
+      .then((data) => active && setProfiles(data))
+      .catch((err) => active && setError(`사용자 목록 로드 실패: ${err.message}`))
+      .finally(() => active && setProfilesLoading(false));
+    return () => { active = false; };
+  }, []);
+
+  const groupedProfiles = profiles.reduce((acc, p) => {
+    const role = p.role || 'user';
+    acc[role] = acc[role] || [];
+    acc[role].push(p);
+    return acc;
+  }, {});
+
+  const handleRoleChange = async (userId, currentRole, newRole) => {
+    if (currentRole === newRole) return;
+    if (!confirm(`이 사용자의 권한을 ${ROLE_LABEL[currentRole]} → ${ROLE_LABEL[newRole]} 로 변경하시겠습니까?`)) return;
+    setUpdating(userId);
+    try {
+      await setUserRole(userId, newRole);
+      setProfiles((prev) => prev.map((p) => (p.id === userId ? { ...p, role: newRole } : p)));
+    } catch (err) {
+      setError(`권한 변경 실패: ${err.message}`);
+    } finally {
+      setUpdating(null);
+    }
+  };
 
   // 미검증 매물 (verified=false) — 운영팀 승인 대기 큐
   const pendingProperties = properties.filter((p) => !p.verified);
@@ -73,16 +114,16 @@ function Admin() {
           description="플랫폼 전체 노출 중"
         />
         <StatCard
-          icon={AlertTriangle}
-          label="신고된 매물"
-          value="0건"
-          description="신고 기능 준비 중"
+          icon={Users}
+          label="중개사"
+          value={`${(groupedProfiles.agent ?? []).length}명`}
+          description="매물 등록 권한 보유"
         />
         <StatCard
           icon={ShieldCheck}
-          label="중개사 인증 대기"
-          value="0명"
-          description="agent_applications 연동 예정"
+          label="관리자"
+          value={`${(groupedProfiles.admin ?? []).length}명`}
+          description="운영팀 권한"
         />
       </section>
 
@@ -210,6 +251,66 @@ function Admin() {
             </table>
           </div>
         </div>
+      </section>
+
+      {/* ----------------------------- 사용자 관리 ----------------------------- */}
+      <section className="container admin-grid">
+        {ROLE_ORDER.map((role) => {
+          const list = groupedProfiles[role] ?? [];
+          return (
+            <div key={role} className="admin-panel wide">
+              <div className="admin-panel-header">
+                <h2>{ROLE_LABEL[role]} ({list.length}명)</h2>
+                <span>
+                  {role === 'admin' && '플랫폼 운영팀'}
+                  {role === 'agent' && '매물 등록 권한 보유'}
+                  {role === 'user' && '일반 가입자 — 매물 조회/문의만 가능'}
+                </span>
+              </div>
+              {profilesLoading ? (
+                <p className="admin-empty">불러오는 중...</p>
+              ) : list.length === 0 ? (
+                <p className="admin-empty">해당 권한의 사용자가 없습니다.</p>
+              ) : (
+                <div className="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>이메일</th>
+                        <th>이름</th>
+                        <th>연락처</th>
+                        <th>가입일</th>
+                        <th>권한 변경</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {list.map((p) => (
+                        <tr key={p.id}>
+                          <td>{p.email || '-'}</td>
+                          <td>{p.full_name || '-'}</td>
+                          <td>{p.phone || '-'}</td>
+                          <td>{formatDate(p.created_at)}</td>
+                          <td>
+                            <select
+                              className="admin-role-select"
+                              value={p.role || 'user'}
+                              disabled={updating === p.id}
+                              onChange={(e) => handleRoleChange(p.id, p.role, e.target.value)}
+                            >
+                              <option value="user">일반회원</option>
+                              <option value="agent">중개사</option>
+                              <option value="admin">관리자</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </section>
     </div>
   );

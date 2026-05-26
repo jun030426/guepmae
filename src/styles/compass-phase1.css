@@ -1709,6 +1709,111 @@ body {
   line-height: var(--lh-normal);
 }
 
+/* agent portal 내 로그인 카드 (랜딩에 inline) */
+.agent-login-section {
+  padding: var(--space-3) var(--space-3) var(--space-5);
+  display: flex;
+  justify-content: center;
+}
+
+.agent-login-card {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+
+.agent-login-card.non-agent {
+  text-align: center;
+}
+
+.agent-login-card.non-agent svg {
+  color: #c0392b;
+  margin-bottom: var(--space-2);
+}
+
+.agent-login-card h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 22px;
+  margin: 0 0 var(--space-1);
+}
+
+.agent-login-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin: 0 0 var(--space-3);
+}
+
+.agent-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.agent-login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.agent-login-form input {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.agent-login-form input:focus {
+  outline: none;
+  border-color: var(--color-text);
+}
+
+.agent-login-submit {
+  margin-top: var(--space-2);
+  width: 100%;
+  justify-content: center;
+}
+
+.agent-login-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
+  color: var(--color-text-subtle);
+  font-size: 12px;
+}
+
+.agent-login-divider::before,
+.agent-login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.agent-signup-cta {
+  display: block;
+  text-align: center;
+  padding: var(--space-2);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.agent-signup-cta strong {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .agent-landing-cta {
   padding: var(--space-6) var(--space-3);
   border-top: 1px solid var(--color-border);

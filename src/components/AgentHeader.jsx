@@ -1,5 +1,4 @@
 import { Link, NavLink } from 'react-router-dom';
-import { ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
 // 중개사(agent) 가 볼 수 있는 메뉴
@@ -45,10 +44,6 @@ function AgentHeader() {
         )}
 
         <div className="header-actions">
-          <Link to="/" className="login-link" title="일반 사이트로 이동">
-            <ExternalLink size={14} style={{ marginRight: 4 }} />
-            일반 사이트
-          </Link>
           {isAuthenticated ? (
             <>
               <span className="account-chip">{profile?.full_name || '중개사'}</span>

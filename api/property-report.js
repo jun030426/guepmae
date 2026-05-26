@@ -139,8 +139,10 @@ ${nearby.map((n) => `- ${n.title} (${n.region}, ${n.area}㎡, ${n.built_year}년
 위 데이터만 활용해서 5개 파트 리포트를 JSON 형식으로 작성해 주세요.`;
 }
 
-// 모델은 환경변수 GEMINI_MODEL 로 오버라이드 가능. 기본값은 무료 한도가 보편적으로 풀려있는 1.5-flash.
-const DEFAULT_MODEL = 'gemini-1.5-flash';
+// 모델은 환경변수 GEMINI_MODEL 로 오버라이드 가능. 기본값: 최신 stable 모델.
+// 1.5-flash 는 2026년 deprecated. 2.5-flash 가 현행 플래그십.
+// 만약 무료 한도(quota) 부족이면 GEMINI_MODEL=gemini-2.5-flash-lite 로 설정 가능 (더 가벼움 + 무료 한도 큼).
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 async function generateReport({ property, nearby }) {
   const google = getGoogleProvider();

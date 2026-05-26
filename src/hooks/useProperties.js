@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   fetchProperties,
   fetchPropertyById,
@@ -12,13 +12,24 @@ export function useProperties({ urgentOnly = false } = {}) {
   const [source, setSource] = useState(initialSource);
   const [error, setError] = useState(null);
 
+  const refresh = useCallback(async () => {
+    if (!isSupabaseConfigured) return;
+    try {
+      const next = await fetchProperties();
+      setProperties(next);
+      setSource('supabase');
+      setError(null);
+    } catch (fetchError) {
+      console.warn('Supabase properties refresh failed.', fetchError);
+      setError(fetchError);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isSupabaseConfigured) {
       return undefined;
     }
-
     let active = true;
-
     fetchProperties()
       .then((nextProperties) => {
         if (!active) return;
@@ -31,17 +42,13 @@ export function useProperties({ urgentOnly = false } = {}) {
         setError(fetchError);
         setSource('error');
       });
-
     return () => {
       active = false;
     };
   }, []);
 
   const visibleProperties = useMemo(() => {
-    if (!urgentOnly) {
-      return properties;
-    }
-
+    if (!urgentOnly) return properties;
     return properties.filter((property) => property.discountRate >= 5);
   }, [properties, urgentOnly]);
 
@@ -50,6 +57,7 @@ export function useProperties({ urgentOnly = false } = {}) {
     source,
     error,
     isLoading: source === 'loading',
+    refresh,
   };
 }
 

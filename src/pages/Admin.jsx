@@ -145,7 +145,7 @@ function AgentApplicationModal({ application, onClose, onApprove, onReject, isUp
 }
 
 function Admin() {
-  const { properties } = useProperties();
+  const { properties, refresh: refreshProperties } = useProperties();
   const { profile: currentActor } = useAuth();
   const [updating, setUpdating] = useState(null);
   const [error, setError] = useState('');
@@ -260,11 +260,10 @@ function Admin() {
     setError('');
     try {
       await setPropertyVerified(id, true);
-      // 로컬 즉시 반영 (실제 다음 fetch까지 캐시 유지)
-      setRefreshTick((t) => t + 1);
-      window.location.reload(); // 간단하게 reload — useProperties 가 재페치
+      await refreshProperties(); // 새로고침 없이 데이터 재페치
     } catch (err) {
       setError(`승인 실패: ${err.message}`);
+    } finally {
       setUpdating(null);
     }
   };
@@ -283,9 +282,10 @@ function Admin() {
       if (!data || data.length === 0) {
         throw new Error('권한이 없거나 매물이 존재하지 않아 삭제되지 않았습니다.');
       }
-      window.location.reload();
+      await refreshProperties();
     } catch (err) {
       setError(`반려/삭제 실패: ${err.message}`);
+    } finally {
       setUpdating(null);
     }
   };
@@ -511,9 +511,10 @@ function Admin() {
                           setUpdating(property.id);
                           try {
                             await setPropertyVerified(property.id, false);
-                            window.location.reload();
+                            await refreshProperties();
                           } catch (err) {
                             setError(`검증 취소 실패: ${err.message}`);
+                          } finally {
                             setUpdating(null);
                           }
                         }}

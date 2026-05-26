@@ -2,27 +2,35 @@ import { Link, NavLink } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
-const agentNavItems = [
+// 중개사(agent) 가 볼 수 있는 메뉴
+const AGENT_NAV = [
   { label: '대시보드', path: '/agent/dashboard' },
   { label: '새 매물 등록', path: '/agent/properties/new' },
   { label: '내 등록 매물', path: '/agent/properties' },
+];
+
+// 관리자(admin) 만 추가로 보이는 메뉴
+const ADMIN_ONLY_NAV = [
   { label: '운영 관리', path: '/agent/admin' },
 ];
 
 function AgentHeader() {
-  const { isAuthenticated, profile, signOut } = useAuth();
+  const { isAuthenticated, isAdmin, isAgent, profile, signOut } = useAuth();
+
+  const navItems = isAdmin ? [...AGENT_NAV, ...ADMIN_ONLY_NAV] : AGENT_NAV;
+  const canSeeNav = isAuthenticated && (isAdmin || isAgent);
 
   return (
     <header className="site-header agent-header">
       <div className="header-inner">
         <Link to="/agent" className="logo" aria-label="급매 중개사 portal">
           <span>급매</span>
-          <em className="agent-badge">중개사</em>
+          <em className="agent-badge">{isAdmin ? '관리자' : '중개사'}</em>
         </Link>
 
-        {isAuthenticated && profile?.role && ['agent', 'admin'].includes(profile.role) && (
+        {canSeeNav && (
           <nav className="desktop-nav" aria-label="중개사 메뉴">
-            {agentNavItems.map((item) => (
+            {navItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}

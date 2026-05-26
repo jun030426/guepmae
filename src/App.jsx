@@ -79,17 +79,17 @@ function App() {
           <Route
             path="/agent/admin"
             element={
-              <RequireRole allowedRoles={['admin', 'agent']}>
+              <RequireRole allowedRoles={['admin']}>
                 <Admin />
               </RequireRole>
             }
           />
 
-          {/* ----------------------------- 옛 /admin → /agent/admin 리다이렉트 ----------------------------- */}
+          {/* ----------------------------- 옛 /admin — 운영팀(admin)만 ----------------------------- */}
           <Route
             path="/admin"
             element={
-              <RequireRole allowedRoles={['admin', 'agent']}>
+              <RequireRole allowedRoles={['admin']}>
                 <Admin />
               </RequireRole>
             }

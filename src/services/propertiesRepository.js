@@ -54,6 +54,7 @@ function normalizeProperty(row) {
     lifestyle: { ...defaultLifestyle, ...(row.lifestyle ?? {}) },
     priceHistory,
     media: Array.isArray(row.media) ? row.media : [],
+    createdAt: row.created_at ?? null,
   };
 }
 

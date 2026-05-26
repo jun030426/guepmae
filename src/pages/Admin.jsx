@@ -251,9 +251,18 @@ function Admin() {
     }
   };
 
+  // 등록일(createdAt) 내림차순 정렬 헬퍼
+  const sortByCreatedDesc = (arr) =>
+    [...arr].sort((a, b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
+    });
+
   // 미검증 매물 (verified=false) — 운영팀 승인 대기 큐
-  const pendingProperties = properties.filter((p) => !p.verified);
-  const verifiedCount = properties.filter((p) => p.verified).length;
+  const pendingProperties = sortByCreatedDesc(properties.filter((p) => !p.verified));
+  const verifiedProperties = sortByCreatedDesc(properties.filter((p) => p.verified));
+  const verifiedCount = verifiedProperties.length;
 
   const handleApprove = async (id) => {
     setUpdating(id);
@@ -418,7 +427,7 @@ function Admin() {
           {pendingProperties.length === 0 ? (
             <p className="admin-empty">승인 대기 중인 매물이 없습니다.</p>
           ) : (
-            <div className="table-wrap">
+            <div className="table-wrap admin-scroll-table">
               <table>
                 <thead>
                   <tr>
@@ -442,7 +451,7 @@ function Admin() {
                       <td>{property.region}</td>
                       <td>{formatPrice(property.price)}</td>
                       <td>{property.discountRate}%</td>
-                      <td>{property.lastVerifiedAt}</td>
+                      <td>{formatDate(property.createdAt)}</td>
                       <td>
                         <div className="table-actions">
                           <button
@@ -478,7 +487,7 @@ function Admin() {
             <h2>검증 완료 매물 ({verifiedCount}건)</h2>
             <span>현재 사이트에 노출 중인 매물</span>
           </div>
-          <div className="table-wrap">
+          <div className="table-wrap admin-scroll-table">
             <table>
               <thead>
                 <tr>
@@ -486,11 +495,12 @@ function Admin() {
                   <th>지역</th>
                   <th>매도가</th>
                   <th>할인율</th>
+                  <th>등록일</th>
                   <th>액션</th>
                 </tr>
               </thead>
               <tbody>
-                {properties.filter((p) => p.verified).slice(0, 10).map((property) => (
+                {verifiedProperties.map((property) => (
                   <tr key={property.id}>
                     <td>
                       <Link to={`/properties/${property.id}`} className="admin-link" target="_blank">
@@ -501,6 +511,7 @@ function Admin() {
                     <td>{property.region}</td>
                     <td>{formatPrice(property.price)}</td>
                     <td>{property.discountRate}%</td>
+                    <td>{formatDate(property.createdAt)}</td>
                     <td>
                       <button
                         type="button"

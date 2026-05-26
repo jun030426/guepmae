@@ -15,17 +15,18 @@ const ADMIN_ONLY_NAV = [
 ];
 
 function AgentHeader() {
-  const { isAuthenticated, isAdmin, isAgent, profile, signOut } = useAuth();
+  const { isAuthenticated, isOwner, isAdmin, isAgent, profile, signOut } = useAuth();
 
   const navItems = isAdmin ? [...AGENT_NAV, ...ADMIN_ONLY_NAV] : AGENT_NAV;
   const canSeeNav = isAuthenticated && (isAdmin || isAgent);
+  const badgeLabel = isOwner ? '대표자' : isAdmin && profile?.role === 'admin' ? '관리자' : '중개사';
 
   return (
     <header className="site-header agent-header">
       <div className="header-inner">
         <Link to="/agent" className="logo" aria-label="급매 중개사 portal">
           <span>급매</span>
-          <em className="agent-badge">{isAdmin ? '관리자' : '중개사'}</em>
+          <em className="agent-badge">{badgeLabel}</em>
         </Link>
 
         {canSeeNav && (

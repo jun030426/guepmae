@@ -1696,6 +1696,57 @@ body {
   cursor: not-allowed;
 }
 
+.admin-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.admin-no-permission {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  font-style: italic;
+}
+
+.suspended-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #fdecea;
+  color: #c0392b;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.active-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #e8f5ed;
+  color: #2e7d32;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.self-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+tr.is-suspended {
+  background: #fff5f5;
+  opacity: 0.7;
+}
+
 /* 매물 카드/상세에서 의도치 않은 줄무늬가 나오지 않도록 방어적 override */
 .property-image-placeholder::before,
 .property-image-placeholder.has-photo::before,

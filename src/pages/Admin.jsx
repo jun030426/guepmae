@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Building2, CheckCircle2, ClipboardCheck, ExternalLink, ShieldCheck, Users, XCircle } from 'lucide-react';
+import { AlertTriangle, Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, Lock, ShieldCheck, Users, XCircle } from 'lucide-react';
 import SectionTitle from '../components/SectionTitle.jsx';
 import StatCard from '../components/StatCard.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useProperties } from '../hooks/useProperties.js';
 import { setPropertyVerified } from '../services/propertyRegistration.js';
-import { fetchAllProfiles, setUserRole } from '../services/userManagement.js';
+import {
+  ROLE_LABEL,
+  allowedNewRoles,
+  canChangeRole,
+  canToggleSuspend,
+  fetchAllProfiles,
+  setUserRole,
+  setUserSuspended,
+} from '../services/userManagement.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
 
-const ROLE_LABEL = { admin: '관리자', agent: '중개사', user: '일반회원' };
-const ROLE_ORDER = ['admin', 'agent', 'user'];
+const ROLE_ORDER = ['owner', 'admin', 'agent', 'user'];
 
 function formatDate(iso) {
   if (!iso) return '-';
@@ -19,12 +27,13 @@ function formatDate(iso) {
 
 function Admin() {
   const { properties } = useProperties();
+  const { profile: currentActor } = useAuth();
   const [updating, setUpdating] = useState(null);
   const [error, setError] = useState('');
   const [profiles, setProfiles] = useState([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
 
-  // 모든 사용자 프로필 가져오기 (admin RLS 통과)
+  // 모든 사용자 프로필 가져오기
   useEffect(() => {
     let active = true;
     fetchAllProfiles()
@@ -41,15 +50,37 @@ function Admin() {
     return acc;
   }, {});
 
-  const handleRoleChange = async (userId, currentRole, newRole) => {
-    if (currentRole === newRole) return;
-    if (!confirm(`이 사용자의 권한을 ${ROLE_LABEL[currentRole]} → ${ROLE_LABEL[newRole]} 로 변경하시겠습니까?`)) return;
-    setUpdating(userId);
+  const handleRoleChange = async (target, newRole) => {
+    if (target.role === newRole) return;
+    if (!canChangeRole(currentActor, target, newRole)) {
+      setError('이 권한 변경을 수행할 수 없습니다.');
+      return;
+    }
+    if (!confirm(`이 사용자의 권한을 ${ROLE_LABEL[target.role]} → ${ROLE_LABEL[newRole]} 로 변경하시겠습니까?`)) return;
+    setUpdating(target.id);
     try {
-      await setUserRole(userId, newRole);
-      setProfiles((prev) => prev.map((p) => (p.id === userId ? { ...p, role: newRole } : p)));
+      await setUserRole(target.id, newRole);
+      setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, role: newRole } : p)));
     } catch (err) {
       setError(`권한 변경 실패: ${err.message}`);
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const handleSuspendToggle = async (target) => {
+    if (!canToggleSuspend(currentActor, target)) {
+      setError('이 사용자를 정지/해제할 수 없습니다.');
+      return;
+    }
+    const action = target.suspended ? '정지 해제' : '정지';
+    if (!confirm(`이 사용자(${target.email})를 ${action}하시겠습니까?`)) return;
+    setUpdating(target.id);
+    try {
+      await setUserSuspended(target.id, !target.suspended);
+      setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, suspended: !target.suspended } : p)));
+    } catch (err) {
+      setError(`${action} 실패: ${err.message}`);
     } finally {
       setUpdating(null);
     }
@@ -260,9 +291,13 @@ function Admin() {
           return (
             <div key={role} className="admin-panel wide">
               <div className="admin-panel-header">
-                <h2>{ROLE_LABEL[role]} ({list.length}명)</h2>
+                <h2>
+                  {role === 'owner' && <Crown size={16} style={{ marginRight: 6, verticalAlign: 'middle' }} />}
+                  {ROLE_LABEL[role]} ({list.length}명)
+                </h2>
                 <span>
-                  {role === 'admin' && '플랫폼 운영팀'}
+                  {role === 'owner' && '플랫폼 최상위 권한 — 모든 관리자/중개사/회원 관리 가능'}
+                  {role === 'admin' && '운영팀 — 중개사/회원 권한 관리 + 매물 승인'}
                   {role === 'agent' && '매물 등록 권한 보유'}
                   {role === 'user' && '일반 가입자 — 매물 조회/문의만 가능'}
                 </span>
@@ -280,30 +315,62 @@ function Admin() {
                         <th>이름</th>
                         <th>연락처</th>
                         <th>가입일</th>
-                        <th>권한 변경</th>
+                        <th>상태</th>
+                        <th>액션</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {list.map((p) => (
-                        <tr key={p.id}>
-                          <td>{p.email || '-'}</td>
-                          <td>{p.full_name || '-'}</td>
-                          <td>{p.phone || '-'}</td>
-                          <td>{formatDate(p.created_at)}</td>
-                          <td>
-                            <select
-                              className="admin-role-select"
-                              value={p.role || 'user'}
-                              disabled={updating === p.id}
-                              onChange={(e) => handleRoleChange(p.id, p.role, e.target.value)}
-                            >
-                              <option value="user">일반회원</option>
-                              <option value="agent">중개사</option>
-                              <option value="admin">관리자</option>
-                            </select>
-                          </td>
-                        </tr>
-                      ))}
+                      {list.map((p) => {
+                        const isSelf = currentActor?.id === p.id;
+                        const allowed = allowedNewRoles(currentActor, p);
+                        const canSuspend = canToggleSuspend(currentActor, p);
+                        return (
+                          <tr key={p.id} className={p.suspended ? 'is-suspended' : ''}>
+                            <td>{p.email || '-'}{isSelf && <span className="self-badge">나</span>}</td>
+                            <td>{p.full_name || '-'}</td>
+                            <td>{p.phone || '-'}</td>
+                            <td>{formatDate(p.created_at)}</td>
+                            <td>
+                              {p.suspended ? (
+                                <span className="suspended-badge"><Lock size={11} /> 정지됨</span>
+                              ) : (
+                                <span className="active-badge">정상</span>
+                              )}
+                            </td>
+                            <td>
+                              <div className="admin-row-actions">
+                                {allowed.length > 0 ? (
+                                  <select
+                                    className="admin-role-select"
+                                    value={p.role || 'user'}
+                                    disabled={updating === p.id}
+                                    onChange={(e) => handleRoleChange(p, e.target.value)}
+                                  >
+                                    <option value={p.role}>{ROLE_LABEL[p.role]}</option>
+                                    {allowed
+                                      .filter((r) => r !== p.role)
+                                      .map((r) => (
+                                        <option key={r} value={r}>{ROLE_LABEL[r]}</option>
+                                      ))}
+                                  </select>
+                                ) : (
+                                  <span className="admin-no-permission">권한 변경 불가</span>
+                                )}
+                                {canSuspend && (
+                                  <button
+                                    type="button"
+                                    className={p.suspended ? 'admin-approve-button' : 'admin-reject-button'}
+                                    disabled={updating === p.id}
+                                    onClick={() => handleSuspendToggle(p)}
+                                  >
+                                    {p.suspended ? '정지 해제' : '정지'}
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

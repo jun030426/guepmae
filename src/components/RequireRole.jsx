@@ -20,7 +20,10 @@ function RequireRole({ allowedRoles, children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!allowedRoles.includes(profile?.role)) {
+  // owner 는 admin/agent 권한을 모두 포함하는 최상위 역할 → 어떤 allowedRoles 든 통과
+  const effectiveRole = profile?.role;
+  const isAllowed = effectiveRole === 'owner' || allowedRoles.includes(effectiveRole);
+  if (!isAllowed) {
     return (
       <div className="page-shell">
         <section className="container empty-state detail-empty">

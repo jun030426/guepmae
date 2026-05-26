@@ -4,8 +4,10 @@ import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
 const AuthContext = createContext(null);
 
 function getRedirectPath(profile) {
-  // agent/admin 은 로그인 후 중개사 portal 의 대시보드로
-  if (profile?.role === 'admin' || profile?.role === 'agent') return '/agent/dashboard';
+  // owner/admin/agent 는 로그인 후 중개사 portal 의 대시보드로
+  if (profile?.role === 'owner' || profile?.role === 'admin' || profile?.role === 'agent') {
+    return '/agent/dashboard';
+  }
   return '/properties';
 }
 
@@ -34,6 +36,14 @@ export function AuthProvider({ children }) {
 
   const loadProfile = async (userId) => {
     const nextProfile = await fetchProfile(userId);
+    // 정지된 계정은 강제 로그아웃
+    if (nextProfile?.suspended) {
+      alert('계정이 정지되었습니다. 운영팀에 문의해주세요.');
+      await supabase.auth.signOut();
+      setSession(null);
+      setProfile(null);
+      return null;
+    }
     setProfile(nextProfile);
     return nextProfile;
   };
@@ -236,8 +246,9 @@ export function AuthProvider({ children }) {
       user: session?.user ?? null,
       profile,
       isAuthenticated: Boolean(session?.user),
-      isAdmin: profile?.role === 'admin',
-      isAgent: profile?.role === 'agent',
+      isOwner: profile?.role === 'owner',
+      isAdmin: profile?.role === 'admin' || profile?.role === 'owner',
+      isAgent: profile?.role === 'agent' || profile?.role === 'admin' || profile?.role === 'owner',
       signIn,
       signUp,
       verifySignupOtp,

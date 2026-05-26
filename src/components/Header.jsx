@@ -3,11 +3,11 @@ import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
+// 일반 사용자용 메인 네비. "집 내놓기"(매물 등록)는 중개사 portal(/agent)에서만 가능하므로 여기서 제거.
 const navItems = [
   { label: '매물', path: '/properties' },
   { label: '지도 검색', path: '/map' },
   { label: '급매 리포트', path: '/report' },
-  { label: '집 내놓기', path: '/register' },
 ];
 
 function Header() {
@@ -15,8 +15,11 @@ function Header() {
   const { isAuthenticated, isAdmin, isAgent, profile, signOut } = useAuth();
 
   const closeMenu = () => setIsOpen(false);
+  // agent/admin 로그인 사용자에겐 "중개사 portal" 바로가기 노출
   const visibleNavItems =
-    isAdmin || isAgent ? [...navItems, { label: '운영 관리', path: '/admin' }] : navItems;
+    isAdmin || isAgent
+      ? [...navItems, { label: '중개사 portal', path: '/agent/dashboard' }]
+      : navItems;
 
   const handleSignOut = async () => {
     await signOut();
@@ -55,7 +58,7 @@ function Header() {
               <Link to="/login" className="login-link">
                 로그인 | 회원가입
               </Link>
-              <Link to="/agent-signup" className="agent-signup-button">
+              <Link to="/agent" className="agent-signup-button">
                 중개사 가입
               </Link>
             </>
@@ -94,7 +97,7 @@ function Header() {
               <Link to="/login" onClick={closeMenu}>
                 로그인 | 회원가입
               </Link>
-              <Link to="/agent-signup" onClick={closeMenu}>
+              <Link to="/agent" onClick={closeMenu}>
                 중개사 가입
               </Link>
             </>

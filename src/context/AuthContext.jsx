@@ -4,7 +4,8 @@ import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
 const AuthContext = createContext(null);
 
 function getRedirectPath(profile) {
-  if (profile?.role === 'admin' || profile?.role === 'agent') return '/admin';
+  // agent/admin 은 로그인 후 중개사 portal 의 대시보드로
+  if (profile?.role === 'admin' || profile?.role === 'agent') return '/agent/dashboard';
   return '/properties';
 }
 

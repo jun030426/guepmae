@@ -1,6 +1,7 @@
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 import Header from './components/Header.jsx';
+import AgentHeader from './components/AgentHeader.jsx';
 import Footer from './components/Footer.jsx';
 import RequireRole from './components/RequireRole.jsx';
 import Home from './pages/Home.jsx';
@@ -12,6 +13,9 @@ import RegisterProperty from './pages/RegisterProperty.jsx';
 import Login from './pages/Login.jsx';
 import Admin from './pages/Admin.jsx';
 import AgentSignup from './pages/AgentSignup.jsx';
+import AgentLanding from './pages/AgentLanding.jsx';
+import AgentDashboard from './pages/AgentDashboard.jsx';
+import AgentRegisterProperty from './pages/AgentRegisterProperty.jsx';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -26,13 +30,15 @@ function ScrollToTop() {
 function App() {
   const { pathname } = useLocation();
   const isFullViewport = pathname === '/map';
+  const isAgentArea = pathname.startsWith('/agent');
 
   return (
     <>
       <ScrollToTop />
-      <Header />
+      {isAgentArea ? <AgentHeader /> : <Header />}
       <main id="top" className={isFullViewport ? 'main-fullscreen' : undefined}>
         <Routes>
+          {/* ----------------------------- 일반 사용자 ----------------------------- */}
           <Route path="/" element={<Home />} />
           <Route path="/properties" element={<Properties />} />
           <Route path="/map" element={<MapPage />} />
@@ -40,7 +46,38 @@ function App() {
           <Route path="/report" element={<Report />} />
           <Route path="/register" element={<RegisterProperty />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/agent-signup" element={<AgentSignup />} />
+
+          {/* ----------------------------- 중개사 portal ----------------------------- */}
+          <Route path="/agent" element={<AgentLanding />} />
+          <Route path="/agent/signup" element={<AgentSignup />} />
+          {/* 옛 경로 호환 — /agent-signup → /agent/signup */}
+          <Route path="/agent-signup" element={<Navigate to="/agent/signup" replace />} />
+          <Route
+            path="/agent/dashboard"
+            element={
+              <RequireRole allowedRoles={['admin', 'agent']}>
+                <AgentDashboard />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/agent/properties/new"
+            element={
+              <RequireRole allowedRoles={['admin', 'agent']}>
+                <AgentRegisterProperty />
+              </RequireRole>
+            }
+          />
+          <Route
+            path="/agent/properties"
+            element={
+              <RequireRole allowedRoles={['admin', 'agent']}>
+                <AgentDashboard />
+              </RequireRole>
+            }
+          />
+
+          {/* ----------------------------- Admin ----------------------------- */}
           <Route
             path="/admin"
             element={
@@ -49,10 +86,11 @@ function App() {
               </RequireRole>
             }
           />
+
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
-      {!isFullViewport && <Footer />}
+      {!isFullViewport && !isAgentArea && <Footer />}
     </>
   );
 }

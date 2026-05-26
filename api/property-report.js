@@ -139,10 +139,14 @@ ${nearby.map((n) => `- ${n.title} (${n.region}, ${n.area}㎡, ${n.built_year}년
 위 데이터만 활용해서 5개 파트 리포트를 JSON 형식으로 작성해 주세요.`;
 }
 
+// 모델은 환경변수 GEMINI_MODEL 로 오버라이드 가능. 기본값은 무료 한도가 보편적으로 풀려있는 1.5-flash.
+const DEFAULT_MODEL = 'gemini-1.5-flash';
+
 async function generateReport({ property, nearby }) {
   const google = getGoogleProvider();
+  const modelName = process.env.GEMINI_MODEL || DEFAULT_MODEL;
   const result = await generateObject({
-    model: google('gemini-2.0-flash'),
+    model: google(modelName),
     schema: REPORT_SCHEMA,
     system: SYSTEM_PROMPT,
     prompt: buildUserPrompt({ property, nearby }),
@@ -150,6 +154,7 @@ async function generateReport({ property, nearby }) {
   return {
     report: result.object,
     usage: result.usage,
+    model: modelName,
   };
 }
 
@@ -175,14 +180,14 @@ export default async function handler(req, res) {
     }
 
     const context = await fetchPropertyContext(supabase, id);
-    const { report, usage } = await generateReport(context);
+    const { report, usage, model } = await generateReport(context);
 
     const { data: saved, error: saveError } = await supabase
       .from('property_reports')
       .upsert({
         property_id: id,
         report_data: report,
-        model: 'google/gemini-2.0-flash',
+        model: `google/${model}`,
         generated_at: new Date().toISOString(),
         prompt_token_count: usage?.promptTokens ?? null,
         completion_token_count: usage?.completionTokens ?? null,

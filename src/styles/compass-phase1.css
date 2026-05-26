@@ -2034,6 +2034,108 @@ tr.is-suspended {
   margin-bottom: var(--space-2);
 }
 
+.agent-login-card.application-pending {
+  text-align: center;
+  background: #fff8e6;
+  border-color: #f0c557;
+}
+
+.agent-login-card.application-pending svg {
+  color: #b07000;
+  margin-bottom: var(--space-2);
+}
+
+.agent-login-card.application-rejected {
+  text-align: center;
+}
+
+.agent-login-card.application-rejected svg {
+  color: #c0392b;
+  margin-bottom: var(--space-2);
+}
+
+.application-pending-detail {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: var(--space-2) 0 !important;
+}
+
+.application-status-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: var(--space-2);
+  font-size: 12px;
+}
+
+.application-status-badge {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.application-status-badge.pending {
+  background: #b07000;
+  color: #ffffff;
+}
+
+.application-status-date {
+  color: var(--color-text-muted);
+}
+
+/* 가입 완료 화면 */
+.agent-signup-done {
+  text-align: center;
+  padding: var(--space-6) var(--space-4) !important;
+}
+
+.agent-signup-done-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-3);
+  border-radius: 50%;
+  background: #e8f5ed;
+  color: #2e7d32;
+}
+
+.agent-signup-done h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 28px;
+  margin: 0 0 var(--space-2);
+}
+
+.agent-signup-done-lead {
+  font-size: 15px;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto var(--space-3);
+}
+
+.agent-signup-done-list {
+  text-align: left;
+  max-width: 440px;
+  margin: 0 auto var(--space-4);
+  padding-left: var(--space-3);
+}
+
+.agent-signup-done-list li {
+  font-size: 13px;
+  color: var(--color-text);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.agent-signup-done-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
 .agent-login-card h2 {
   font-family: var(--font-serif);
   font-weight: 500;

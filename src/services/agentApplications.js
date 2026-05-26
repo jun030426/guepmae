@@ -133,6 +133,23 @@ export async function rejectAgentApplication(applicationId, reviewerNote = null)
   if (error) throw error;
 }
 
+// 로그인한 사용자의 자기 신청서 조회 (이메일 매칭)
+export async function fetchMyApplication(email) {
+  if (!isSupabaseConfigured || !email) return null;
+  const { data, error } = await supabase
+    .from('agent_applications')
+    .select('id, office_name, status, reviewer_note, created_at, updated_at')
+    .eq('contact_email', email)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.warn('fetchMyApplication failed:', error);
+    return null;
+  }
+  return data;
+}
+
 // 첨부 문서 임시 서명 URL 생성 (private bucket)
 export async function getApplicationDocumentUrl(documentPath, expiresInSec = 600) {
   const { data, error } = await supabase.storage

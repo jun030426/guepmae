@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Building2, Sparkles, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { ArrowRight, Building2, Clock, Sparkles, ShieldCheck, AlertTriangle, XCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
+import { fetchMyApplication } from '../services/agentApplications.js';
 
 const initialLoginForm = { email: '', password: '' };
 
@@ -18,13 +19,26 @@ function AgentLanding() {
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [myApplication, setMyApplication] = useState(null);
+  const [appCheckDone, setAppCheckDone] = useState(false);
 
   // 이미 agent 로 로그인되어 있으면 대시보드로 자동 이동
   useEffect(() => {
-    if (isAuthenticated && profile?.role && ['agent', 'admin'].includes(profile.role)) {
+    if (isAuthenticated && profile?.role && ['agent', 'admin', 'owner'].includes(profile.role)) {
       navigate('/agent/dashboard', { replace: true });
     }
   }, [isAuthenticated, profile, navigate]);
+
+  // 로그인된 user 가 신청서 제출했는지 확인
+  useEffect(() => {
+    if (!isAuthenticated || profile?.role !== 'user' || !profile?.email) {
+      setAppCheckDone(true);
+      return;
+    }
+    fetchMyApplication(profile.email)
+      .then((app) => setMyApplication(app))
+      .finally(() => setAppCheckDone(true));
+  }, [isAuthenticated, profile]);
 
   const updateForm = (event) => {
     const { name, value } = event.target;
@@ -66,7 +80,39 @@ function AgentLanding() {
 
       {/* 인라인 로그인 — agent portal 안에서 인증 완료 */}
       <section className="container agent-login-section">
-        {isNonAgentLoggedIn ? (
+        {isNonAgentLoggedIn && myApplication && (myApplication.status === 'pending' || myApplication.status === 'reviewing') ? (
+          <div className="agent-login-card application-pending">
+            <Clock size={28} />
+            <h2>승인 대기 중</h2>
+            <p>
+              <strong>{myApplication.office_name}</strong> 중개사 신청이 접수되었습니다.
+            </p>
+            <p className="application-pending-detail">
+              영업일 기준 <strong>1~2일 내</strong> 검토 후 결과를 이메일로 안내드립니다.
+              승인되면 즉시 중개사 portal 이용이 가능해집니다.
+            </p>
+            <div className="application-status-row">
+              <span className="application-status-badge pending">{myApplication.status === 'reviewing' ? '검토 중' : '대기 중'}</span>
+              <span className="application-status-date">신청일: {new Date(myApplication.created_at).toLocaleDateString('ko-KR')}</span>
+            </div>
+          </div>
+        ) : isNonAgentLoggedIn && myApplication?.status === 'rejected' ? (
+          <div className="agent-login-card application-rejected">
+            <XCircle size={28} />
+            <h2>신청이 거부되었습니다</h2>
+            <p>
+              <strong>{myApplication.office_name}</strong> 신청이 거부되었습니다.
+            </p>
+            {myApplication.reviewer_note && (
+              <p className="application-pending-detail">
+                <strong>사유:</strong> {myApplication.reviewer_note}
+              </p>
+            )}
+            <Link to="/agent/signup" className="primary-link-button">
+              다시 신청하기 <ArrowRight size={17} />
+            </Link>
+          </div>
+        ) : isNonAgentLoggedIn ? (
           <div className="agent-login-card non-agent">
             <AlertTriangle size={28} />
             <h2>중개사 권한이 없습니다</h2>

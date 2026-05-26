@@ -103,10 +103,10 @@ function PropertyDetail() {
   }
 
   const activePhotoDetails = photos[activePhoto] ?? photos[0];
-  const numericId = Number(property.id.replace(/\D/g, '')) || 1;
-  const listingNumber = `GM-${String(numericId).padStart(4, '0')}`;
+  // property.id 가 'gm-001' 같은 짧은 형식이거나 'gm-mh3z9k28' 같은 nanoid 형식이거나 그대로 노출
+  const listingNumber = property.id?.toUpperCase() ?? '';
   const daysOnMarket = getDaysSince(property.lastVerifiedAt);
-  const agentEmail = `agent${String(numericId).padStart(2, '0')}@geupmae.kr`;
+  const agentEmail = property.agent?.email || '';
   const phoneHref = property.agent.phone.replace(/[^\d+]/g, '');
   const pricePerSquareMeter = Math.round(property.price / property.area);
   const pricePerPyeong = Math.round(property.price / (property.area * 0.3025));
@@ -157,10 +157,9 @@ function PropertyDetail() {
     ['가격 차이', formatPrice(property.actualTransactionPrice - property.price)],
   ];
 
-  const openHouseItems = [
-    ['5월 15일 금요일', '오후 3:30 - 4:30', '사전 예약 가능'],
-    ['5월 16일 토요일', '오전 11:30 - 오후 12:30', '담당 중개사 동행'],
-  ];
+  // 방문 일정은 매물별로 다르고 매도자/중개사 일정에 따라 변동.
+  // 통일된 시스템 만들기 전까지는 "협의" 메시지로 단순화.
+  const openHouseItems = [];
 
   const showPreviousPhoto = () => {
     setActivePhoto((current) => (current === 0 ? photos.length - 1 : current - 1));
@@ -238,7 +237,6 @@ function PropertyDetail() {
                 <span className="listed-badge">
                   {property.verified ? '검증된 급매' : '검증 확인 중'}
                 </span>
-                <span className="open-badge">방문 가능: 5/15 15:30 - 16:30</span>
               </div>
 
               <button
@@ -320,18 +318,25 @@ function PropertyDetail() {
             <section className="detail-section open-house-panel" id="open-house">
               <p className="section-eyebrow">방문 일정</p>
               <h2>예약 가능한 방문 시간</h2>
-              <div className="open-house-list">
-                {openHouseItems.map(([day, time, note]) => (
-                  <div key={day} className="open-house-item">
-                    <CalendarCheck size={20} />
-                    <div>
-                      <strong>{day}</strong>
-                      <span>{time}</span>
+              {openHouseItems.length > 0 ? (
+                <div className="open-house-list">
+                  {openHouseItems.map(([day, time, note]) => (
+                    <div key={day} className="open-house-item">
+                      <CalendarCheck size={20} />
+                      <div>
+                        <strong>{day}</strong>
+                        <span>{time}</span>
+                      </div>
+                      <em>{note}</em>
                     </div>
-                    <em>{note}</em>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="open-house-empty">
+                  <CalendarCheck size={20} />
+                  <p>방문 일정은 담당 중개사와 협의해주세요.</p>
+                </div>
+              )}
             </section>
 
             <section className="detail-section" id="price-report">
@@ -409,17 +414,19 @@ function PropertyDetail() {
               <Phone size={17} />
               {property.agent.phone}
             </a>
-            <a className="agent-phone" href={`mailto:${agentEmail}`}>
-              <Mail size={17} />
-              {agentEmail}
-            </a>
+            {agentEmail && (
+              <a className="agent-phone" href={`mailto:${agentEmail}`}>
+                <Mail size={17} />
+                {agentEmail}
+              </a>
+            )}
             <p className="agent-date">
               <CalendarCheck size={17} />
               최근 매물 확인일 {formatKoreanDate(property.lastVerifiedAt)}
             </p>
             <button type="button" className="tour-button">
               방문 예약 요청
-              <span>5월 15일 오후 3:30부터 가능</span>
+              <span>중개사와 일정 협의</span>
             </button>
             <button type="button" className="outline-button full">
               중개사에게 문의

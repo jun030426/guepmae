@@ -1608,6 +1608,22 @@ body {
   .report-price-grid { grid-template-columns: 1fr; }
 }
 
+/* 방문 일정 — 비어있을 때 안내 카드 */
+.open-house-empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.open-house-empty p {
+  margin: 0;
+}
+
 /* 매물 상세 앵커 탭 — 가로 스크롤 자체는 유지하되 스크롤바만 숨김 */
 .detail-anchor-list {
   scrollbar-width: none; /* Firefox */

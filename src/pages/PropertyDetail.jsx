@@ -143,13 +143,14 @@ function PropertyDetail() {
     ['입주 가능일', property.moveInDate],
   ];
 
+  // 새 스키마: convenience(편의점), gym(체육시설). 옛 데이터 호환을 위해 park/commute 도 fallback.
   const lifestyleItems = [
     ['지하철', property.lifestyle.subway],
     ['학교', property.lifestyle.school],
     ['마트', property.lifestyle.mart],
     ['병원', property.lifestyle.hospital],
-    ['공원', property.lifestyle.park],
-    ['예상 출근 시간', property.lifestyle.commute],
+    ['편의점', property.lifestyle.convenience || property.lifestyle.park || ''],
+    ['체육시설', property.lifestyle.gym || ''],
   ];
 
   const highlightItems = [
@@ -363,8 +364,26 @@ function PropertyDetail() {
                 <PropertyLocationMap property={property} />
                 <div className="location-copy">
                   <strong>{property.address}</strong>
-                  <p>{property.lifestyle.subway}</p>
-                  <p>{property.lifestyle.commute}</p>
+                  {(() => {
+                    // lifestyle 중 도보/차량 분(分) 가장 짧은 1개를 "가장 가까운 시설" 로 표시
+                    const entries = Object.entries(property.lifestyle ?? {})
+                      .map(([k, v]) => {
+                        if (!v) return null;
+                        const m = String(v).match(/(\d+)분/);
+                        return m ? { key: k, label: v, minutes: parseInt(m[1], 10) } : null;
+                      })
+                      .filter(Boolean)
+                      .sort((a, b) => a.minutes - b.minutes);
+                    if (entries.length === 0) {
+                      return <p style={{ color: 'var(--color-text-muted)' }}>주변 시설 정보 수집 중</p>;
+                    }
+                    return (
+                      <>
+                        <p style={{ color: 'var(--color-text-muted)', fontSize: 12, marginBottom: 2 }}>가장 가까운 시설</p>
+                        <p>{entries[0].label}</p>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </section>

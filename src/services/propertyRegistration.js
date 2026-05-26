@@ -42,6 +42,18 @@ async function uploadPropertyPhotos(files, propertyId) {
   return photos;
 }
 
+async function fetchLifestyleByCoords(lat, lng) {
+  try {
+    const res = await fetch(`/api/lookup-lifestyle?lat=${lat}&lng=${lng}`);
+    if (!res.ok) return { lifestyle: null, nearest: null };
+    const data = await res.json();
+    return { lifestyle: data.lifestyle, nearest: data.nearest };
+  } catch (err) {
+    console.warn('lifestyle lookup failed:', err);
+    return { lifestyle: null, nearest: null };
+  }
+}
+
 export async function registerProperty(form, agentProfile) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
@@ -50,9 +62,17 @@ export async function registerProperty(form, agentProfile) {
   const id = generatePropertyId();
   const now = new Date().toISOString().slice(0, 10);
 
-  // 1) 사진 업로드 먼저 (있을 때만)
+  // 1) 사진 업로드 + 좌표 있으면 Kakao 로 lifestyle 조회 (병렬)
   const photoFiles = Array.isArray(form.photos) ? form.photos.filter(Boolean) : [];
-  const media = photoFiles.length > 0 ? await uploadPropertyPhotos(photoFiles, id) : [];
+  const hasCoords = form.lat && form.lng;
+  const [media, lifestyleResult] = await Promise.all([
+    photoFiles.length > 0 ? uploadPropertyPhotos(photoFiles, id) : Promise.resolve([]),
+    hasCoords ? fetchLifestyleByCoords(form.lat, form.lng) : Promise.resolve({ lifestyle: null }),
+  ]);
+
+  const lifestyle = lifestyleResult.lifestyle ?? {
+    subway: '', school: '', mart: '', hospital: '', convenience: '', gym: '',
+  };
 
   // 2) 매물 INSERT
   const row = {
@@ -88,14 +108,7 @@ export async function registerProperty(form, agentProfile) {
       email: agentProfile?.email || '',
       verified: true,
     },
-    lifestyle: {
-      subway: '',
-      school: '',
-      mart: '',
-      hospital: '',
-      park: '',
-      commute: '',
-    },
+    lifestyle,
     price_history: [],
     media,
   };

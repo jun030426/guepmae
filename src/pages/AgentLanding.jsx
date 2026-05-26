@@ -71,7 +71,7 @@ function AgentLanding() {
   return (
     <div className="page-shell agent-landing">
       <section className="container agent-landing-hero">
-        <p className="section-eyebrow">중개사 portal</p>
+        <p className="section-eyebrow">급매 PRO</p>
         <h1>매물 등록부터 AI 리포트까지<br />한 번에 처리하세요</h1>
         <p className="agent-landing-subtitle">
           국토부 실거래가 기반 검증 + AI 매물 리포트 자동 생성. 매물의 가치를 명확하게 전달합니다.
@@ -89,7 +89,7 @@ function AgentLanding() {
             </p>
             <p className="application-pending-detail">
               영업일 기준 <strong>1~2일 내</strong> 검토 후 결과를 이메일로 안내드립니다.
-              승인되면 즉시 중개사 portal 이용이 가능해집니다.
+              승인되면 즉시 급매 PRO 이용이 가능해집니다.
             </p>
             <div className="application-status-row">
               <span className="application-status-badge pending">{myApplication.status === 'reviewing' ? '검토 중' : '대기 중'}</span>

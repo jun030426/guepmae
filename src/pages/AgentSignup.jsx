@@ -182,12 +182,12 @@ function AgentSignup() {
             결과를 이메일로 안내해드립니다.
           </p>
           <ul className="agent-signup-done-list">
-            <li>승인 시: 입력하신 이메일로 안내 후 즉시 중개사 portal 이용 가능</li>
+            <li>승인 시: 입력하신 이메일로 안내 후 즉시 급매 PRO 이용 가능</li>
             <li>거부 시: 사유와 함께 안내드리며, 보완 후 재신청 가능</li>
             <li>승인 대기 중에는 일반 회원으로 사이트를 이용하실 수 있습니다</li>
           </ul>
           <div className="agent-signup-done-actions">
-            <Link to="/agent" className="primary-link-button">중개사 portal 으로 이동</Link>
+            <Link to="/agent" className="primary-link-button">급매 PRO 으로 이동</Link>
             <Link to="/" className="outline-dark-button">메인 사이트 둘러보기</Link>
           </div>
         </section>
@@ -255,7 +255,7 @@ function AgentSignup() {
       <section className="agent-signup-card">
         <Link to="/agent" className="agent-back-link">
           <ArrowLeft size={16} />
-          중개사 portal 으로 돌아가기
+          급매 PRO 으로 돌아가기
         </Link>
 
         <div className="agent-signup-heading">

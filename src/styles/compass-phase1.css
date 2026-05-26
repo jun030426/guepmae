@@ -2136,6 +2136,20 @@ tr.is-suspended {
   flex-wrap: wrap;
 }
 
+/* 두 버튼 동일 크기 — 같은 패딩/폰트/높이 */
+.agent-signup-done-actions .primary-link-button,
+.agent-signup-done-actions .outline-dark-button {
+  min-width: 180px;
+  height: 44px;
+  padding: 0 22px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
 .agent-login-card h2 {
   font-family: var(--font-serif);
   font-weight: 500;

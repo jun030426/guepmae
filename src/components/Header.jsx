@@ -3,7 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
-// 일반 사용자용 메인 네비. "집 내놓기"(매물 등록)는 중개사 portal(/agent)에서만 가능하므로 여기서 제거.
+// 일반 사용자용 메인 네비. "집 내놓기"(매물 등록)는 급매 PRO(/agent)에서만 가능하므로 여기서 제거.
 const navItems = [
   { label: '매물', path: '/properties' },
   { label: '지도 검색', path: '/map' },
@@ -15,9 +15,9 @@ function Header() {
   const { isAuthenticated, isAdmin, isAgent, profile, signOut } = useAuth();
 
   const closeMenu = () => setIsOpen(false);
-  // agent/admin 로그인 사용자에겐 "중개사 portal" 바로가기 노출
+  // agent/admin 로그인 사용자에겐 "급매 PRO" 바로가기 노출
   const visibleNavItems = isAdmin || isAgent
-    ? [...navItems, { label: '중개사 portal', path: '/agent/dashboard' }]
+    ? [...navItems, { label: '급매 PRO', path: '/agent/dashboard' }]
     : navItems;
 
   const handleSignOut = async () => {

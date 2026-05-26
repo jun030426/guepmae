@@ -24,7 +24,7 @@ function AgentHeader() {
   return (
     <header className="site-header agent-header">
       <div className="header-inner">
-        <Link to="/agent" className="logo" aria-label="급매 중개사 portal">
+        <Link to="/agent" className="logo" aria-label="급매 PRO">
           <span>급매</span>
           <em className="agent-badge">{badgeLabel}</em>
         </Link>

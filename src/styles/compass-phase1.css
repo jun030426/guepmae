@@ -1272,6 +1272,16 @@ body {
   letter-spacing: 0.5em;
 }
 
+/* 매물 상세 앵커 탭 — 가로 스크롤 자체는 유지하되 스크롤바만 숨김 */
+.detail-anchor-list {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+.detail-anchor-list::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
 /* ----------------------------- 홈 — 생활권 카드 텍스트 가운데 정렬 ----------------------------- */
 /* 배경/색은 그대로, 텍스트 정렬만 가운데로 */
 .lifestyle-section .neighborhood-card {

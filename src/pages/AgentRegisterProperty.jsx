@@ -128,12 +128,12 @@ function AgentRegisterProperty() {
             </label>
             <label>
               지역 (시·구) *
-              <input type="text" value={form.region} onChange={update('region')} placeholder="예: 서울 마포구" required />
+              <input type="text" name="region" value={form.region} onChange={update('region')} placeholder="예: 서울 마포구" required />
             </label>
           </div>
           <label>
             주소 *
-            <input type="text" value={form.address} onChange={update('address')} placeholder="예: 서울특별시 마포구 아현동 1-1" required />
+            <input type="text" name="address" value={form.address} onChange={update('address')} placeholder="예: 서울특별시 마포구 아현동 1-1" required />
             <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
               ※ 주소를 정확히 입력하면 지도 좌표와 주변 시설을 자동으로 찾아드립니다.
             </small>
@@ -146,7 +146,7 @@ function AgentRegisterProperty() {
           <div className="register-grid-3">
             <label>
               전용면적 (㎡) *
-              <input type="number" step="0.1" value={form.area} onChange={update('area')} required />
+              <input type="number" name="area" step="0.1" value={form.area} onChange={update('area')} required />
             </label>
             <label>
               공급면적 (㎡)
@@ -154,7 +154,7 @@ function AgentRegisterProperty() {
             </label>
             <label>
               층 *
-              <input type="text" value={form.floor} onChange={update('floor')} placeholder="예: 12층" required />
+              <input type="text" name="floor" value={form.floor} onChange={update('floor')} placeholder="예: 12층" required />
             </label>
           </div>
           <div className="register-grid-3">
@@ -181,7 +181,7 @@ function AgentRegisterProperty() {
           <div className="register-grid-3">
             <label>
               건축연도 *
-              <input type="number" min="1970" max="2030" value={form.builtYear} onChange={update('builtYear')} required />
+              <input type="number" name="builtYear" min="1970" max="2030" value={form.builtYear} onChange={update('builtYear')} required />
             </label>
             <label>
               세대수
@@ -210,11 +210,11 @@ function AgentRegisterProperty() {
           <div className="register-grid-2">
             <label>
               매도 호가 (원) *
-              <input type="number" min="0" step="100000" value={form.price} onChange={update('price')} placeholder="예: 2150000000" required />
+              <input type="number" name="price" min="0" step="100000" value={form.price} onChange={update('price')} placeholder="예: 2150000000" required />
             </label>
             <label>
               기준 실거래가 (원) *
-              <input type="number" min="0" step="100000" value={form.actualTransactionPrice} onChange={update('actualTransactionPrice')} placeholder="국토부 실거래 평균 또는 단지 평균" required />
+              <input type="number" name="actualTransactionPrice" min="0" step="100000" value={form.actualTransactionPrice} onChange={update('actualTransactionPrice')} placeholder="국토부 실거래 평균 또는 단지 평균" required />
             </label>
           </div>
           {form.price && form.actualTransactionPrice && (
@@ -267,6 +267,7 @@ function AgentRegisterProperty() {
         <fieldset className="register-section">
           <legend>매물 설명 *</legend>
           <textarea
+            name="description"
             value={form.description}
             onChange={update('description')}
             placeholder="단지의 특징, 매물의 강점, 매수자가 알아야 할 정보를 자유롭게 입력해주세요. AI 리포트에 반영됩니다."

@@ -31,6 +31,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  position: relative; /* desktop-nav 절대배치(가운데 정렬) 기준 */
 }
 
 .logo,
@@ -55,6 +56,11 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  /* 헤더 가운데 정렬 — 로고(좌)·액션(우)와 무관하게 항상 페이지 중앙 */
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .nav-link {
@@ -3196,6 +3202,22 @@ tr.is-suspended {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.22) !important;
   box-shadow: 0 10px 32px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 히어로 검색창을 알약(pill) 형태로 — 양 끝 둥글게 */
+.hero-search-panel {
+  border-radius: 999px !important;
+  overflow: hidden;
+}
+
+.hero-search-panel .hero-search-row {
+  padding: 8px 8px 8px 22px;
+  gap: 12px;
+}
+
+.hero-search-panel .primary-button {
+  border-radius: 999px;
+  padding: 12px 22px;
 }
 
 .hero-search-panel--minimal .hero-search-row {

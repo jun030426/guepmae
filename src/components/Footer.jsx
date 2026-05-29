@@ -32,9 +32,6 @@ function Footer() {
             급매
           </Link>
           <p>급매라고 주장하지 않고, 실거래가로 증명합니다.</p>
-          <p className="footer-disclaimer">
-            현재 가격과 데이터는 프론트엔드 프로토타입을 위한 예시입니다.
-          </p>
         </div>
 
         <div className="footer-menu">
@@ -53,7 +50,7 @@ function Footer() {
 
       <div className="footer-bottom">
         <span>© 2026 급매</span>
-        <span>Supabase, 국토부 실거래가 API, Naver Map API 연결 예정</span>
+        <span>Supabase · 국토부 실거래가 · Google Maps Platform</span>
       </div>
     </footer>
   );

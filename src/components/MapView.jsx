@@ -450,7 +450,7 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
       {mode === 'street' && streetCoverage === 'none' && (
         <div className="street-view-no-coverage">
           <strong>이 위치는 Google 거리뷰가 지원되지 않습니다.</strong>
-          <span>아파트 단지 내부·소도시·골목 등은 커버되지 않을 수 있어요. 추후 네이버 거리뷰 연동 예정.</span>
+          <span>아파트 단지 내부·소도시·골목 등은 커버되지 않을 수 있어요.</span>
         </div>
       )}
 

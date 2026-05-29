@@ -321,7 +321,7 @@ function AgentRegisterProperty() {
               <strong>{form.photos.length}장</strong> 선택됨 — {form.photos.map((f) => f.name).join(', ')}
             </p>
           )}
-          <p className="register-hint">사진을 안 올려도 등록 가능 (placeholder 이미지로 표시).</p>
+          <p className="register-hint">사진을 안 올려도 등록은 가능하지만, 사진이 있는 매물이 매수자 신뢰가 훨씬 높습니다.</p>
         </fieldset>
 
         {/* Section 7: 매도 사유 + 매물 설명 (둘 다 AI 리포트 입력) */}

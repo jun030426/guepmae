@@ -397,7 +397,7 @@ function GoogleStreetViewPanel({ property, photos }) {
   if (status === 'no-coverage' || status === 'error') {
     const note =
       status === 'no-coverage'
-        ? '이 위치는 Google 거리뷰가 지원되지 않아 등록 사진으로 위치감을 먼저 보여드립니다. (네이버 거리뷰 연동 예정)'
+        ? '이 위치는 Google 거리뷰가 지원되지 않아 등록 사진으로 위치감을 먼저 보여드립니다.'
         : 'Google 거리뷰를 불러오지 못해 등록 사진으로 위치감을 먼저 보여드립니다.';
     return <TourFallbackPreview property={property} photos={photos} note={note} />;
   }

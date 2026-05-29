@@ -144,6 +144,45 @@ function AgentApplicationModal({ application, onClose, onApprove, onReject, isUp
   );
 }
 
+// 중앙 확인 모달 — 네이티브 confirm() 대체
+function ConfirmDialog({ title, message, confirmLabel = '확인', danger = false, onConfirm, onClose }) {
+  const [busy, setBusy] = useState(false);
+
+  const run = async () => {
+    setBusy(true);
+    try {
+      await onConfirm();
+    } finally {
+      onClose();
+    }
+  };
+
+  return (
+    <div className="confirm-backdrop" onClick={busy ? undefined : onClose}>
+      <div className="confirm-box" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className={danger ? 'confirm-icon danger' : 'confirm-icon'} aria-hidden="true">
+          {danger ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
+        </div>
+        <h3 className="confirm-title">{title}</h3>
+        {message && <p className="confirm-message">{message}</p>}
+        <div className="confirm-actions">
+          <button type="button" className="confirm-cancel" onClick={onClose} disabled={busy}>
+            취소
+          </button>
+          <button
+            type="button"
+            className={danger ? 'confirm-ok danger' : 'confirm-ok'}
+            onClick={run}
+            disabled={busy}
+          >
+            {busy ? '처리 중...' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Admin() {
   const { properties, refresh: refreshProperties } = useProperties();
   const { profile: currentActor } = useAuth();
@@ -154,6 +193,8 @@ function Admin() {
   const [applications, setApplications] = useState([]);
   const [appsLoading, setAppsLoading] = useState(true);
   const [activeApp, setActiveApp] = useState(null); // 상세 모달 표시용
+  const [confirmDialog, setConfirmDialog] = useState(null); // 중앙 확인 모달
+  const askConfirm = (config) => setConfirmDialog(config);
 
   useEffect(() => {
     let active = true;
@@ -175,22 +216,28 @@ function Admin() {
 
   const pendingApplications = applications.filter((a) => a.status === 'pending' || a.status === 'reviewing');
 
-  const handleApproveApplication = async (app) => {
-    if (!confirm(`${app.office_name} 신청을 승인하시겠습니까?\n해당 이메일(${app.contact_email})로 가입된 사용자에게 중개사 권한이 부여됩니다.`)) return;
-    setUpdating(app.id);
-    try {
-      const result = await approveAgentApplication(app);
-      alert(result.message);
-      setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, status: 'approved' } : a)));
-      // 프로필 목록도 갱신
-      const fresh = await fetchAllProfiles();
-      setProfiles(fresh);
-      setActiveApp(null);
-    } catch (err) {
-      setError(`승인 실패: ${err.message}`);
-    } finally {
-      setUpdating(null);
-    }
+  const handleApproveApplication = (app) => {
+    askConfirm({
+      title: '중개사 신청 승인',
+      message: `${app.office_name} 신청을 승인합니다. 해당 이메일(${app.contact_email})로 가입된 사용자에게 중개사 권한이 부여됩니다.`,
+      confirmLabel: '승인',
+      onConfirm: async () => {
+        setUpdating(app.id);
+        try {
+          const result = await approveAgentApplication(app);
+          alert(result.message);
+          setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, status: 'approved' } : a)));
+          // 프로필 목록도 갱신
+          const fresh = await fetchAllProfiles();
+          setProfiles(fresh);
+          setActiveApp(null);
+        } catch (err) {
+          setError(`승인 실패: ${err.message}`);
+        } finally {
+          setUpdating(null);
+        }
+      },
+    });
   };
 
   const handleRejectApplication = async (app) => {
@@ -215,40 +262,53 @@ function Admin() {
     return acc;
   }, {});
 
-  const handleRoleChange = async (target, newRole) => {
+  const handleRoleChange = (target, newRole) => {
     if (target.role === newRole) return;
     if (!canChangeRole(currentActor, target, newRole)) {
       setError('이 권한 변경을 수행할 수 없습니다.');
       return;
     }
-    if (!confirm(`이 사용자의 권한을 ${ROLE_LABEL[target.role]} → ${ROLE_LABEL[newRole]} 로 변경하시겠습니까?`)) return;
-    setUpdating(target.id);
-    try {
-      await setUserRole(target.id, newRole);
-      setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, role: newRole } : p)));
-    } catch (err) {
-      setError(`권한 변경 실패: ${err.message}`);
-    } finally {
-      setUpdating(null);
-    }
+    askConfirm({
+      title: '권한 변경',
+      message: `이 사용자의 권한을 ${ROLE_LABEL[target.role]} → ${ROLE_LABEL[newRole]} 로 변경합니다.`,
+      confirmLabel: '변경',
+      onConfirm: async () => {
+        setUpdating(target.id);
+        try {
+          await setUserRole(target.id, newRole);
+          setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, role: newRole } : p)));
+        } catch (err) {
+          setError(`권한 변경 실패: ${err.message}`);
+        } finally {
+          setUpdating(null);
+        }
+      },
+    });
   };
 
-  const handleSuspendToggle = async (target) => {
+  const handleSuspendToggle = (target) => {
     if (!canToggleSuspend(currentActor, target)) {
       setError('이 사용자를 정지/해제할 수 없습니다.');
       return;
     }
     const action = target.suspended ? '정지 해제' : '정지';
-    if (!confirm(`이 사용자(${target.email})를 ${action}하시겠습니까?`)) return;
-    setUpdating(target.id);
-    try {
-      await setUserSuspended(target.id, !target.suspended);
-      setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, suspended: !target.suspended } : p)));
-    } catch (err) {
-      setError(`${action} 실패: ${err.message}`);
-    } finally {
-      setUpdating(null);
-    }
+    askConfirm({
+      title: `사용자 ${action}`,
+      message: `이 사용자(${target.email})를 ${action}합니다.`,
+      confirmLabel: action,
+      danger: !target.suspended,
+      onConfirm: async () => {
+        setUpdating(target.id);
+        try {
+          await setUserSuspended(target.id, !target.suspended);
+          setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, suspended: !target.suspended } : p)));
+        } catch (err) {
+          setError(`${action} 실패: ${err.message}`);
+        } finally {
+          setUpdating(null);
+        }
+      },
+    });
   };
 
   // 등록일(createdAt) 내림차순 정렬 헬퍼
@@ -277,26 +337,33 @@ function Admin() {
     }
   };
 
-  const handleReject = async (id, title) => {
-    if (!confirm(`정말로 "${title}" 매물을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
-    setUpdating(id);
-    setError('');
-    try {
-      const { data, error: delError } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', id)
-        .select('id');
-      if (delError) throw delError;
-      if (!data || data.length === 0) {
-        throw new Error('권한이 없거나 매물이 존재하지 않아 삭제되지 않았습니다.');
-      }
-      await refreshProperties();
-    } catch (err) {
-      setError(`반려/삭제 실패: ${err.message}`);
-    } finally {
-      setUpdating(null);
-    }
+  const handleReject = (id, title) => {
+    askConfirm({
+      title: '매물 반려 · 삭제',
+      message: `"${title}" 매물을 삭제합니다. 이 작업은 되돌릴 수 없습니다.`,
+      confirmLabel: '삭제',
+      danger: true,
+      onConfirm: async () => {
+        setUpdating(id);
+        setError('');
+        try {
+          const { data, error: delError } = await supabase
+            .from('properties')
+            .delete()
+            .eq('id', id)
+            .select('id');
+          if (delError) throw delError;
+          if (!data || data.length === 0) {
+            throw new Error('권한이 없거나 매물이 존재하지 않아 삭제되지 않았습니다.');
+          }
+          await refreshProperties();
+        } catch (err) {
+          setError(`반려/삭제 실패: ${err.message}`);
+        } finally {
+          setUpdating(null);
+        }
+      },
+    });
   };
 
   return (
@@ -517,18 +584,25 @@ function Admin() {
                         type="button"
                         className="admin-revoke-button"
                         disabled={updating === property.id}
-                        onClick={async () => {
-                          if (!confirm(`"${property.title}" 검증을 취소(노출 중단)하시겠습니까?`)) return;
-                          setUpdating(property.id);
-                          try {
-                            await setPropertyVerified(property.id, false);
-                            await refreshProperties();
-                          } catch (err) {
-                            setError(`검증 취소 실패: ${err.message}`);
-                          } finally {
-                            setUpdating(null);
-                          }
-                        }}
+                        onClick={() =>
+                          askConfirm({
+                            title: '검증 취소',
+                            message: `"${property.title}" 검증을 취소하면 일반 사이트 노출이 중단됩니다.`,
+                            confirmLabel: '검증 취소',
+                            danger: true,
+                            onConfirm: async () => {
+                              setUpdating(property.id);
+                              try {
+                                await setPropertyVerified(property.id, false);
+                                await refreshProperties();
+                              } catch (err) {
+                                setError(`검증 취소 실패: ${err.message}`);
+                              } finally {
+                                setUpdating(null);
+                              }
+                            },
+                          })
+                        }
                       >
                         검증 취소
                       </button>
@@ -644,6 +718,17 @@ function Admin() {
           onApprove={() => handleApproveApplication(activeApp)}
           onReject={() => handleRejectApplication(activeApp)}
           isUpdating={updating === activeApp.id}
+        />
+      )}
+
+      {confirmDialog && (
+        <ConfirmDialog
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          danger={confirmDialog.danger}
+          onConfirm={confirmDialog.onConfirm}
+          onClose={() => setConfirmDialog(null)}
         />
       )}
     </div>

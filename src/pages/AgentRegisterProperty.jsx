@@ -6,15 +6,6 @@ import { getAreaBucket, registerProperty, resolveReferencePrice } from '../servi
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
 
-const SALE_REASONS = [
-  { value: '양도세 마감 임박', label: '양도세 마감 임박' },
-  { value: '이사/실거주 처분', label: '이사 또는 실거주 처분' },
-  { value: '투자 정리', label: '투자 매물 정리' },
-  { value: '이혼/상속', label: '이혼/상속 등 가사 사유' },
-  { value: '대출/자금 사정', label: '대출 만기/자금 사정' },
-  { value: '기타', label: '기타 (상세 설명)' },
-];
-
 const initialForm = {
   title: '',
   complexName: '', // 단지명 (자동완성 선택)
@@ -30,7 +21,7 @@ const initialForm = {
   unitCount: '',
   price: '',
   parking: '',
-  saleReason: '양도세 마감 임박',
+  saleReason: '',
   saleDeadline: '',
   description: '',
   photos: [], // File[] — 사진 업로드용
@@ -125,7 +116,7 @@ function AgentRegisterProperty() {
 
     // 매도 사유와 마감일을 description 에 자동 통합 (AI 가 이 텍스트로 매도 시급도 판단)
     const enrichedDescription = [
-      `[매도 사유] ${form.saleReason}`,
+      form.saleReason ? `[매도 사유] ${form.saleReason}` : null,
       form.saleDeadline ? `[처분 희망 마감일] ${form.saleDeadline}` : null,
       form.description,
     ].filter(Boolean).join('\n\n');
@@ -286,23 +277,6 @@ function AgentRegisterProperty() {
           </div>
         </fieldset>
 
-        {/* Section 5: 매도 사유 */}
-        <fieldset className="register-section">
-          <legend>매도 사유 <small>(AI 리포트 작성에 핵심 정보)</small></legend>
-          <div className="register-grid-2">
-            <label>
-              사유
-              <select value={form.saleReason} onChange={update('saleReason')}>
-                {SALE_REASONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-              </select>
-            </label>
-            <label>
-              처분 희망 마감일 (선택)
-              <input type="date" value={form.saleDeadline} onChange={update('saleDeadline')} />
-            </label>
-          </div>
-        </fieldset>
-
         {/* Section 6: 매물 사진 (선택) */}
         <fieldset className="register-section">
           <legend>매물 사진 <small>(선택 — 최대 10장)</small></legend>
@@ -323,7 +297,22 @@ function AgentRegisterProperty() {
           <p className="register-hint">사진을 안 올려도 등록 가능 (placeholder 이미지로 표시).</p>
         </fieldset>
 
-        {/* Section 7: 추가 설명 */}
+        {/* Section 7: 매도 사유 + 매물 설명 (둘 다 AI 리포트 입력) */}
+        <fieldset className="register-section">
+          <legend>매도 사유 <small>(AI 리포트에 반영)</small></legend>
+          <textarea
+            name="saleReason"
+            value={form.saleReason}
+            onChange={update('saleReason')}
+            placeholder="왜 급하게 파는지 자유롭게 적어주세요. 예: 양도세 마감이 임박해 이달 내 처분을 원합니다."
+            rows={3}
+          />
+          <label>
+            처분 희망 마감일 (선택)
+            <input type="date" value={form.saleDeadline} onChange={update('saleDeadline')} />
+          </label>
+        </fieldset>
+
         <fieldset className="register-section">
           <legend>매물 설명 *</legend>
           <textarea

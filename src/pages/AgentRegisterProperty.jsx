@@ -94,7 +94,6 @@ function AgentRegisterProperty() {
   // 필수 항목 — key: 사람이 읽는 라벨
   const REQUIRED_FIELDS = {
     title: '매물 타이틀',
-    complexName: '단지명',
     region: '지역',
     address: '주소',
     area: '전용면적',
@@ -175,19 +174,18 @@ function AgentRegisterProperty() {
             </label>
           </div>
           <label>
-            단지명 *
+            단지명 <small>(선택)</small>
             <ComplexAutocomplete
               name="complexName"
               value={form.complexName}
               onChange={(text) => setForm((s) => ({ ...s, complexName: text, complexGu: '', complexSigungu: '' }))}
               onSelect={(s) => setForm((prev) => ({ ...prev, complexName: s.complex, complexGu: s.gu, complexSigungu: s.sigungu }))}
               placeholder="단지명 입력 후 목록에서 선택 (예: 마포래미안푸르지오)"
-              required
             />
             <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
               {form.complexGu
-                ? `선택됨: ${form.complexSigungu} — 기준 실거래가가 자동 계산됩니다.`
-                : '※ 국토부 실거래 단지 목록에서 선택하면 기준 실거래가가 자동 계산됩니다.'}
+                ? `선택됨: ${form.complexSigungu} — 단지 실거래가로 기준가가 계산됩니다.`
+                : '※ 선택하면 단지 실거래가로, 비우면 지역 시세로 기준 실거래가가 자동 산출됩니다.'}
             </small>
           </label>
           <label>

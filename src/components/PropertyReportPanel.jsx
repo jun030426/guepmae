@@ -107,8 +107,8 @@ function PropertyReportPanel({ property }) {
         <div className="report-header-right">
           <GradePill grade={op.grade ?? '-'} score={op.score ?? 0} />
           <div className="report-pill discount">
-            <strong>-{price.discountPct?.toFixed(1) ?? 0}%</strong>
-            <span>시세 대비</span>
+            <strong>-{property.discountRate}%</strong>
+            <span>실거래가 대비</span>
           </div>
           <div className="report-pill recommendation">
             <strong>{op.buyRecommendation?.toFixed(1) ?? '-'} / 5</strong>
@@ -150,8 +150,8 @@ function PropertyReportPanel({ property }) {
         <h3>⭐ 가격 분석 — 왜 시세보다 싼가</h3>
         <div className="report-price-grid">
           <div>
-            <span>AI 적정시세 (VAI)</span>
-            <strong>{formatPrice(price.vaiPrice ?? 0)}</strong>
+            <span>기준 실거래가 (국토부)</span>
+            <strong>{formatPrice(property.actualTransactionPrice)}</strong>
           </div>
           <div>
             <span>매도 호가</span>
@@ -159,7 +159,7 @@ function PropertyReportPanel({ property }) {
           </div>
           <div className="highlight">
             <span>할인 금액</span>
-            <strong>{formatPrice(price.discountAmount ?? 0)} 저렴</strong>
+            <strong>{formatPrice(Math.max(0, property.actualTransactionPrice - property.price))} 저렴</strong>
           </div>
         </div>
         <div className="report-text-block">
@@ -167,9 +167,15 @@ function PropertyReportPanel({ property }) {
           <p>{price.competitivenessText}</p>
         </div>
         <div className="report-text-block">
-          <h4>최근 가격 추이</h4>
+          <h4>최근 1년 실거래 추이</h4>
           <p>{price.trendText}</p>
         </div>
+        {price.claimCheck && (
+          <div className="report-text-block report-claim-check">
+            <h4>중개사 주장 검증</h4>
+            <p>{price.claimCheck}</p>
+          </div>
+        )}
         <div className="report-text-block">
           <h4>하방 경직성 — 추가 하락 위험 <em className={`risk-${price.downsideRisk}`}>{price.downsideRisk}</em></h4>
           <p>{price.downsideText}</p>

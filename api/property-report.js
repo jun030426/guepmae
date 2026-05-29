@@ -8,6 +8,9 @@
  * POST { id: 'gm-001', force: true }
  *   → 캐시 무시하고 항상 새로 생성 (관리자용 batch 생성에 사용)
  *
+ * POST { id: 'gm-001', invalidate: true }
+ *   → 캐시된 리포트 삭제만 (재생성 X). 매물 수정 시 호출 → 다음 조회 때 새 데이터로 재생성.
+ *
  * 환경변수:
  *   AI_GATEWAY_API_KEY       — Vercel AI Gateway 키 (Vercel Dashboard에서 생성)
  *   SUPABASE_URL             — public URL (이미 VITE_SUPABASE_URL 있음)
@@ -163,12 +166,23 @@ async function generateReport({ property, nearby }) {
 export default async function handler(req, res) {
   const id = (req.method === 'GET' ? req.query.id : req.body?.id);
   const force = req.method === 'POST' && req.body?.force === true;
+  const invalidate = req.method === 'POST' && req.body?.invalidate === true;
   if (!id) {
     return res.status(400).json({ error: 'id 파라미터가 필요합니다.' });
   }
 
   try {
     const supabase = getServiceClient();
+
+    // 캐시 무효화 — 매물 수정 시 호출. 삭제만 하고 재생성은 다음 조회(경로 B)에 맡김.
+    if (invalidate) {
+      const { error: delError } = await supabase
+        .from('property_reports')
+        .delete()
+        .eq('property_id', id);
+      if (delError) throw delError;
+      return res.status(200).json({ invalidated: true });
+    }
 
     if (!force) {
       const { data: cached } = await supabase

@@ -100,6 +100,15 @@ function AgentEditProperty() {
       setSaving(false);
       return;
     }
+
+    // 데이터가 바뀌었으니 AI 리포트 캐시 무효화 → 다음 조회 때 새 데이터로 재생성.
+    // navigate 전에 await: 상세 페이지 GET 이 삭제보다 먼저 도달해 옛 리포트를 보는 레이스 방지.
+    await fetch('/api/property-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, invalidate: true }),
+    }).catch(() => {});
+
     navigate(`/properties/${id}`, { replace: true });
   };
 

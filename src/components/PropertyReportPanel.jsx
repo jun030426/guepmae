@@ -38,11 +38,13 @@ function PropertyReportPanel({ property }) {
       `<!doctype html><html lang="ko"><head><meta charset="utf-8">`
       + `<title>${property.title} — AI 매물 리포트</title>${cssLinks}${inlineStyles}`
       + `<style>body{margin:0;padding:24px;background:#fff;}.report-print-button{display:none!important;}</style>`
+      // 스타일 로드 후 인쇄, 인쇄/취소(afterprint) 시 새 창 자동 닫기
+      + `<script>window.onafterprint=function(){window.close();};`
+      + `window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>`
       + `</head><body>${node.outerHTML}</body></html>`,
     );
     win.document.close();
     win.focus();
-    setTimeout(() => win.print(), 600); // 스타일/폰트 로드 대기
   };
 
   useEffect(() => {

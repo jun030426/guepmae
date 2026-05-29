@@ -40,6 +40,29 @@ export function calculateUrgentScore(property) {
   return Math.min(100, Math.round(discountScore + verifiedScore + recencyScore));
 }
 
+// 면적 단위 변환 (1평 = 3.305785㎡)
+export const SQM_PER_PYEONG = 3.305785;
+
+export function sqmToPyeong(sqm) {
+  const value = Number(sqm);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return value / SQM_PER_PYEONG;
+}
+
+export function pyeongToSqm(pyeong) {
+  const value = Number(pyeong);
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  return value * SQM_PER_PYEONG;
+}
+
+// "84.3㎡ (25.5평)" 형태로 면적을 ㎡·평 함께 표시
+export function formatArea(sqm) {
+  const value = Number(sqm);
+  if (!Number.isFinite(value) || value <= 0) return '-';
+  const pyeong = sqmToPyeong(value);
+  return `${value.toFixed(1)}㎡ (${pyeong.toFixed(1)}평)`;
+}
+
 export function formatPrice(price) {
   if (!Number.isFinite(Number(price))) {
     return '가격 확인 필요';

@@ -4,7 +4,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
-import { formatPrice } from '../utils/priceUtils.js';
+import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const SALE_REASONS = [
@@ -16,8 +16,6 @@ const SALE_REASONS = [
   { value: '기타', label: '기타 (상세 설명)' },
 ];
 
-const DIRECTIONS = ['남향', '동향', '서향', '북향', '남동향', '남서향'];
-
 const initialForm = {
   title: '',
   complexName: '', // 단지명 (자동완성 선택)
@@ -25,18 +23,16 @@ const initialForm = {
   complexSigungu: '', // 선택된 단지의 시군구(표시용)
   address: '',
   region: '',
+  areaUnit: 'sqm', // 'sqm'(㎡) | 'pyeong'(평) — 입력 단위
   area: '',
   supplyArea: '',
   floor: '',
-  direction: '남향',
   rooms: 3,
   bathrooms: 2,
   builtYear: '',
   unitCount: '',
   price: '',
   parking: '',
-  maintenanceFee: '',
-  moveInDate: '협의',
   saleReason: '양도세 마감 임박',
   saleDeadline: '',
   description: '',
@@ -60,10 +56,19 @@ function AgentRegisterProperty() {
     setForm((s) => ({ ...s, [key]: nextValue }));
   };
 
+  // 입력 단위(㎡/평)를 ㎡로 환산 — 저장·매칭·표시 기준
+  const toSqm = (value) => {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num <= 0) return 0;
+    return form.areaUnit === 'pyeong' ? pyeongToSqm(num) : num;
+  };
+  const areaSqm = toSqm(form.area);
+  const supplyAreaSqm = toSqm(form.supplyArea);
+  const unitLabel = form.areaUnit === 'pyeong' ? '평' : '㎡';
+
   // 단지 선택 + 전용면적이 있으면 기준 실거래가 미리보기 조회
   useEffect(() => {
-    const area = Number(form.area);
-    if (!form.complexGu || !area) {
+    if (!form.complexGu || !areaSqm) {
       setReference(null);
       return undefined;
     }
@@ -71,14 +76,14 @@ function AgentRegisterProperty() {
     resolveReferencePrice({
       complexName: form.complexName,
       gu: form.complexGu,
-      areaBucket: getAreaBucket(area),
+      areaBucket: getAreaBucket(areaSqm),
     }).then((result) => {
       if (active) setReference(result);
     });
     return () => {
       active = false;
     };
-  }, [form.complexGu, form.complexName, form.area]);
+  }, [form.complexGu, form.complexName, areaSqm]);
 
   const sellPrice = Number(form.price);
   const previewDiscount =
@@ -128,8 +133,14 @@ function AgentRegisterProperty() {
     ].filter(Boolean).join('\n\n');
 
     try {
+      // 면적은 항상 ㎡로 환산해서 저장 (입력 단위가 평이어도)
       const { id } = await registerProperty(
-        { ...form, description: enrichedDescription },
+        {
+          ...form,
+          description: enrichedDescription,
+          area: areaSqm,
+          supplyArea: supplyAreaSqm || '',
+        },
         profile,
       );
       // 등록 직후 매물 상세 페이지로 (AI 리포트는 백그라운드 생성 중)
@@ -191,13 +202,20 @@ function AgentRegisterProperty() {
         {/* Section 2: 평형/구조 */}
         <fieldset className="register-section">
           <legend>평형 및 구조</legend>
+          <label>
+            면적 입력 단위
+            <select value={form.areaUnit} onChange={update('areaUnit')}>
+              <option value="sqm">제곱미터 (㎡)</option>
+              <option value="pyeong">평</option>
+            </select>
+          </label>
           <div className="register-grid-3">
             <label>
-              전용면적 (㎡) *
+              전용면적 ({unitLabel}) *
               <input type="number" name="area" step="0.1" value={form.area} onChange={update('area')} required />
             </label>
             <label>
-              공급면적 (㎡)
+              공급면적 ({unitLabel})
               <input type="number" step="0.1" value={form.supplyArea} onChange={update('supplyArea')} placeholder="비우면 자동" />
             </label>
             <label>
@@ -205,13 +223,13 @@ function AgentRegisterProperty() {
               <input type="text" name="floor" value={form.floor} onChange={update('floor')} placeholder="예: 12층" required />
             </label>
           </div>
-          <div className="register-grid-3">
-            <label>
-              향
-              <select value={form.direction} onChange={update('direction')}>
-                {DIRECTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
-              </select>
-            </label>
+          {areaSqm > 0 && (
+            <p className="register-hint">
+              전용 {formatArea(areaSqm)}
+              {supplyAreaSqm > 0 ? ` · 공급 ${formatArea(supplyAreaSqm)}` : ''} 로 저장됩니다.
+            </p>
+          )}
+          <div className="register-grid-2">
             <label>
               방 개수
               <input type="number" min="1" max="6" value={form.rooms} onChange={update('rooms')} />
@@ -238,16 +256,6 @@ function AgentRegisterProperty() {
             <label>
               주차
               <input type="text" value={form.parking} onChange={update('parking')} placeholder="예: 세대당 1.3대" />
-            </label>
-          </div>
-          <div className="register-grid-2">
-            <label>
-              월 관리비 (원)
-              <input type="number" min="0" value={form.maintenanceFee} onChange={update('maintenanceFee')} placeholder="예: 280000" />
-            </label>
-            <label>
-              입주 가능
-              <input type="text" value={form.moveInDate} onChange={update('moveInDate')} placeholder="예: 즉시 입주, 협의" />
             </label>
           </div>
         </fieldset>

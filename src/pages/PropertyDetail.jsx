@@ -27,7 +27,7 @@ import PropertyLocationMap from '../components/PropertyLocationMap.jsx';
 import PriceReport from '../components/PriceReport.jsx';
 import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
-import { formatPrice } from '../utils/priceUtils.js';
+import { formatArea, formatPrice } from '../utils/priceUtils.js';
 import { getPropertyPhotos } from '../utils/propertyMedia.js';
 
 // 탭 순서는 페이지 DOM의 섹션 순서와 동일해야 함 (스크롤 흐름과 일치)
@@ -115,7 +115,7 @@ function PropertyDetail() {
     { label: '가격', value: formatPrice(property.price), note: `${property.discountRate}% 저렴`, className: 'price' },
     { label: '방', value: `${property.rooms}개`, Icon: BedDouble },
     { label: '욕실', value: `${property.bathrooms}개`, Icon: Bath },
-    { label: '전용면적', value: `${property.area}㎡`, note: `공급 ${property.supplyArea}㎡`, Icon: Ruler },
+    { label: '전용면적', value: formatArea(property.area), note: `공급 ${formatArea(property.supplyArea)}`, Icon: Ruler },
   ];
 
   const factRows = [
@@ -133,8 +133,8 @@ function PropertyDetail() {
   ];
 
   const infoItems = [
-    ['전용면적', `${property.area}㎡`],
-    ['공급면적', `${property.supplyArea}㎡`],
+    ['전용면적', formatArea(property.area)],
+    ['공급면적', formatArea(property.supplyArea)],
     ['평당가', formatPrice(pricePerPyeong)],
     ['㎡당가', formatPrice(pricePerSquareMeter)],
     ['층', property.floor],

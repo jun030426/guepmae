@@ -63,14 +63,44 @@ async function fetchLifestyleAndCoords({ lat, lng, address }) {
   }
 }
 
-// price_trends 테이블과 동일한 평형대 구간 (build-price-trends.mjs 와 반드시 일치)
-function getAreaBucket(area) {
+// price_trends/complex_prices 테이블과 동일한 평형대 구간 (build-*.mjs 와 반드시 일치)
+export function getAreaBucket(area) {
   if (!Number.isFinite(area)) return '미상';
   if (area <= 60) return '60㎡ 이하';
   if (area <= 85) return '60–85㎡';
   if (area <= 102) return '85–102㎡';
   if (area <= 135) return '102–135㎡';
   return '135㎡ 초과';
+}
+
+// 기준 실거래가(할인율 계산 기준) 자동 산출.
+//  1순위: 단지+구+평형 실거래 중앙값 (complex_prices)  → source 'complex'
+//  2순위: 구+평형 최근월 시세 (price_trends, 재생산 포함) → source 'region'
+// 중개사가 직접 입력하지 못하게 하여 할인율 조작을 차단.
+export async function resolveReferencePrice({ complexName, gu, areaBucket }) {
+  if (!isSupabaseConfigured || !gu || !areaBucket || areaBucket === '미상') {
+    return { price: null, source: null };
+  }
+  if (complexName) {
+    const { data } = await supabase
+      .from('complex_prices')
+      .select('median_price')
+      .eq('complex', complexName)
+      .eq('gu', gu)
+      .eq('area_bucket', areaBucket)
+      .maybeSingle();
+    if (data?.median_price) return { price: data.median_price, source: 'complex' };
+  }
+  const { data: trend } = await supabase
+    .from('price_trends')
+    .select('price')
+    .eq('gu', gu)
+    .eq('area_bucket', areaBucket)
+    .order('year_month', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (trend?.price) return { price: trend.price, source: 'region' };
+  return { price: null, source: null };
 }
 
 // 구/시/군 + 평형대로 13개월 실거래가 추이를 조회해 price_history 스냅샷 생성.
@@ -115,11 +145,23 @@ export async function registerProperty(form, agentProfile) {
   };
   const coordinates = lookupResult.coordinates ?? null;
 
-  // 주소에서 추출한 구/시/군 + 평형대로 13개월 실거래가 추이 스냅샷
-  const priceHistory = await fetchPriceHistory({
-    gu: lookupResult.region?.gu,
-    areaBucket: getAreaBucket(Number(form.area)),
-  });
+  // gu 는 자동완성에서 고른 단지의 gu 우선, 없으면 Geocoding 결과
+  const gu = form.complexGu || lookupResult.region?.gu || null;
+  const areaBucket = getAreaBucket(Number(form.area));
+
+  // 기준 실거래가 자동 산출(단지→구 fallback) + 13개월 추이 스냅샷
+  const [reference, priceHistory] = await Promise.all([
+    resolveReferencePrice({ complexName: form.complexName, gu, areaBucket }),
+    fetchPriceHistory({ gu, areaBucket }),
+  ]);
+
+  // 기준 실거래가: 산출값 우선, 없으면 매도 호가(=할인율 0)
+  const marketPrice = reference.price || Number(form.price);
+  const sellPrice = Number(form.price);
+  const discountRate =
+    marketPrice && marketPrice > 0
+      ? Number((((marketPrice - sellPrice) / marketPrice) * 100).toFixed(1))
+      : 0;
 
   // 2) 매물 INSERT
   const row = {
@@ -129,9 +171,9 @@ export async function registerProperty(form, agentProfile) {
     coordinates,
     region: form.region,
     property_type: '아파트',
-    price: Number(form.price),
-    actual_transaction_price: Number(form.actualTransactionPrice) || Number(form.price),
-    discount_rate: calculateDiscount(form),
+    price: sellPrice,
+    actual_transaction_price: marketPrice,
+    discount_rate: discountRate,
     urgent_score: 0,
     area: Number(form.area),
     supply_area: Number(form.supplyArea) || Math.round(Number(form.area) * 1.33),
@@ -173,14 +215,6 @@ export async function registerProperty(form, agentProfile) {
   });
 
   return { id: data.id };
-}
-
-function calculateDiscount(form) {
-  const price = Number(form.price);
-  const market = Number(form.actualTransactionPrice);
-  if (!price || !market || market <= 0) return 0;
-  const pct = ((market - price) / market) * 100;
-  return Number(pct.toFixed(1));
 }
 
 async function triggerReportGeneration(propertyId) {

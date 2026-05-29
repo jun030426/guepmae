@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { registerProperty } from '../services/propertyRegistration.js';
+import { getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
+import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
+import { formatPrice } from '../utils/priceUtils.js';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const SALE_REASONS = [
@@ -18,6 +20,9 @@ const DIRECTIONS = ['남향', '동향', '서향', '북향', '남동향', '남서
 
 const initialForm = {
   title: '',
+  complexName: '', // 단지명 (자동완성 선택)
+  complexGu: '', // 선택된 단지의 구/시/군
+  complexSigungu: '', // 선택된 단지의 시군구(표시용)
   address: '',
   region: '',
   area: '',
@@ -29,7 +34,6 @@ const initialForm = {
   builtYear: '',
   unitCount: '',
   price: '',
-  actualTransactionPrice: '',
   parking: '',
   maintenanceFee: '',
   moveInDate: '협의',
@@ -47,6 +51,8 @@ function AgentRegisterProperty() {
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  // 자동 산출된 기준 실거래가 미리보기 { price, source } | null
+  const [reference, setReference] = useState(null);
 
   const update = (key) => (event) => {
     const raw = event.target.value;
@@ -54,16 +60,42 @@ function AgentRegisterProperty() {
     setForm((s) => ({ ...s, [key]: nextValue }));
   };
 
+  // 단지 선택 + 전용면적이 있으면 기준 실거래가 미리보기 조회
+  useEffect(() => {
+    const area = Number(form.area);
+    if (!form.complexGu || !area) {
+      setReference(null);
+      return undefined;
+    }
+    let active = true;
+    resolveReferencePrice({
+      complexName: form.complexName,
+      gu: form.complexGu,
+      areaBucket: getAreaBucket(area),
+    }).then((result) => {
+      if (active) setReference(result);
+    });
+    return () => {
+      active = false;
+    };
+  }, [form.complexGu, form.complexName, form.area]);
+
+  const sellPrice = Number(form.price);
+  const previewDiscount =
+    reference?.price && sellPrice
+      ? (((reference.price - sellPrice) / reference.price) * 100).toFixed(1)
+      : null;
+
   // 필수 항목 — key: 사람이 읽는 라벨
   const REQUIRED_FIELDS = {
     title: '매물 타이틀',
+    complexName: '단지명',
     region: '지역',
     address: '주소',
     area: '전용면적',
     floor: '층',
     builtYear: '건축연도',
     price: '매도 호가',
-    actualTransactionPrice: '기준 실거래가',
     description: '매물 설명',
   };
 
@@ -131,6 +163,22 @@ function AgentRegisterProperty() {
               <input type="text" name="region" value={form.region} onChange={update('region')} placeholder="예: 서울 마포구" required />
             </label>
           </div>
+          <label>
+            단지명 *
+            <ComplexAutocomplete
+              name="complexName"
+              value={form.complexName}
+              onChange={(text) => setForm((s) => ({ ...s, complexName: text, complexGu: '', complexSigungu: '' }))}
+              onSelect={(s) => setForm((prev) => ({ ...prev, complexName: s.complex, complexGu: s.gu, complexSigungu: s.sigungu }))}
+              placeholder="단지명 입력 후 목록에서 선택 (예: 마포래미안푸르지오)"
+              required
+            />
+            <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
+              {form.complexGu
+                ? `선택됨: ${form.complexSigungu} — 기준 실거래가가 자동 계산됩니다.`
+                : '※ 국토부 실거래 단지 목록에서 선택하면 기준 실거래가가 자동 계산됩니다.'}
+            </small>
+          </label>
           <label>
             주소 *
             <input type="text" name="address" value={form.address} onChange={update('address')} placeholder="예: 서울특별시 마포구 아현동 1-1" required />
@@ -207,23 +255,38 @@ function AgentRegisterProperty() {
         {/* Section 4: 가격 */}
         <fieldset className="register-section">
           <legend>가격 정보</legend>
-          <div className="register-grid-2">
-            <label>
-              매도 호가 (원) *
-              <input type="number" name="price" min="0" step="100000" value={form.price} onChange={update('price')} placeholder="예: 2150000000" required />
-            </label>
-            <label>
-              기준 실거래가 (원) *
-              <input type="number" name="actualTransactionPrice" min="0" step="100000" value={form.actualTransactionPrice} onChange={update('actualTransactionPrice')} placeholder="국토부 실거래 평균 또는 단지 평균" required />
-            </label>
+          <label>
+            매도 호가 (원) *
+            <input type="number" name="price" min="0" step="100000" value={form.price} onChange={update('price')} placeholder="예: 2150000000" required />
+          </label>
+
+          {/* 기준 실거래가는 국토부 데이터에서 자동 산출 (중개사 직접 입력 불가) */}
+          <div className="reference-price-box">
+            <div className="reference-price-head">
+              <span>기준 실거래가 <em>(국토부 실거래가 기반 · 자동)</em></span>
+              {reference?.source && (
+                <span className={reference.source === 'complex' ? 'ref-tag complex' : 'ref-tag region'}>
+                  {reference.source === 'complex' ? '단지 실거래 기준' : '지역 시세 기반 추정'}
+                </span>
+              )}
+            </div>
+            {reference?.price ? (
+              <>
+                <strong className="reference-price-value">{formatPrice(reference.price)}</strong>
+                {previewDiscount && (
+                  <p className="register-hint">
+                    예상 할인율 <strong>{previewDiscount}%</strong>
+                    {Number(previewDiscount) >= 5 ? ' — 급매 기준 충족' : ' (5% 이상이면 급매로 분류)'}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="reference-price-empty">
+                단지명을 선택하고 전용면적을 입력하면 기준 실거래가가 자동으로 표시됩니다.
+                {' '}못 찾으면 등록 시 지역 시세로 자동 산출됩니다.
+              </p>
+            )}
           </div>
-          {form.price && form.actualTransactionPrice && (
-            <p className="register-hint">
-              자동 할인율: <strong>
-                {(((Number(form.actualTransactionPrice) - Number(form.price)) / Number(form.actualTransactionPrice)) * 100).toFixed(1)}%
-              </strong> (5% 이상이면 급매로 분류)
-            </p>
-          )}
         </fieldset>
 
         {/* Section 5: 매도 사유 */}

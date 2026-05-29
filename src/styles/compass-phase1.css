@@ -2689,6 +2689,117 @@ tr.is-suspended {
   border-color: var(--color-text);
 }
 
+/* 단지명 자동완성 */
+.complex-autocomplete {
+  position: relative;
+}
+
+.complex-autocomplete input {
+  width: 100%;
+}
+
+.complex-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.complex-suggestions li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  padding: 9px 10px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.complex-suggestions li:hover {
+  background: var(--color-bg-soft);
+}
+
+.complex-suggestions li strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.complex-suggestions li span {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* 자동 산출 기준 실거래가 박스 */
+.reference-price-box {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-soft);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.reference-price-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.reference-price-head em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--color-text-subtle);
+}
+
+.ref-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.ref-tag.complex {
+  background: #e8f3ec;
+  color: #1f7a44;
+}
+
+.ref-tag.region {
+  background: #fdf0e3;
+  color: #b6781f;
+}
+
+.reference-price-value {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin-top: var(--space-1);
+}
+
+.reference-price-empty {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+  margin: var(--space-1) 0 0;
+}
+
 .register-grid-2,
 .register-grid-3 {
   display: grid;

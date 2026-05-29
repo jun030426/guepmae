@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { CheckCircle2, AlertTriangle, Printer, Sparkles } from 'lucide-react';
 import { fetchPropertyReport, regeneratePropertyReport } from '../services/propertyReports.js';
 import { formatPrice } from '../utils/priceUtils.js';
@@ -14,6 +14,36 @@ function GradePill({ grade, score }) {
 
 function PropertyReportPanel({ property }) {
   const [state, setState] = useState({ loading: true, report: null, error: null, generating: false });
+  const reportRef = useRef(null);
+
+  // 인쇄/PDF — 모달 안이라 CSS 격리가 깨지므로, 새 창에 리포트만 복제해 인쇄
+  const handlePrint = () => {
+    const node = reportRef.current;
+    if (!node) {
+      window.print();
+      return;
+    }
+    const win = window.open('', '_blank', 'width=900,height=1200');
+    if (!win) {
+      window.print(); // 팝업 차단 시 폴백
+      return;
+    }
+    const cssLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .map((el) => `<link rel="stylesheet" href="${el.href}">`)
+      .join('');
+    const inlineStyles = Array.from(document.querySelectorAll('style'))
+      .map((el) => `<style>${el.innerHTML}</style>`)
+      .join('');
+    win.document.write(
+      `<!doctype html><html lang="ko"><head><meta charset="utf-8">`
+      + `<title>${property.title} — AI 매물 리포트</title>${cssLinks}${inlineStyles}`
+      + `<style>body{margin:0;padding:24px;background:#fff;}.report-print-button{display:none!important;}</style>`
+      + `</head><body>${node.outerHTML}</body></html>`,
+    );
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 600); // 스타일/폰트 로드 대기
+  };
 
   useEffect(() => {
     let active = true;
@@ -96,7 +126,7 @@ function PropertyReportPanel({ property }) {
   const op = r.opinion ?? {};
 
   return (
-    <div className="property-report">
+    <div className="property-report" ref={reportRef}>
       {/* 헤더 — 점수 + 등급 + 매도가 정보 */}
       <header className="report-header">
         <div className="report-header-left">
@@ -220,7 +250,7 @@ function PropertyReportPanel({ property }) {
           이 리포트는 AI가 생성한 보조 분석으로, 실제 매수 의사결정 전 반드시 직접 확인이 필요합니다.
           {' · '}생성일: {new Date(state.report.generated_at).toLocaleString('ko-KR')}
         </small>
-        <button type="button" className="report-print-button" onClick={() => window.print()}>
+        <button type="button" className="report-print-button" onClick={handlePrint}>
           <Printer size={15} /> 인쇄 · PDF 저장
         </button>
       </footer>

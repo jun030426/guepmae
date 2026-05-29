@@ -1670,24 +1670,14 @@ body {
   opacity: 0.85;
 }
 
-/* 인쇄 / PDF 저장 — 리포트만 인쇄되도록 나머지는 숨김 */
+/* 인쇄 / PDF 저장 — 실제 인쇄는 새 창에 리포트만 복제해서 처리(PropertyReportPanel.handlePrint).
+   인쇄 시 버튼·그림자만 정리. (옛 visibility/absolute 격리 방식은 모달 안에서 글자 겹침이 생겨 제거) */
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  .property-report,
-  .property-report * {
-    visibility: visible;
-  }
-  .property-report {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    padding: 0;
-  }
   .report-print-button {
     display: none !important;
+  }
+  .property-report {
+    box-shadow: none !important;
   }
 }
 

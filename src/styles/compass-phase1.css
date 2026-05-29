@@ -2858,6 +2858,63 @@ tr.is-suspended {
   border-color: #e6b0aa;
 }
 
+/* 매물 수정 — 사진 편집 그리드 */
+.edit-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.edit-photo-item {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--color-bg-soft);
+}
+
+.edit-photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.edit-photo-cover {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+}
+
+.edit-photo-remove {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.edit-photo-remove:hover {
+  background: #c0392b;
+}
+
 .register-grid-2,
 .register-grid-3 {
   display: grid;

@@ -16,7 +16,7 @@ function generatePropertyId() {
   return `gm-${ts}${rand}`;
 }
 
-async function uploadPropertyPhotos(files, propertyId) {
+export async function uploadPropertyPhotos(files, propertyId) {
   const photos = [];
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i];

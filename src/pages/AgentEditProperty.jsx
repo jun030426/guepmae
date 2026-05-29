@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
 import { supabase } from '../lib/supabaseClient.js';
+import { uploadPropertyPhotos } from '../services/propertyRegistration.js';
 import { formatPrice } from '../utils/priceUtils.js';
 
 function AgentEditProperty() {
@@ -10,6 +11,8 @@ function AgentEditProperty() {
   const { property, isLoading } = useProperty(id);
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
+  const [existingMedia, setExistingMedia] = useState([]); // 유지할 기존 사진
+  const [newFiles, setNewFiles] = useState([]); // 추가 업로드할 파일
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -24,6 +27,7 @@ function AgentEditProperty() {
       parking: property.parking ?? '',
       description: property.description ?? '',
     });
+    setExistingMedia(Array.isArray(property.media) ? property.media : []);
   }, [property]);
 
   if (isLoading || !form) {
@@ -51,6 +55,21 @@ function AgentEditProperty() {
     }
     setSaving(true);
     setError('');
+
+    // 사진: 유지한 기존 + 새로 업로드, 첫 장을 대표 사진으로 재라벨
+    let media = [...existingMedia];
+    try {
+      if (newFiles.length > 0) {
+        const uploaded = await uploadPropertyPhotos(newFiles, id);
+        media = [...media, ...uploaded];
+      }
+    } catch (uploadErr) {
+      setError(uploadErr.message || '사진 업로드 실패');
+      setSaving(false);
+      return;
+    }
+    media = media.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
+
     const { data, error: updateError } = await supabase
       .from('properties')
       .update({
@@ -62,6 +81,7 @@ function AgentEditProperty() {
         bathrooms: Number(form.bathrooms),
         parking: form.parking || '미공개',
         description: form.description,
+        media,
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
@@ -130,6 +150,40 @@ function AgentEditProperty() {
             주차
             <input type="text" value={form.parking} onChange={update('parking')} placeholder="예: 세대당 1.3대" />
           </label>
+        </fieldset>
+
+        <fieldset className="register-section">
+          <legend>매물 사진</legend>
+          {existingMedia.length > 0 ? (
+            <div className="edit-photo-grid">
+              {existingMedia.map((m, i) => (
+                <div key={m.src} className="edit-photo-item">
+                  <img src={m.src} alt={m.alt || `사진 ${i + 1}`} />
+                  {i === 0 && <span className="edit-photo-cover">대표</span>}
+                  <button
+                    type="button"
+                    className="edit-photo-remove"
+                    aria-label="사진 삭제"
+                    onClick={() => setExistingMedia((arr) => arr.filter((_, idx) => idx !== i))}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="register-hint">등록된 사진이 없습니다.</p>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(event) => setNewFiles(Array.from(event.target.files ?? []).slice(0, 10))}
+          />
+          {newFiles.length > 0 && (
+            <p className="register-hint"><strong>{newFiles.length}장</strong> 추가 예정 — 저장 시 업로드됩니다.</p>
+          )}
+          <p className="register-hint">첫 번째 사진이 대표 사진으로 표시됩니다. 기존 사진은 × 로 삭제할 수 있어요.</p>
         </fieldset>
 
         <fieldset className="register-section">

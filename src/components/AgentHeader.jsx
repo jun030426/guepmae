@@ -2,10 +2,12 @@ import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 
 // 중개사(agent) 가 볼 수 있는 메뉴
+// end: 하위 경로가 또 다른 메뉴인 항목은 정확히 일치할 때만 active 처리
+//  (예: '/agent/properties' 는 '/agent/properties/new' 의 prefix라 end 필요)
 const AGENT_NAV = [
-  { label: '대시보드', path: '/agent/dashboard' },
+  { label: '대시보드', path: '/agent/dashboard', end: true },
   { label: '새 매물 등록', path: '/agent/properties/new' },
-  { label: '내 등록 매물', path: '/agent/properties' },
+  { label: '내 등록 매물', path: '/agent/properties', end: true },
 ];
 
 // 관리자(admin) 만 추가로 보이는 메뉴
@@ -35,7 +37,7 @@ function AgentHeader() {
                 key={item.path}
                 to={item.path}
                 className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
-                end={item.path === '/agent/dashboard'}
+                end={Boolean(item.end)}
               >
                 {item.label}
               </NavLink>

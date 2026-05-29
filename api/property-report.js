@@ -54,6 +54,18 @@ const REPORT_SCHEMA = z.object({
     school: z.string().describe('학교 — 제공된 생활권의 "학교"(최근접) 데이터가 있으면 "인근 학교: ○○ (도보/차량 N분)" 사실로 서술. 단 "배정 학교·학군 등급/평가"는 데이터가 없으므로 단정하지 말고 "배정 학교와 학군 평가는 직접 확인이 필요합니다"로 명시. 학교명·배정·등급을 지어내지 말 것.'),
     marketTrend: z.string().describe('지역 시장 흐름 — 제공된 "같은 지역 비교 매물"과 "1년 추이" 범위 안에서 상세히 서술. 미확인 개발 호재·전망을 단정하지 말 것.'),
   }),
+  // 사진이 제공된 경우에만 채움. 사진 없으면 생략(.optional()).
+  photoAnalysis: z
+    .object({
+      overall: z.string().describe('사진으로 본 전반적인 컨디션 요약 1단락 — 보이는 것만, 상세하게.'),
+      lighting: z.string().describe('채광/창 방향·자연광 들어오는 정도. 사진에 보이는 범위 내에서만.'),
+      interior: z.string().describe('내부 구조·마감(바닥/벽/주방·욕실 마감재 등) — 사진에 보이는 그대로 기술.'),
+      renovation: z.string().describe('리모델링·수리 흔적(새 마감재·교체된 가전·도배 상태 등). 단정하지 말고 "~로 보임" 형태로.'),
+      concerns: z.string().describe('눈에 띄는 하자·관리 상태(균열·곰팡이·노후·정리 정돈 등). 보이지 않는 결함을 추정하지 말 것.'),
+    })
+    .optional()
+    .describe('사진 기반 컨디션 분석. 사진이 제공된 경우에만 채우고, 없으면 비워둘 것. 사진에 실제로 보이는 시각적 요소만 기술하고, 보이지 않는 부분은 절대 추측하지 말 것.'),
+
   opinion: z.object({
     score: z.number().min(0).max(100).describe('종합 점수. 가격 합리성(할인율) 중심 + 사실 데이터. 데이터 공백이 많으면 보수적으로 낮게.'),
     grade: z.enum(['S', 'A', 'B', 'C', 'D']).describe('등급. S=90+, A=80+, B=70+, C=60+, D=60-'),
@@ -73,6 +85,7 @@ const SYSTEM_PROMPT = `당신은 한국 부동산 급매 매물을 분석하는 
 3. "생활권" 블록에 제공된 최근접 시설(지하철·학교·마트·병원 등)은 사실로 인용해도 됩니다(예: "인근 ○○초 도보 5분"). 단, 거기 없는 정보 — 배정 학교·학군 등급/평가·권리관계·개발 호재 등 — 는 절대 지어내지 말고 "공개 데이터로 확인되지 않음 — 직접 확인 필요"로 표기하세요.
 4. "중개사 제공 정보"(매물 설명·매도 사유)는 검증되지 않은 주장입니다. 사실로 단정하지 말고, 검증된 데이터와 대조해 claimCheck 필드에 중립적으로 평가하세요. 과장이 보이면 담담히 지적하세요.
 5. 영업·홍보 톤 금지. 약점과 불확실성을 숨기지 말고 솔직하게 쓰세요. 신뢰가 최우선입니다.
+6. **사진이 첨부된 경우** photoAnalysis 섹션을 채우세요. 단, **사진에 실제로 보이는 시각적 요소만** 기술하고(공간 마감·채광·구조·하자 흔적 등), 사진에 안 보이는 것(배관·전기·소음 등)은 절대 추측하지 마세요. 단정 표현 대신 "~로 보임"처럼 신중하게. **사진이 첨부되지 않으면 photoAnalysis는 비워두세요.**
 
 [강조점] "왜 이 매물이 급매인지(가격 메리트와 매도 시급도)"를 핵심으로 다루되, 근거는 항상 데이터에서 인용하세요.
 [톤] 일반인이 이해하기 쉬운, 친근하지만 냉정한 전문가. 과장·미사여구 자제.
@@ -201,7 +214,12 @@ ${nearby.length
   ? nearby.map((n) => `- ${n.title} (${n.area}㎡, ${n.built_year ?? '?'}년): 매도가 ${n.price.toLocaleString()}원 / 기준가 ${n.actual_transaction_price?.toLocaleString() ?? '?'}원 / 할인 ${n.discount_rate}%`).join('\n')
   : '- (비교 매물 없음)'}
 
-규칙: 가격은 위 "검증된 가격 데이터"만 인용. 학군·역거리·권리·호재 등 위에 없는 정보는 "확인되지 않음"으로. 중개사 주장은 claimCheck에서 검증. 미래 가격 예측 금지.`;
+## 📷 매물 사진 (별도 첨부됨)
+${Array.isArray(property.media) && property.media.length > 0
+  ? `이 매물엔 ${property.media.length}장의 사진이 첨부됐고, 별도 이미지로 함께 제공됩니다. photoAnalysis 섹션은 사진에 보이는 것만으로 채우세요.`
+  : '사진이 첨부되지 않았습니다. photoAnalysis 섹션은 비워두세요.'}
+
+규칙: 가격은 위 "검증된 가격 데이터"만 인용. 학군·역거리·권리·호재 등 위에 없는 정보는 "확인되지 않음"으로. 중개사 주장은 claimCheck에서 검증. 미래 가격 예측 금지. 사진은 보이는 것만 photoAnalysis에 기술.`;
 }
 
 // 모델은 환경변수 GEMINI_MODEL 로 오버라이드 가능. 기본값: 최신 stable 모델.
@@ -214,11 +232,25 @@ const STALE_LOCK_MS = 3 * 60 * 1000;
 
 async function generateReport({ property, nearby }) {
   const { model, label } = getModel();
+  const userText = buildUserPrompt({ property, nearby });
+
+  // 사진(media)이 있으면 멀티모달 메시지로 전달 — Gemini가 직접 사진을 보고 photoAnalysis 채움.
+  // 토큰/비용 관리 위해 최대 6장으로 제한.
+  const photos = Array.isArray(property.media) ? property.media : [];
+  const imageParts = photos
+    .filter((p) => p && typeof p.src === 'string')
+    .slice(0, 6)
+    .map((p) => ({ type: 'image', image: p.src }));
+
+  const userContent = imageParts.length > 0
+    ? [{ type: 'text', text: userText }, ...imageParts]
+    : [{ type: 'text', text: userText }];
+
   const result = await generateObject({
     model,
     schema: REPORT_SCHEMA,
     system: SYSTEM_PROMPT,
-    prompt: buildUserPrompt({ property, nearby }),
+    messages: [{ role: 'user', content: userContent }],
   });
   return {
     report: result.object,

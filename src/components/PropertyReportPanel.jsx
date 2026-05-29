@@ -126,6 +126,7 @@ function PropertyReportPanel({ property }) {
   const price = r.priceAnalysis ?? {};
   const loc = r.location ?? {};
   const op = r.opinion ?? {};
+  const photo = r.photoAnalysis; // 사진 분석 (사진 첨부된 매물만 존재)
 
   return (
     <div className="property-report" ref={reportRef}>
@@ -213,6 +214,44 @@ function PropertyReportPanel({ property }) {
           <p>{price.downsideText}</p>
         </div>
       </section>
+
+      {/* Part 4-1: 사진 기반 컨디션 분석 (사진 첨부된 매물만) */}
+      {photo && (
+        <section className="report-section">
+          <h3>📷 사진 기반 컨디션 분석</h3>
+          <p className="report-photo-note">AI가 등록된 매물 사진을 직접 확인해 작성했습니다. 사진에 보이는 것만 기술됩니다.</p>
+          {photo.overall && (
+            <div className="report-text-block">
+              <h4>전반 컨디션</h4>
+              <p>{photo.overall}</p>
+            </div>
+          )}
+          {photo.lighting && (
+            <div className="report-text-block">
+              <h4>채광</h4>
+              <p>{photo.lighting}</p>
+            </div>
+          )}
+          {photo.interior && (
+            <div className="report-text-block">
+              <h4>내부 구조 · 마감</h4>
+              <p>{photo.interior}</p>
+            </div>
+          )}
+          {photo.renovation && (
+            <div className="report-text-block">
+              <h4>리모델링 · 수리 흔적</h4>
+              <p>{photo.renovation}</p>
+            </div>
+          )}
+          {photo.concerns && (
+            <div className="report-text-block">
+              <h4>관찰된 관리 상태 · 주의점</h4>
+              <p>{photo.concerns}</p>
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Part 5: 입지 */}
       <section className="report-section">

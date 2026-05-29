@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import PropertyMediaViewer from '../components/PropertyMediaViewer.jsx';
 import PropertyLocationMap from '../components/PropertyLocationMap.jsx';
+import CommuteSearch from '../components/CommuteSearch.jsx';
 import PriceReport from '../components/PriceReport.jsx';
 import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
@@ -388,6 +389,7 @@ function PropertyDetail() {
                   })()}
                 </div>
               </div>
+              <CommuteSearch property={property} />
             </section>
 
             <section className="detail-section" id="lifestyle">

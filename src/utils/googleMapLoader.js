@@ -59,6 +59,7 @@ export function loadGoogleMapSdk(apiKey) {
       region: 'KR',
       v: 'weekly',
       loading: 'async',
+      libraries: 'places', // 도착지 자동완성(Autocomplete) 용
     });
 
     script.src = `https://maps.googleapis.com/maps/api/js?${params.toString()}`;

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, Mail, MailCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import SocialLoginButtons from '../components/SocialLoginButtons.jsx';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const initialLoginForm = {
@@ -537,14 +536,6 @@ function Login() {
               </form>
             )}
 
-            <div className="auth-divider">
-              <span />
-              <em>또는</em>
-              <span />
-            </div>
-
-            <SocialLoginButtons label="로그인" disabled={isSubmitting} comingSoon />
-
             <div className="auth-footer-link">
               아직 회원이 아니신가요?
               <button type="button" onClick={switchToSignup}>
@@ -562,14 +553,6 @@ function Login() {
             <div className="signup-heading">
               <h1>회원정보 입력</h1>
               <p>급매 서비스 이용을 위해 아래 정보를 입력해주세요.</p>
-            </div>
-
-            <SocialLoginButtons label="간편 가입" disabled={isSubmitting} comingSoon />
-
-            <div className="auth-divider">
-              <span />
-              <em>또는 이메일로 가입</em>
-              <span />
             </div>
 
             <label>

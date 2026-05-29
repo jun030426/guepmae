@@ -404,10 +404,6 @@ function GoogleStreetViewPanel({ property, photos }) {
 
   return (
     <div className="viewer-street-shell">
-      <div className="tour-fallback-banner">
-        <strong>3D 투어 준비 중</strong>
-        <span>실내 3D 투어가 아직 등록되지 않아 Google 거리뷰로 집 앞 풍경을 보여드립니다.</span>
-      </div>
       <div
         ref={panoramaElementRef}
         className="viewer-street-canvas"
@@ -465,10 +461,6 @@ function NaverStreetViewPanel({ property, photos }) {
 
   return (
     <div className="viewer-street-shell">
-      <div className="tour-fallback-banner">
-        <strong>3D 투어 준비 중</strong>
-        <span>실내 3D 투어가 아직 등록되지 않아 네이버 거리뷰로 집 앞 풍경을 보여드립니다.</span>
-      </div>
       <div
         ref={panoramaElementRef}
         className="viewer-street-canvas"
@@ -486,7 +478,7 @@ function TourFallbackPreview({ property, photos, note }) {
     <div className="viewer-street-fallback">
       {streetPhoto && <img src={streetPhoto.src} alt={`${property.title} 외부 사진`} />}
       <div className="street-location-card">
-        <strong>3D 투어 준비 중</strong>
+        <strong>{property.title}</strong>
         <span>{property.address}</span>
         <em>{note}</em>
       </div>

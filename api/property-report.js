@@ -147,6 +147,9 @@ ${nearby.map((n) => `- ${n.title} (${n.region}, ${n.area}㎡, ${n.built_year}년
 // 만약 무료 한도(quota) 부족이면 GEMINI_MODEL=gemini-2.5-flash-lite 로 설정 가능 (더 가벼움 + 무료 한도 큼).
 const DEFAULT_MODEL = 'gemini-2.5-flash';
 
+// 'generating' 락이 이 시간보다 오래되면 죽은 요청으로 보고 다른 요청이 탈취 가능
+const STALE_LOCK_MS = 3 * 60 * 1000;
+
 async function generateReport({ property, nearby }) {
   const google = getGoogleProvider();
   const modelName = process.env.GEMINI_MODEL || DEFAULT_MODEL;
@@ -184,35 +187,87 @@ export default async function handler(req, res) {
       return res.status(200).json({ invalidated: true });
     }
 
+    // ----- 락 단계: 한 요청만 AI 를 호출하도록 'generating' 로우를 선점 -----
+    let claimedLock = false;
     if (!force) {
-      const { data: cached } = await supabase
+      const { data: existing } = await supabase
         .from('property_reports')
-        .select('*')
+        .select('property_id, status, generated_at')
         .eq('property_id', id)
         .maybeSingle();
-      if (cached) {
-        return res.status(200).json({ ...cached, cached: true });
+
+      if (existing) {
+        if (existing.status !== 'generating') {
+          // 이미 완성된 리포트 → 그대로 반환
+          const { data: full } = await supabase
+            .from('property_reports')
+            .select('*')
+            .eq('property_id', id)
+            .maybeSingle();
+          return res.status(200).json({ ...full, cached: true });
+        }
+        // 다른 요청이 생성 중
+        const age = Date.now() - new Date(existing.generated_at).getTime();
+        if (age < STALE_LOCK_MS) {
+          return res.status(202).json({ status: 'generating' });
+        }
+        // 락이 오래됨(죽은 요청) → 원자적 탈취 (조건부 update)
+        const { data: taken } = await supabase
+          .from('property_reports')
+          .update({ status: 'generating', generated_at: new Date().toISOString() })
+          .eq('property_id', id)
+          .eq('status', 'generating')
+          .lt('generated_at', new Date(Date.now() - STALE_LOCK_MS).toISOString())
+          .select('property_id');
+        if (!taken || taken.length === 0) {
+          return res.status(202).json({ status: 'generating' });
+        }
+        claimedLock = true;
+      } else {
+        // 로우 없음 → insert 로 선점 (PK 유니크라 동시 요청 중 하나만 성공)
+        const { error: claimError } = await supabase
+          .from('property_reports')
+          .insert({ property_id: id, report_data: {}, status: 'generating' });
+        if (claimError) {
+          // 충돌 = 다른 요청이 먼저 선점함 → 중복 호출 방지
+          return res.status(202).json({ status: 'generating' });
+        }
+        claimedLock = true;
       }
     }
 
-    const context = await fetchPropertyContext(supabase, id);
-    const { report, usage, model } = await generateReport(context);
+    try {
+      const context = await fetchPropertyContext(supabase, id);
+      const { report, usage, model } = await generateReport(context);
 
-    const { data: saved, error: saveError } = await supabase
-      .from('property_reports')
-      .upsert({
-        property_id: id,
-        report_data: report,
-        model: `google/${model}`,
-        generated_at: new Date().toISOString(),
-        prompt_token_count: usage?.promptTokens ?? null,
-        completion_token_count: usage?.completionTokens ?? null,
-      })
-      .select('*')
-      .single();
-    if (saveError) throw saveError;
+      const { data: saved, error: saveError } = await supabase
+        .from('property_reports')
+        .upsert({
+          property_id: id,
+          report_data: report,
+          status: 'ready',
+          model: `google/${model}`,
+          generated_at: new Date().toISOString(),
+          prompt_token_count: usage?.promptTokens ?? null,
+          completion_token_count: usage?.completionTokens ?? null,
+        })
+        .select('*')
+        .single();
+      if (saveError) throw saveError;
 
-    return res.status(200).json({ ...saved, cached: false });
+      return res.status(200).json({ ...saved, cached: false });
+    } catch (genError) {
+      // 생성 실패 시 우리가 잡은 락 정리 → 다음 조회가 즉시 재시도 가능 (TTL 안 기다림)
+      if (claimedLock) {
+        await supabase
+          .from('property_reports')
+          .delete()
+          .eq('property_id', id)
+          .eq('status', 'generating')
+          .then(() => {}, () => {});
+      }
+      throw genError;
+    }
   } catch (err) {
     console.error('[property-report] failed:', err);
     return res.status(500).json({ error: err.message || 'unknown error' });

@@ -17,17 +17,32 @@ function PropertyReportPanel({ property }) {
 
   useEffect(() => {
     let active = true;
+    let timer = null;
     setState({ loading: true, report: null, error: null, generating: false });
-    fetchPropertyReport(property.id)
-      .then((data) => {
-        if (!active) return;
-        setState({ loading: false, report: data, error: null, generating: false });
-      })
-      .catch((err) => {
-        if (!active) return;
-        setState({ loading: false, report: null, error: err.message, generating: false });
-      });
-    return () => { active = false; };
+
+    const load = () => {
+      fetchPropertyReport(property.id)
+        .then((data) => {
+          if (!active) return;
+          // 다른 요청이 생성 중 → 잠시 후 자동 재조회 (폴링)
+          if (data?.generating) {
+            setState({ loading: false, report: null, error: null, generating: true });
+            timer = setTimeout(load, 4000);
+            return;
+          }
+          setState({ loading: false, report: data, error: null, generating: false });
+        })
+        .catch((err) => {
+          if (!active) return;
+          setState({ loading: false, report: null, error: err.message, generating: false });
+        });
+    };
+    load();
+
+    return () => {
+      active = false;
+      if (timer) clearTimeout(timer);
+    };
   }, [property.id]);
 
   const handleRegenerate = async () => {
@@ -46,6 +61,16 @@ function PropertyReportPanel({ property }) {
         <Sparkles size={28} />
         <p>AI 리포트를 불러오는 중입니다...</p>
         <small>첫 생성 시 10~20초 소요됩니다.</small>
+      </div>
+    );
+  }
+
+  if (state.generating) {
+    return (
+      <div className="property-report loading">
+        <Sparkles size={28} />
+        <p>AI 리포트를 생성하고 있습니다...</p>
+        <small>완료되면 자동으로 표시됩니다 (10~20초).</small>
       </div>
     );
   }

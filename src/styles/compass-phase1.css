@@ -1272,6 +1272,40 @@ body {
   letter-spacing: 0.5em;
 }
 
+/* ----------------------------- 비밀번호 재설정 흐름 ----------------------------- */
+.password-reset-flow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--space-3) 0;
+}
+
+.password-reset-flow h1 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 28px;
+  letter-spacing: var(--ls-tight);
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+}
+
+.password-reset-flow .inline-login-form {
+  width: 100%;
+  align-items: stretch;
+}
+
+.password-reset-flow .verification-pending-body {
+  text-align: center;
+  margin: 0 auto var(--space-2);
+}
+
+.forgot-password-link {
+  align-self: center;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
 /* ----------------------------- AI 매물 리포트 패널 ----------------------------- */
 .property-report {
   max-width: 920px;

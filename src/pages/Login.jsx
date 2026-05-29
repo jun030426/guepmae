@@ -59,7 +59,27 @@ function Login() {
   const [resendStatus, setResendStatus] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAuthenticated, isConfigured, signIn, signUp, verifySignupOtp, resendVerification, getRedirectPath, profile } = useAuth();
+  const {
+    isAuthenticated,
+    isConfigured,
+    signIn,
+    signUp,
+    verifySignupOtp,
+    resendVerification,
+    requestPasswordReset,
+    verifyRecoveryOtp,
+    updatePassword,
+    getRedirectPath,
+    profile,
+  } = useAuth();
+
+  // 비밀번호 재설정 흐름: null | 'email' | 'otp' | 'password'
+  const [resetStep, setResetStep] = useState(null);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetOtp, setResetOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newPasswordConfirm, setNewPasswordConfirm] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   const fromPath = location.state?.from?.pathname;
   const canSubmitSignup = useMemo(
@@ -93,10 +113,12 @@ function Login() {
   }, [verifiedParam, searchParams, setSearchParams]);
 
   useEffect(() => {
+    // 비번 재설정 중에는 복구 세션 때문에 자동 리다이렉트되면 안 됨 (새 비번 입력 전에 빠져나감)
+    if (pendingVerificationEmail || resetStep) return;
     if (isAuthenticated && profile) {
       navigate(fromPath || getRedirectPath(profile), { replace: true });
     }
-  }, [fromPath, getRedirectPath, isAuthenticated, navigate, profile]);
+  }, [fromPath, getRedirectPath, isAuthenticated, navigate, profile, pendingVerificationEmail, resetStep]);
 
   const switchToSignup = () => {
     setSearchParams({ mode: 'signup' });
@@ -211,6 +233,91 @@ function Login() {
     switchToStart();
   };
 
+  const openReset = () => {
+    setResetStep('email');
+    setResetEmail(loginForm.email || '');
+    setResetOtp('');
+    setNewPassword('');
+    setNewPasswordConfirm('');
+    setError('');
+    setStatus('');
+  };
+
+  const closeReset = () => {
+    setResetStep(null);
+    setResetEmail('');
+    setResetOtp('');
+    setNewPassword('');
+    setNewPasswordConfirm('');
+    setError('');
+    setStatus('');
+  };
+
+  const handleRequestReset = async (event) => {
+    event.preventDefault();
+    const email = resetEmail.trim();
+    if (!email) {
+      setError('이메일을 입력해주세요.');
+      return;
+    }
+    setError('');
+    setStatus('');
+    setIsResetting(true);
+    try {
+      await requestPasswordReset(email);
+      setResetStep('otp');
+      setStatus('인증번호를 메일로 보냈습니다. 메일함을 확인해주세요.');
+    } catch (resetError) {
+      setError(getFriendlyAuthError(resetError));
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleVerifyReset = async (event) => {
+    event.preventDefault();
+    const token = resetOtp.trim();
+    if (token.length !== 6) {
+      setError('6자리 인증번호를 정확히 입력해주세요.');
+      return;
+    }
+    setError('');
+    setStatus('');
+    setIsResetting(true);
+    try {
+      await verifyRecoveryOtp({ email: resetEmail.trim(), token });
+      setResetStep('password');
+    } catch (verifyError) {
+      setError(getFriendlyAuthError(verifyError) || '인증번호가 올바르지 않거나 만료되었습니다.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleUpdatePassword = async (event) => {
+    event.preventDefault();
+    if (newPassword.length < 6) {
+      setError('비밀번호는 6자 이상으로 입력해주세요.');
+      return;
+    }
+    if (newPassword !== newPasswordConfirm) {
+      setError('비밀번호 확인이 일치하지 않습니다.');
+      return;
+    }
+    setError('');
+    setStatus('');
+    setIsResetting(true);
+    try {
+      const result = await updatePassword(newPassword);
+      setResetStep(null);
+      navigate(fromPath || result.redirectPath, { replace: true });
+    } catch (updateError) {
+      setError(getFriendlyAuthError(updateError));
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   return (
     <div className="auth-page page-shell">
       <section className={mode === 'signup' ? 'auth-card signup-card' : 'auth-card'}>
@@ -276,6 +383,109 @@ function Login() {
 
             {resendStatus && <p className="form-status">{resendStatus}</p>}
           </form>
+        ) : resetStep ? (
+          <div className="password-reset-flow">
+            <div className="verification-pending-icon" aria-hidden="true">
+              <MailCheck size={36} />
+            </div>
+
+            {resetStep === 'email' && (
+              <form className="inline-login-form" onSubmit={handleRequestReset}>
+                <h1>비밀번호 재설정</h1>
+                <p className="verification-pending-body">
+                  가입한 이메일을 입력하면 <strong>6자리 인증번호</strong>를 보내드립니다.
+                </p>
+                <label>
+                  이메일
+                  <input
+                    type="email"
+                    value={resetEmail}
+                    onChange={(event) => setResetEmail(event.target.value)}
+                    placeholder="이메일 주소 입력"
+                    autoComplete="email"
+                    autoFocus
+                    required
+                  />
+                </label>
+                <button type="submit" className="auth-submit-button" disabled={isResetting || !isConfigured}>
+                  {isResetting ? '전송 중...' : '인증번호 받기'}
+                </button>
+                <button type="button" className="auth-text-button" onClick={closeReset}>
+                  로그인으로 돌아가기
+                </button>
+              </form>
+            )}
+
+            {resetStep === 'otp' && (
+              <form className="inline-login-form" onSubmit={handleVerifyReset}>
+                <h1>인증번호 입력</h1>
+                <p className="verification-pending-target">
+                  <strong>{resetEmail}</strong> 로 보낸 6자리 인증번호를 입력해주세요.
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  autoFocus
+                  className="otp-input"
+                  placeholder="000000"
+                  value={resetOtp}
+                  onChange={(event) => setResetOtp(event.target.value.replace(/\D/g, ''))}
+                />
+                <ul className="verification-pending-hint">
+                  <li>메일이 안 보이면 스팸함 또는 프로모션함을 확인해주세요.</li>
+                  <li>인증번호는 일정 시간 후 만료됩니다.</li>
+                </ul>
+                <button
+                  type="submit"
+                  className="auth-submit-button"
+                  disabled={isResetting || resetOtp.length !== 6 || !isConfigured}
+                >
+                  {isResetting ? '확인 중...' : '다음'}
+                </button>
+                <button type="button" className="auth-text-button" onClick={closeReset}>
+                  로그인으로 돌아가기
+                </button>
+              </form>
+            )}
+
+            {resetStep === 'password' && (
+              <form className="inline-login-form" onSubmit={handleUpdatePassword}>
+                <h1>새 비밀번호 설정</h1>
+                <p className="verification-pending-body">
+                  사용할 새 비밀번호를 입력해주세요.
+                </p>
+                <label>
+                  새 비밀번호
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) => setNewPassword(event.target.value)}
+                    placeholder="6자리 이상 영문, 숫자 포함"
+                    autoComplete="new-password"
+                    minLength={6}
+                    autoFocus
+                    required
+                  />
+                </label>
+                <label className="compact-label">
+                  <input
+                    type="password"
+                    value={newPasswordConfirm}
+                    onChange={(event) => setNewPasswordConfirm(event.target.value)}
+                    placeholder="새 비밀번호 확인"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                  />
+                </label>
+                <button type="submit" className="auth-submit-button" disabled={isResetting || !isConfigured}>
+                  {isResetting ? '변경 중...' : '비밀번호 변경 완료'}
+                </button>
+              </form>
+            )}
+          </div>
         ) : mode === 'start' ? (
           <>
             <div className="auth-intro">
@@ -320,6 +530,9 @@ function Login() {
                 </label>
                 <button type="submit" className="auth-submit-button" disabled={isSubmitting || !isConfigured}>
                   {isSubmitting ? '확인 중...' : '로그인'}
+                </button>
+                <button type="button" className="auth-text-button forgot-password-link" onClick={openReset}>
+                  비밀번호를 잊으셨나요?
                 </button>
               </form>
             )}

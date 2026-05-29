@@ -193,6 +193,56 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // 비밀번호 재설정 1단계 — 입력한 이메일로 6자리 인증번호 발송.
+  // Supabase "Reset Password" 템플릿이 {{ .Token }} 이어야 코드가 옴 (링크 아님).
+  const requestPasswordReset = async (email) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+    if (error) {
+      throw error;
+    }
+  };
+
+  // 비밀번호 재설정 2단계 — 메일로 받은 6자리 코드 검증. 성공하면 임시 복구 세션 생성.
+  const verifyRecoveryOtp = async ({ email, token }) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+    }
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'recovery',
+    });
+
+    if (error) throw error;
+
+    setSession(data.session);
+    return { user: data.user };
+  };
+
+  // 비밀번호 재설정 3단계 — 복구 세션 상태에서 새 비밀번호 저장.
+  const updatePassword = async (newPassword) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
+    }
+
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) throw error;
+
+    const nextProfile = data.user ? await loadProfile(data.user.id) : null;
+    return {
+      user: data.user,
+      profile: nextProfile,
+      redirectPath: getRedirectPath(nextProfile),
+    };
+  };
+
   // OAuth 로그인 — Google, Kakao 등 Supabase에서 활성화된 provider 사용
   // 가입과 로그인이 동일한 함수 호출 (Supabase가 자동 분기). 첫 가입은 handle_new_user 트리거가 profile 생성
   const signInWithProvider = async (provider) => {
@@ -254,6 +304,9 @@ export function AuthProvider({ children }) {
       verifySignupOtp,
       signOut,
       resendVerification,
+      requestPasswordReset,
+      verifyRecoveryOtp,
+      updatePassword,
       signInWithProvider,
       refreshProfile: () => (session?.user ? loadProfile(session.user.id) : null),
       getRedirectPath,

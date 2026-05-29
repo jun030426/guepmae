@@ -5,7 +5,6 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
-import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const SALE_REASONS = [
   { value: '양도세 마감 임박', label: '양도세 마감 임박' },
@@ -22,10 +21,8 @@ const initialForm = {
   complexGu: '', // 선택된 단지의 구/시/군
   complexSigungu: '', // 선택된 단지의 시군구(표시용)
   address: '',
-  region: '',
   areaUnit: 'sqm', // 'sqm'(㎡) | 'pyeong'(평) — 입력 단위
   area: '',
-  supplyArea: '',
   floor: '',
   rooms: 3,
   bathrooms: 2,
@@ -36,8 +33,6 @@ const initialForm = {
   saleReason: '양도세 마감 임박',
   saleDeadline: '',
   description: '',
-  agencyName: '',
-  agentPhone: '',
   photos: [], // File[] — 사진 업로드용
 };
 
@@ -47,13 +42,12 @@ function AgentRegisterProperty() {
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [attempted, setAttempted] = useState(false); // 제출 시도 여부 (필드별 빨간 안내용)
   // 자동 산출된 기준 실거래가 미리보기 { price, source } | null
   const [reference, setReference] = useState(null);
 
   const update = (key) => (event) => {
-    const raw = event.target.value;
-    const nextValue = key === 'agentPhone' ? formatPhone(raw) : raw;
-    setForm((s) => ({ ...s, [key]: nextValue }));
+    setForm((s) => ({ ...s, [key]: event.target.value }));
   };
 
   // 입력 단위(㎡/평)를 ㎡로 환산 — 저장·매칭·표시 기준
@@ -63,7 +57,6 @@ function AgentRegisterProperty() {
     return form.areaUnit === 'pyeong' ? pyeongToSqm(num) : num;
   };
   const areaSqm = toSqm(form.area);
-  const supplyAreaSqm = toSqm(form.supplyArea);
   const unitLabel = form.areaUnit === 'pyeong' ? '평' : '㎡';
 
   // 단지 선택 + 전용면적이 있으면 기준 실거래가 미리보기 조회
@@ -94,7 +87,6 @@ function AgentRegisterProperty() {
   // 필수 항목 — key: 사람이 읽는 라벨
   const REQUIRED_FIELDS = {
     title: '매물 타이틀',
-    region: '지역',
     address: '주소',
     area: '전용면적',
     floor: '층',
@@ -103,6 +95,12 @@ function AgentRegisterProperty() {
     description: '매물 설명',
   };
 
+  // 필수 항목인데 비어있고, 제출을 시도한 적이 있으면 표시할 빨간 안내
+  const fieldError = (key) =>
+    attempted && REQUIRED_FIELDS[key] && !form[key] ? (
+      <span className="field-error">{REQUIRED_FIELDS[key]}을(를) 입력해주세요.</span>
+    ) : null;
+
   // 비어있는 필수 항목 목록
   const missingFields = Object.entries(REQUIRED_FIELDS)
     .filter(([key]) => !form[key])
@@ -110,6 +108,7 @@ function AgentRegisterProperty() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setAttempted(true);
     if (missingFields.length > 0) {
       setError(`다음 항목을 입력해주세요: ${missingFields.join(', ')}`);
       // 첫 번째 빠진 필드로 스크롤 + 포커스
@@ -137,8 +136,7 @@ function AgentRegisterProperty() {
         {
           ...form,
           description: enrichedDescription,
-          area: areaSqm,
-          supplyArea: supplyAreaSqm || '',
+          area: areaSqm, // 항상 ㎡로 환산 (공급면적은 서버에서 자동 추정)
         },
         profile,
       );
@@ -163,16 +161,11 @@ function AgentRegisterProperty() {
         {/* Section 1: 기본 정보 */}
         <fieldset className="register-section">
           <legend>기본 정보</legend>
-          <div className="register-grid-2">
-            <label>
-              매물 타이틀 *
-              <input type="text" name="title" value={form.title} onChange={update('title')} placeholder="예: 마포래미안푸르지오 84A" required />
-            </label>
-            <label>
-              지역 (시·구) *
-              <input type="text" name="region" value={form.region} onChange={update('region')} placeholder="예: 서울 마포구" required />
-            </label>
-          </div>
+          <label>
+            매물 타이틀 *
+            <input type="text" name="title" value={form.title} onChange={update('title')} placeholder="예: 마포래미안푸르지오 84A" required />
+            {fieldError('title')}
+          </label>
           <label>
             단지명 <small>(선택)</small>
             <ComplexAutocomplete
@@ -192,8 +185,9 @@ function AgentRegisterProperty() {
             주소 *
             <input type="text" name="address" value={form.address} onChange={update('address')} placeholder="예: 서울특별시 마포구 아현동 1-1" required />
             <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
-              ※ 주소를 정확히 입력하면 지도 좌표와 주변 시설을 자동으로 찾아드립니다.
+              ※ 주소를 정확히 입력하면 지역·지도 좌표·주변 시설을 자동으로 찾아드립니다.
             </small>
+            {fieldError('address')}
           </label>
         </fieldset>
 
@@ -207,25 +201,20 @@ function AgentRegisterProperty() {
               <option value="pyeong">평</option>
             </select>
           </label>
-          <div className="register-grid-3">
+          <div className="register-grid-2">
             <label>
               전용면적 ({unitLabel}) *
               <input type="number" name="area" step="0.1" value={form.area} onChange={update('area')} required />
-            </label>
-            <label>
-              공급면적 ({unitLabel})
-              <input type="number" step="0.1" value={form.supplyArea} onChange={update('supplyArea')} placeholder="비우면 자동" />
+              {fieldError('area')}
             </label>
             <label>
               층 *
               <input type="text" name="floor" value={form.floor} onChange={update('floor')} placeholder="예: 12층" required />
+              {fieldError('floor')}
             </label>
           </div>
           {areaSqm > 0 && (
-            <p className="register-hint">
-              전용 {formatArea(areaSqm)}
-              {supplyAreaSqm > 0 ? ` · 공급 ${formatArea(supplyAreaSqm)}` : ''} 로 저장됩니다.
-            </p>
+            <p className="register-hint">전용 {formatArea(areaSqm)} 로 저장됩니다.</p>
           )}
           <div className="register-grid-2">
             <label>
@@ -246,6 +235,7 @@ function AgentRegisterProperty() {
             <label>
               건축연도 *
               <input type="number" name="builtYear" min="1970" max="2030" value={form.builtYear} onChange={update('builtYear')} required />
+              {fieldError('builtYear')}
             </label>
             <label>
               세대수
@@ -264,6 +254,7 @@ function AgentRegisterProperty() {
           <label>
             매도 호가 (원) *
             <input type="number" name="price" min="0" step="100000" value={form.price} onChange={update('price')} placeholder="예: 2150000000" required />
+            {fieldError('price')}
           </label>
 
           {/* 기준 실거래가는 국토부 데이터에서 자동 산출 (중개사 직접 입력 불가) */}
@@ -332,7 +323,7 @@ function AgentRegisterProperty() {
           <p className="register-hint">사진을 안 올려도 등록 가능 (placeholder 이미지로 표시).</p>
         </fieldset>
 
-        {/* Section 7: 추가 설명 + 중개사무소 */}
+        {/* Section 7: 추가 설명 */}
         <fieldset className="register-section">
           <legend>매물 설명 *</legend>
           <textarea
@@ -343,27 +334,8 @@ function AgentRegisterProperty() {
             rows={5}
             required
           />
-        </fieldset>
-
-        <fieldset className="register-section">
-          <legend>중개사무소 정보</legend>
-          <div className="register-grid-2">
-            <label>
-              중개사무소명
-              <input type="text" value={form.agencyName} onChange={update('agencyName')} placeholder="예: 프라임공인중개사" />
-            </label>
-            <label>
-              연락처
-              <input
-                type="text"
-                value={form.agentPhone}
-                onChange={update('agentPhone')}
-                placeholder="예: 02-548-9031"
-                inputMode="numeric"
-                maxLength={PHONE_MAX_LENGTH}
-              />
-            </label>
-          </div>
+          {fieldError('description')}
+          <p className="register-hint">중개사무소명·연락처는 가입한 중개사 계정 정보로 자동 등록됩니다.</p>
         </fieldset>
 
         {error && <p className="form-status error">{error}</p>}

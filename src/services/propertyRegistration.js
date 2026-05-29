@@ -125,6 +125,20 @@ async function fetchPriceHistory({ gu, areaBucket }) {
   }));
 }
 
+// 중개사 본인의 승인된 가입 신청서에서 사무소명 조회 (등록 폼에서 입력받지 않고 자동 채움)
+async function fetchAgentOfficeName(email) {
+  if (!email) return '';
+  const { data } = await supabase
+    .from('agent_applications')
+    .select('office_name')
+    .eq('contact_email', email)
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data?.office_name || '';
+}
+
 export async function registerProperty(form, agentProfile) {
   if (!isSupabaseConfigured) {
     throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
@@ -149,11 +163,15 @@ export async function registerProperty(form, agentProfile) {
   const gu = form.complexGu || lookupResult.region?.gu || null;
   const areaBucket = getAreaBucket(Number(form.area));
 
-  // 기준 실거래가 자동 산출(단지→구 fallback) + 13개월 추이 스냅샷
-  const [reference, priceHistory] = await Promise.all([
+  // 기준 실거래가 자동 산출(단지→구 fallback) + 13개월 추이 스냅샷 + 사무소명 자동
+  const [reference, priceHistory, officeName] = await Promise.all([
     resolveReferencePrice({ complexName: form.complexName, gu, areaBucket }),
     fetchPriceHistory({ gu, areaBucket }),
+    fetchAgentOfficeName(agentProfile?.email),
   ]);
+
+  // region 은 입력받지 않고 자동: 단지 시군구 > Geocoding 구 > 주소
+  const region = form.complexSigungu || lookupResult.region?.gu || form.address || '';
 
   // 기준 실거래가: 산출값 우선, 없으면 매도 호가(=할인율 0)
   const marketPrice = reference.price || Number(form.price);
@@ -169,7 +187,7 @@ export async function registerProperty(form, agentProfile) {
     title: form.title,
     address: form.address,
     coordinates,
-    region: form.region,
+    region,
     property_type: '아파트',
     price: sellPrice,
     actual_transaction_price: marketPrice,
@@ -192,8 +210,8 @@ export async function registerProperty(form, agentProfile) {
     unit_count: Number(form.unitCount) || null,
     agent: {
       name: agentProfile?.full_name || '담당자',
-      office: form.agencyName || '',
-      phone: agentProfile?.phone || form.agentPhone || '',
+      office: officeName,
+      phone: agentProfile?.phone || '',
       email: agentProfile?.email || '',
       verified: true,
     },

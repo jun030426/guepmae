@@ -2800,6 +2800,15 @@ tr.is-suspended {
   margin: var(--space-1) 0 0;
 }
 
+/* 필수 미입력 필드 안내 */
+.field-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #d83324;
+}
+
 .register-grid-2,
 .register-grid-3 {
   display: grid;

@@ -113,17 +113,58 @@ async function googleNearbySearch({ apiKey, type, lat, lng, radius }) {
   const results = data.results ?? [];
   if (results.length === 0) return null;
 
-  // 직선 거리 계산해서 가장 가까운 것 1개
+  // 직선 거리 계산해서 가장 가까운 것 1개 (좌표도 보관 — Distance Matrix 용)
   let nearest = null;
   for (const r of results) {
     const loc = r.geometry?.location;
     if (!loc) continue;
     const d = haversineMeters(lat, lng, loc.lat, loc.lng);
     if (!nearest || d < nearest.distance) {
-      nearest = { name: r.name, distance: d, vicinity: r.vicinity };
+      nearest = { name: r.name, distance: d, vicinity: r.vicinity, lat: loc.lat, lng: loc.lng };
     }
   }
   return nearest;
+}
+
+// Distance Matrix — 실제 도보/차량 경로 거리·시간 (한 모드당 배치 1회)
+async function googleDistanceMatrix({ apiKey, origin, destinations, mode }) {
+  if (!destinations.length) return [];
+  const url = new URL('https://maps.googleapis.com/maps/api/distancematrix/json');
+  url.searchParams.set('origins', `${origin.lat},${origin.lng}`);
+  url.searchParams.set('destinations', destinations.map((d) => `${d.lat},${d.lng}`).join('|'));
+  url.searchParams.set('mode', mode); // 'walking' | 'driving'
+  url.searchParams.set('language', 'ko');
+  url.searchParams.set('key', apiKey);
+  try {
+    const res = await fetch(url.toString());
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (data.status !== 'OK') {
+      console.warn('[DistanceMatrix] status:', data.status, data.error_message);
+      return [];
+    }
+    const elements = data.rows?.[0]?.elements ?? [];
+    return elements.map((el) =>
+      el?.status === 'OK'
+        ? {
+            meters: el.distance?.value ?? null,
+            minutes: el.duration ? Math.max(1, Math.round(el.duration.value / 60)) : null,
+          }
+        : null,
+    );
+  } catch (err) {
+    console.warn('[DistanceMatrix] failed:', err);
+    return [];
+  }
+}
+
+// 실제 도보 거리(m) 기준 역세권 분류 (도시계획 통상 기준: 500m/1km 반경)
+function classifyStationArea(meters) {
+  if (!Number.isFinite(meters)) return null;
+  if (meters <= 500) return '초역세권';
+  if (meters <= 1000) return '역세권';
+  if (meters <= 1500) return '역 인접';
+  return '비역세권';
 }
 
 export default async function handler(req, res) {
@@ -166,7 +207,7 @@ export default async function handler(req, res) {
   let nearest = null;
 
   try {
-    // 6개 카테고리 병렬 조회
+    // 1) 카테고리별 최근접 장소 (Places, 좌표 포함)
     const results = await Promise.all(
       CATEGORIES.map((cat) =>
         googleNearbySearch({ apiKey, type: cat.type, lat, lng, radius: cat.radius })
@@ -175,22 +216,39 @@ export default async function handler(req, res) {
       ),
     );
 
+    // 2) Distance Matrix 로 실제 경로 거리·시간 (모드별 배치 1회씩)
+    const origin = { lat, lng };
+    const found = results.filter((r) => r.doc && Number.isFinite(r.doc.lat) && Number.isFinite(r.doc.lng));
+    const walkItems = found.filter((r) => r.cat.mode === 'walk');
+    const driveItems = found.filter((r) => r.cat.mode === 'drive');
+    const [walkDM, driveDM] = await Promise.all([
+      googleDistanceMatrix({ apiKey, origin, destinations: walkItems.map((r) => r.doc), mode: 'walking' }),
+      googleDistanceMatrix({ apiKey, origin, destinations: driveItems.map((r) => r.doc), mode: 'driving' }),
+    ]);
+    const dmByCat = new Map();
+    walkItems.forEach((r, i) => dmByCat.set(r.cat.key, walkDM[i] || null));
+    driveItems.forEach((r, i) => dmByCat.set(r.cat.key, driveDM[i] || null));
+
+    // 3) 라벨 생성 (DM 실패 시 직선거리 fallback)
+    let subwayMeters = null;
     for (const { cat, doc } of results) {
       if (!doc) continue;
-      const minutes = minutesFromMeters(doc.distance, cat.mode);
+      const dm = dmByCat.get(cat.key);
+      const meters = dm?.meters ?? doc.distance;
+      const minutes = dm?.minutes ?? minutesFromMeters(doc.distance, cat.mode);
       if (!minutes) continue;
       const modeLabel = cat.mode === 'walk' ? '도보' : '차량';
-      const label = `${doc.name} ${modeLabel} ${minutes}분`;
-      lifestyle[cat.key] = label;
-      if (!nearest || doc.distance < nearest.distance) {
-        nearest = {
-          place: doc.name,
-          label,
-          minutes,
-          type: cat.label,
-          distance: doc.distance,
-        };
+      lifestyle[cat.key] = `${doc.name} ${modeLabel} ${minutes}분`;
+      if (cat.key === 'subway') subwayMeters = meters;
+      if (!nearest || meters < nearest.distance) {
+        nearest = { place: doc.name, label: lifestyle[cat.key], minutes, type: cat.label, distance: meters };
       }
+    }
+
+    // 4) 역세권 분류 (실제 도보 거리 기준)
+    const grade = classifyStationArea(subwayMeters);
+    if (grade && lifestyle.subway) {
+      lifestyle.stationArea = `${grade} — ${lifestyle.subway} (약 ${Math.round(subwayMeters)}m)`;
     }
 
     return res.status(200).json({

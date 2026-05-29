@@ -140,7 +140,7 @@ function buildUserPrompt({ property, nearby }) {
   }
 
   const lifestyleLines = Object.entries(property.lifestyle || {})
-    .filter(([, v]) => v)
+    .filter(([k, v]) => v && k !== 'stationArea') // stationArea 는 역세권 줄에서 별도 표기
     .map(([k, v]) => `- ${k}: ${v}`)
     .join('\n') || '- (확인된 주변 시설 정보 없음)';
 
@@ -164,8 +164,8 @@ function buildUserPrompt({ property, nearby }) {
 ## ⚠️ 중개사 제공 정보 (미검증 주장 — 사실로 단정 말고 claimCheck에서 데이터와 대조)
 ${property.description || '(중개사 설명 없음)'}
 
-## 📍 생활권 (Places 기반 최근접 시설 — 학군 정보는 포함되지 않음)
-- 역세권 분류: ${classifyStationArea(property.lifestyle?.subway)}
+## 📍 생활권 (Places + 실제 도보/차량 거리 기반 — 학군 정보는 포함되지 않음)
+- 역세권 분류: ${property.lifestyle?.stationArea || classifyStationArea(property.lifestyle?.subway)}
 ${lifestyleLines}
 
 ## 📊 같은 지역(${property.region}) 다른 급매 매물 (가격 비교용 참고)

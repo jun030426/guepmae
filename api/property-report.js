@@ -24,32 +24,32 @@ import { z } from 'zod';
 
 const REPORT_SCHEMA = z.object({
   summary: z.object({
-    headline: z.string().describe('이 매물 한 줄 요약 (60자 이내). 제공된 할인율·추세 등 "검증된 데이터"에만 근거. 예: "강남구 84㎡, 실거래가 대비 8% 급매 · 최근 1년 보합 · 학군은 직접 확인 필요"'),
-    merits: z.array(z.string()).min(3).max(4).describe('매수 시 핵심 메리트. 각 1~2문장. 반드시 제공된 데이터(할인율/추세/면적/연식/향 등)에 근거. 추측·과장 금지.'),
-    cautions: z.array(z.string()).min(3).max(4).describe('매수 시 주의사항/약점. 각 1~2문장. 데이터 공백(학군·권리관계 미확인 등)도 솔직히 약점으로 포함.'),
+    headline: z.string().describe('이 매물 한 줄 핵심 요약 (간결하게). 제공된 할인율·추세 등 "검증된 데이터"에만 근거. 예: "강남구 84㎡, 실거래가 대비 8% 급매 · 최근 1년 보합 · 학군은 직접 확인 필요"'),
+    merits: z.array(z.string()).min(3).max(6).describe('매수 시 핵심 메리트. 각 항목을 충분히 구체적으로(여러 문장 가능) 서술. 반드시 제공된 데이터(할인율/추세/면적/연식/향/역세권 등)에 근거. 추측·과장 금지.'),
+    cautions: z.array(z.string()).min(3).max(6).describe('매수 시 주의사항/약점. 각 항목 구체적으로. 데이터 공백(학군·권리관계 미확인 등)도 솔직히 약점으로 포함.'),
   }),
   basic: z.object({
-    summaryText: z.string().describe('매물 개요 1~2단락. 제공된 사실(연식·면적·층·향·거주상태·세대수·주차)만 사용. 없는 정보는 언급하지 말 것.'),
-    rightsAnalysis: z.string().describe('권리관계. 등기부 데이터가 없으므로 반드시 "본 리포트는 등기부등본 미확인 상태이며, 융자·근저당·임차권 등은 계약 전 반드시 직접 확인이 필요합니다" 취지로 명시.'),
+    summaryText: z.string().describe('매물 개요. 길이 제한 없이 충분히 상세하게 — 제공된 사실(연식·면적·층·향·거주상태·세대수·주차)을 풍부하게 엮어 서술. 없는 정보는 언급하지 말 것.'),
+    rightsAnalysis: z.string().describe('권리관계. 등기부 데이터가 없으므로 반드시 "본 리포트는 등기부등본 미확인 상태이며, 융자·근저당·임차권 등은 계약 전 반드시 직접 확인이 필요합니다" 취지로 명시. 매수자가 확인해야 할 권리 항목들을 구체적으로 안내해도 좋음.'),
   }),
   priceAnalysis: z.object({
-    competitivenessText: z.string().describe('가격 경쟁력 분석 1~2단락. 제공된 "기준 실거래가·할인율·같은 지역 비교 매물"을 인용. 새로운 적정시세를 추정하지 말 것 — 제공된 기준 실거래가가 유일한 비교 기준.'),
-    trendText: z.string().describe('최근 1년 실거래 추이 분석 1단락. 제공된 월별 추이 수치/변동률을 인용. 추이는 "지나온 관찰"로만 — 미래 가격을 예측하지 말 것.'),
-    claimCheck: z.string().describe('중개사가 제공한 매물 설명/매도 사유(미검증 주장)를 검증된 데이터와 대조한 중립 코멘트 1단락. 과장(예: "초급매"라는데 할인율이 낮음)이 보이면 담담히 지적. 데이터로 확인 가능한 부분과 불가능한 부분을 구분.'),
+    competitivenessText: z.string().describe('가격 경쟁력 분석. 길이 제한 없이 깊고 상세하게. 제공된 "기준 실거래가·할인율·같은 지역 비교 매물"을 구체적으로 인용·비교. 새로운 적정시세를 추정하지 말 것 — 제공된 기준 실거래가가 유일한 비교 기준.'),
+    trendText: z.string().describe('최근 1년 실거래 추이 분석. 상세하게. 제공된 월별 추이 수치/변동률을 인용하고 흐름을 해석. 추이는 "지나온 관찰"로만 — 미래 가격을 예측하지 말 것.'),
+    claimCheck: z.string().describe('중개사가 제공한 매물 설명/매도 사유(미검증 주장)를 검증된 데이터와 대조한 중립 코멘트. 상세하게. 과장(예: "초급매"라는데 할인율이 낮음)이 보이면 담담히 지적. 데이터로 확인 가능한 부분과 불가능한 부분을 구분.'),
     downsideRisk: z.enum(['낮음', '보통', '높음']).describe('추가 하락 위험도 (할인율·추세 근거)'),
-    downsideText: z.string().describe('하방 위험 분석 1단락. 왜 그 등급인지 데이터로 설명.'),
+    downsideText: z.string().describe('하방 위험 분석. 상세하게 — 왜 그 등급인지 데이터로 설명하고, 어떤 조건에서 위험이 커지는지도 서술.'),
   }),
   location: z.object({
-    transport: z.string().describe('교통 — 제공된 "생활권(지하철 최근접)" 데이터만 사용. 데이터 없으면 "공개 데이터로 확인되지 않음 — 직접 확인 필요". 역명·거리를 지어내지 말 것.'),
-    amenities: z.string().describe('생활편의 — 제공된 생활권(마트/병원/편의점/체육시설) 데이터만 사용. 없으면 확인 불가로 명시.'),
+    transport: z.string().describe('교통 — 제공된 "생활권(지하철 최근접)"과 "역세권 분류" 데이터를 사용해 상세히 서술(예: "○○역 도보 N분 = 역세권"). 데이터 없으면 "공개 데이터로 확인되지 않음 — 직접 확인 필요". 역명·거리를 지어내지 말 것.'),
+    amenities: z.string().describe('생활편의 — 제공된 생활권(마트/병원/편의점/체육시설) 데이터를 구체적으로 엮어 상세히. 없으면 확인 불가로 명시.'),
     school: z.string().describe('학교 — 제공된 생활권의 "학교"(최근접) 데이터가 있으면 "인근 학교: ○○ (도보/차량 N분)" 사실로 서술. 단 "배정 학교·학군 등급/평가"는 데이터가 없으므로 단정하지 말고 "배정 학교와 학군 평가는 직접 확인이 필요합니다"로 명시. 학교명·배정·등급을 지어내지 말 것.'),
-    marketTrend: z.string().describe('지역 시장 흐름 — 제공된 "같은 지역 비교 매물"과 "1년 추이" 범위 안에서만 서술. 미확인 개발 호재·전망을 단정하지 말 것.'),
+    marketTrend: z.string().describe('지역 시장 흐름 — 제공된 "같은 지역 비교 매물"과 "1년 추이" 범위 안에서 상세히 서술. 미확인 개발 호재·전망을 단정하지 말 것.'),
   }),
   opinion: z.object({
     score: z.number().min(0).max(100).describe('종합 점수. 가격 합리성(할인율) 중심 + 사실 데이터. 데이터 공백이 많으면 보수적으로 낮게.'),
     grade: z.enum(['S', 'A', 'B', 'C', 'D']).describe('등급. S=90+, A=80+, B=70+, C=60+, D=60-'),
     buyRecommendation: z.number().min(0).max(5).describe('매수 권장도 (0~5점). 1자리 소수점.'),
-    finalOpinion: z.string().describe('최종 종합 의견 2~4단락. 강점·약점·데이터 한계를 균형있게. 어떤 매수자에게 적합한지. 과장·홍보 금지.'),
+    finalOpinion: z.string().describe('최종 종합 의견. 길이 제한 없이 깊고 길게 — 강점·약점·데이터 한계·매수 시 체크포인트를 균형있게 풍부하게. 어떤 매수자에게 적합한지. 과장·홍보 금지.'),
     targetBuyer: z.string().describe('가장 적합한 매수자 한 문장 (예: "강남 출퇴근 직장인 신혼부부").'),
   }),
 });
@@ -67,6 +67,7 @@ const SYSTEM_PROMPT = `당신은 한국 부동산 급매 매물을 분석하는 
 
 [강조점] "왜 이 매물이 급매인지(가격 메리트와 매도 시급도)"를 핵심으로 다루되, 근거는 항상 데이터에서 인용하세요.
 [톤] 일반인이 이해하기 쉬운, 친근하지만 냉정한 전문가. 과장·미사여구 자제.
+[분량] 각 항목은 분량 제한 없이 충분히 상세하고 풍부하게 작성하세요 — 정보가 많을수록 좋습니다. 단, 분량을 채우려고 추측·반복·과장을 하지 말고, 제공된 데이터 범위 안에서만 깊게 쓰세요.
 
 출력 형식은 주어진 JSON schema 를 정확히 따르세요.`;
 
@@ -111,6 +112,21 @@ async function fetchPropertyContext(supabase, propertyId) {
   return { property, nearby: nearby ?? [] };
 }
 
+// 지하철 최근접 시설 라벨("○○역 도보 5분")로 역세권 등급 분류
+function classifyStationArea(subwayLabel) {
+  if (!subwayLabel) return '확인되지 않음 (도보권 내 지하철역 데이터 없음)';
+  const minutesMatch = String(subwayLabel).match(/(\d+)\s*분/);
+  const minutes = minutesMatch ? Number(minutesMatch[1]) : null;
+  const isWalk = /도보/.test(subwayLabel);
+  if (isWalk && minutes != null) {
+    if (minutes <= 5) return `초역세권 — ${subwayLabel} (도보 5분 이내)`;
+    if (minutes <= 10) return `역세권 — ${subwayLabel} (도보 10분 이내)`;
+    return `역 도보 다소 거리 — ${subwayLabel}`;
+  }
+  if (!isWalk) return `비역세권 — 도보권 내 역 없음 (${subwayLabel})`;
+  return subwayLabel;
+}
+
 function buildUserPrompt({ property, nearby }) {
   const ph = Array.isArray(property.price_history) ? property.price_history : [];
   let trendLine = '데이터 없음';
@@ -149,6 +165,7 @@ function buildUserPrompt({ property, nearby }) {
 ${property.description || '(중개사 설명 없음)'}
 
 ## 📍 생활권 (Places 기반 최근접 시설 — 학군 정보는 포함되지 않음)
+- 역세권 분류: ${classifyStationArea(property.lifestyle?.subway)}
 ${lifestyleLines}
 
 ## 📊 같은 지역(${property.region}) 다른 급매 매물 (가격 비교용 참고)

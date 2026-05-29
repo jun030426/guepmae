@@ -1651,6 +1651,46 @@ body {
   color: var(--color-text-subtle);
 }
 
+.report-print-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-text);
+  background: var(--color-text);
+  color: var(--color-bg);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.report-print-button:hover {
+  opacity: 0.85;
+}
+
+/* 인쇄 / PDF 저장 — 리포트만 인쇄되도록 나머지는 숨김 */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .property-report,
+  .property-report * {
+    visibility: visible;
+  }
+  .property-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0;
+  }
+  .report-print-button {
+    display: none !important;
+  }
+}
+
 .report-regenerate-button {
   display: inline-flex;
   align-items: center;

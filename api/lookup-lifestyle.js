@@ -45,6 +45,33 @@ function minutesFromMeters(meters, mode) {
   return Math.max(1, Math.round(minutes));
 }
 
+// Geocoding 주소 구성요소에서 "시도 + 구/시/군" 행정구역 키를 추출.
+// price_trends 테이블의 gu 값(예: "서울특별시 강남구", "경기도 수원시 영통구")과 매칭하기 위함.
+function extractRegion(components) {
+  if (!Array.isArray(components)) return null;
+  const sidoComp = components.find((c) => c.types?.includes('administrative_area_level_1'));
+  const sido = sidoComp?.long_name;
+  if (!sido) return null;
+
+  // 시도를 제외하고 시/군/구로 끝나는 구성요소 수집 (중복 제거)
+  const seen = new Set();
+  const units = [];
+  for (const c of components) {
+    const name = c.long_name;
+    if (!name || name === sido || seen.has(name)) continue;
+    if (/(시|군|구)$/.test(name)) {
+      seen.add(name);
+      units.push(name);
+    }
+  }
+  // 시 → 군 → 구 순서 (예: "수원시 영통구")
+  const rank = (n) => (n.endsWith('시') ? 0 : n.endsWith('군') ? 1 : 2);
+  units.sort((a, b) => rank(a) - rank(b));
+
+  const gu = [sido, ...units].join(' ');
+  return { sido, gu };
+}
+
 async function googleGeocode({ apiKey, address }) {
   const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
   url.searchParams.set('address', address);
@@ -58,8 +85,14 @@ async function googleGeocode({ apiKey, address }) {
     console.warn('[Geocoding] status:', data.status, data.error_message);
     return null;
   }
-  const loc = data.results[0].geometry?.location;
-  return loc ? { lat: loc.lat, lng: loc.lng } : null;
+  const result = data.results[0];
+  const loc = result.geometry?.location;
+  if (!loc) return null;
+  return {
+    lat: loc.lat,
+    lng: loc.lng,
+    region: extractRegion(result.address_components),
+  };
 }
 
 async function googleNearbySearch({ apiKey, type, lat, lng, radius }) {
@@ -106,6 +139,7 @@ export default async function handler(req, res) {
   let lat = Number(req.query.lat);
   let lng = Number(req.query.lng);
   const address = req.query.address;
+  let region = null;
 
   // 좌표 없으면 주소로 Geocoding
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
@@ -118,6 +152,7 @@ export default async function handler(req, res) {
     }
     lat = geo.lat;
     lng = geo.lng;
+    region = geo.region;
   }
 
   const lifestyle = {
@@ -162,6 +197,7 @@ export default async function handler(req, res) {
       coordinates: { lat, lng },
       lifestyle,
       nearest,
+      region,
     });
   } catch (err) {
     console.error('[lookup-lifestyle] failed:', err);

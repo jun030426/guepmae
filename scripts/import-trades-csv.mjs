@@ -21,28 +21,31 @@ const projectRoot = path.resolve(__dirname, '..');
 const defaultDataDir = path.join(__dirname, 'data');
 const outputDir = path.join(projectRoot, 'src', 'data');
 
-/* ---------- 1. CSV 파일 위치 결정 ---------- */
-function resolveCsvPath() {
+/* ---------- 1. CSV 파일 위치 결정 (인자 1개 또는 scripts/data/ 의 모든 .csv) ---------- */
+function resolveCsvPaths() {
   const arg = process.argv[2];
   if (arg) {
     const resolved = path.resolve(projectRoot, arg);
     if (!fs.existsSync(resolved)) {
       throw new Error(`CSV 파일을 찾을 수 없습니다: ${resolved}`);
     }
-    return resolved;
+    return [resolved];
   }
   if (!fs.existsSync(defaultDataDir)) {
     throw new Error(
       `scripts/data 폴더가 없습니다. CSV 파일을 scripts/data/ 안에 넣거나 경로를 인자로 전달하세요.`,
     );
   }
-  const candidates = fs.readdirSync(defaultDataDir).filter((name) => name.toLowerCase().endsWith('.csv'));
+  const candidates = fs
+    .readdirSync(defaultDataDir)
+    .filter((name) => name.toLowerCase().endsWith('.csv'))
+    .map((name) => path.join(defaultDataDir, name));
   if (candidates.length === 0) {
     throw new Error(
       `scripts/data/ 안에 .csv 파일이 없습니다. 국토부에서 받은 CSV를 거기에 넣어주세요.`,
     );
   }
-  return path.join(defaultDataDir, candidates[0]);
+  return candidates;
 }
 
 /* ---------- 2. CP949 → UTF-8 + 메타 헤더 제거 ---------- */
@@ -429,15 +432,18 @@ function buildComplexLookup(rows) {
 
 /* ---------- main ---------- */
 async function main() {
-  const csvPath = resolveCsvPath();
-  console.log(`[import] 입력 파일: ${path.relative(projectRoot, csvPath)}`);
+  const csvPaths = resolveCsvPaths();
+  console.log(`[import] 입력 파일 ${csvPaths.length}개`);
 
-  const csvBody = readNationalCsv(csvPath);
-  const rows = parseRows(csvBody);
-  console.log(`[import] CSV 파싱 완료: ${rows.length.toLocaleString('ko-KR')}행`);
-
-  const normalizedRows = rows.map(normalizeRow).filter(Boolean);
-  console.log(`[import] 정규화 완료: ${normalizedRows.length.toLocaleString('ko-KR')}건 (필수 컬럼 누락 제외)`);
+  let normalizedRows = [];
+  for (const csvPath of csvPaths) {
+    const csvBody = readNationalCsv(csvPath);
+    const rows = parseRows(csvBody);
+    const norm = rows.map(normalizeRow).filter(Boolean);
+    normalizedRows = normalizedRows.concat(norm);
+    console.log(`[import] ${path.basename(csvPath)}: ${norm.length.toLocaleString('ko-KR')}건`);
+  }
+  console.log(`[import] 정규화 완료(전체): ${normalizedRows.length.toLocaleString('ko-KR')}건`);
 
   const aggregated = aggregate(normalizedRows);
   const complexLookup = buildComplexLookup(normalizedRows);

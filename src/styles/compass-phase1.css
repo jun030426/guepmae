@@ -980,6 +980,41 @@ body {
   letter-spacing: var(--ls-wide);
 }
 
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--space-2) 0 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.chart-legend .legend-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-left: var(--space-2);
+}
+
+.chart-legend .legend-dot.real {
+  background: #d83324;
+}
+
+.chart-legend .legend-dot.est {
+  background: #ffffff;
+  border: 2px solid #d83324;
+}
+
+.chart-empty {
+  padding: var(--space-5) var(--space-3);
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  background: var(--color-bg-soft);
+  border-radius: var(--radius-sm);
+}
+
 .report-table-card {
   padding: var(--space-3);
   border: 1px solid var(--color-border);

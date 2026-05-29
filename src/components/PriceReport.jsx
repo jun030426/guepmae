@@ -20,8 +20,21 @@ function PriceReport({ property }) {
   const priceGap = calculatePriceGap(property.price, property.actualTransactionPrice);
   const urgent = isUrgentSale(property.price, property.actualTransactionPrice);
 
-  // TODO: 국토부 실거래가 API 연결 시 priceHistory를 실제 단지, 면적, 거래월 데이터로 교체합니다.
   const chartData = property.priceHistory;
+  const hasChart = Array.isArray(chartData) && chartData.length > 0;
+  const hasEstimated = hasChart && chartData.some((point) => point.estimated);
+
+  // 실거래=채운 점, 재생산 추정=빨강 테두리 빈 점
+  const renderDot = (props) => {
+    const { cx, cy, payload, index } = props;
+    if (cx == null || cy == null) return null;
+    if (payload?.estimated) {
+      return (
+        <circle key={payload.yearMonth ?? index} cx={cx} cy={cy} r={4} fill="#ffffff" stroke="#d83324" strokeWidth={2} />
+      );
+    }
+    return <circle key={payload?.yearMonth ?? index} cx={cx} cy={cy} r={4} fill="#d83324" />;
+  };
 
   return (
     <section className="price-report">
@@ -66,33 +79,48 @@ function PriceReport({ property }) {
 
       <div className="chart-card">
         <div className="chart-title-row">
-          <h3>최근 6개월 실거래가 추이</h3>
+          <h3>최근 1년 실거래가 추이</h3>
           <span>단위: 원</span>
         </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={chartData} margin={{ top: 20, right: 16, left: 8, bottom: 8 }}>
-            <CartesianGrid stroke="#e7eaf0" vertical={false} />
-            <XAxis dataKey="month" tickLine={false} axisLine={false} />
-            <YAxis
-              width={86}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => formatPrice(value).replace(' 원', '')}
-            />
-            <Tooltip
-              formatter={(value) => [formatPrice(value), '거래가']}
-              labelFormatter={(label) => `${label} 거래`}
-            />
-            <Line
-              type="monotone"
-              dataKey="price"
-              stroke="#d83324"
-              strokeWidth={3}
-              dot={{ r: 4, fill: '#d83324' }}
-              activeDot={{ r: 6 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {hasChart ? (
+          <>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={chartData} margin={{ top: 20, right: 16, left: 8, bottom: 8 }}>
+                <CartesianGrid stroke="#e7eaf0" vertical={false} />
+                <XAxis dataKey="month" tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                <YAxis
+                  width={86}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => formatPrice(value).replace(' 원', '')}
+                />
+                <Tooltip
+                  formatter={(value, _name, item) => [
+                    `${formatPrice(value)}${item?.payload?.estimated ? ' (추정)' : ''}`,
+                    item?.payload?.estimated ? '주변 시세 기반 추정' : '실거래가',
+                  ]}
+                  labelFormatter={(label) => `${label} 거래`}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="price"
+                  stroke="#d83324"
+                  strokeWidth={3}
+                  dot={renderDot}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            {hasEstimated && (
+              <p className="chart-legend">
+                <span className="legend-dot real" /> 실거래
+                <span className="legend-dot est" /> 주변 시세 기반 추정(거래 없는 달)
+              </p>
+            )}
+          </>
+        ) : (
+          <p className="chart-empty">이 지역·평형의 실거래가 추이 데이터가 아직 없습니다.</p>
+        )}
       </div>
     </section>
   );

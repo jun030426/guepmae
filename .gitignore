@@ -19,6 +19,9 @@ src/data/complexLookup.json
 src/data/marketData.json
 src/data/properties.generated.json
 
+# build-price-trends.mjs 산출물 — Supabase price_trends 로 import. 재생성 가능.
+scripts/output/
+
 # Vercel 로컬 작업 폴더
 .vercel/
 

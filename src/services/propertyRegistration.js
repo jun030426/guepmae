@@ -49,17 +49,50 @@ async function fetchLifestyleAndCoords({ lat, lng, address }) {
       ? `lat=${lat}&lng=${lng}`
       : `address=${encodeURIComponent(address)}`;
     const res = await fetch(`/api/lookup-lifestyle?${params}`);
-    if (!res.ok) return { lifestyle: null, coordinates: null, nearest: null };
+    if (!res.ok) return { lifestyle: null, coordinates: null, nearest: null, region: null };
     const data = await res.json();
     return {
       lifestyle: data.lifestyle,
       coordinates: data.coordinates,
       nearest: data.nearest,
+      region: data.region,
     };
   } catch (err) {
     console.warn('lifestyle lookup failed:', err);
-    return { lifestyle: null, coordinates: null, nearest: null };
+    return { lifestyle: null, coordinates: null, nearest: null, region: null };
   }
+}
+
+// price_trends 테이블과 동일한 평형대 구간 (build-price-trends.mjs 와 반드시 일치)
+function getAreaBucket(area) {
+  if (!Number.isFinite(area)) return '미상';
+  if (area <= 60) return '60㎡ 이하';
+  if (area <= 85) return '60–85㎡';
+  if (area <= 102) return '85–102㎡';
+  if (area <= 135) return '102–135㎡';
+  return '135㎡ 초과';
+}
+
+// 구/시/군 + 평형대로 13개월 실거래가 추이를 조회해 price_history 스냅샷 생성.
+// 실제 거래(estimated=false) + 재생산 추정(estimated=true) 구분 플래그 포함.
+async function fetchPriceHistory({ gu, areaBucket }) {
+  if (!gu || !areaBucket || areaBucket === '미상') return [];
+  const { data, error } = await supabase
+    .from('price_trends')
+    .select('year_month, price, is_estimated')
+    .eq('gu', gu)
+    .eq('area_bucket', areaBucket)
+    .order('year_month', { ascending: true });
+  if (error || !data) {
+    if (error) console.warn('price_trends 조회 실패:', error.message);
+    return [];
+  }
+  return data.map((row) => ({
+    month: row.year_month.slice(2).replace('-', '.'), // '2025-05' → '25.05'
+    yearMonth: row.year_month,
+    price: row.price,
+    estimated: row.is_estimated,
+  }));
 }
 
 export async function registerProperty(form, agentProfile) {
@@ -81,6 +114,12 @@ export async function registerProperty(form, agentProfile) {
     subway: '', school: '', mart: '', hospital: '', convenience: '', gym: '',
   };
   const coordinates = lookupResult.coordinates ?? null;
+
+  // 주소에서 추출한 구/시/군 + 평형대로 13개월 실거래가 추이 스냅샷
+  const priceHistory = await fetchPriceHistory({
+    gu: lookupResult.region?.gu,
+    areaBucket: getAreaBucket(Number(form.area)),
+  });
 
   // 2) 매물 INSERT
   const row = {
@@ -117,7 +156,7 @@ export async function registerProperty(form, agentProfile) {
       verified: true,
     },
     lifestyle,
-    price_history: [],
+    price_history: priceHistory,
     media,
   };
 

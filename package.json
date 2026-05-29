@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.79",
+    "@ai-sdk/google-vertex": "^3.0.140",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@supabase/supabase-js": "^2.105.4",
     "@vitejs/plugin-react": "latest",

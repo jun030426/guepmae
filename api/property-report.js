@@ -12,14 +12,23 @@
  *   → 캐시된 리포트 삭제만 (재생성 X). 매물 수정 시 호출 → 다음 조회 때 새 데이터로 재생성.
  *
  * 환경변수:
- *   AI_GATEWAY_API_KEY       — Vercel AI Gateway 키 (Vercel Dashboard에서 생성)
  *   SUPABASE_URL             — public URL (이미 VITE_SUPABASE_URL 있음)
  *   SUPABASE_SERVICE_ROLE_KEY — service_role 키 (Settings → API → service_role)
+ *   GEMINI_MODEL             — (선택) 모델 override. 기본 gemini-2.5-flash, 예: gemini-2.5-pro
+ *
+ *   [모델 제공자 — 둘 중 하나]
+ *   (A) Vertex AI (GCP 크레딧 사용, 우선):
+ *       GCP_PROJECT_ID, GCP_CLIENT_EMAIL, GCP_PRIVATE_KEY, GCP_LOCATION(예: asia-northeast3)
+ *       → 서비스계정(JSON 키) 값. 4개 다 있으면 Vertex 사용.
+ *   (B) Fallback — AI Studio:
+ *       AI_GATEWAY_API_KEY (또는 GOOGLE_GENERATIVE_AI_API_KEY)
+ *       → 위 GCP_* 가 없으면 이걸로 동작.
  */
 
 import { createClient } from '@supabase/supabase-js';
 import { generateObject } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createVertex } from '@ai-sdk/google-vertex';
 import { z } from 'zod';
 
 const REPORT_SCHEMA = z.object({
@@ -80,14 +89,33 @@ function getServiceClient() {
   return createClient(url, serviceKey, { auth: { persistSession: false } });
 }
 
-function getGoogleProvider() {
+// 모델 선택: GCP 서비스계정 env 가 있으면 Vertex AI(크레딧 사용), 없으면 AI Studio 키로 fallback.
+// → 서비스계정 env 넣기 전까지는 기존 방식대로 동작해서 배포해도 안 깨짐.
+function getModel() {
+  const modelName = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const { GCP_PROJECT_ID, GCP_CLIENT_EMAIL, GCP_PRIVATE_KEY, GCP_LOCATION } = process.env;
+
+  if (GCP_PROJECT_ID && GCP_CLIENT_EMAIL && GCP_PRIVATE_KEY) {
+    const vertex = createVertex({
+      project: GCP_PROJECT_ID,
+      location: GCP_LOCATION || 'us-central1',
+      googleAuthOptions: {
+        credentials: {
+          client_email: GCP_CLIENT_EMAIL,
+          // Vercel 환경변수에 \n 이 이스케이프돼 들어올 수 있어 실제 줄바꿈으로 복원
+          private_key: GCP_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        },
+      },
+    });
+    return { model: vertex(modelName), label: `vertex/${modelName}` };
+  }
+
   const apiKey = process.env.AI_GATEWAY_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   if (!apiKey) {
-    throw new Error('AI_GATEWAY_API_KEY 또는 GOOGLE_GENERATIVE_AI_API_KEY 환경변수가 필요합니다.');
+    throw new Error('Vertex(GCP_PROJECT_ID 등) 또는 AI_GATEWAY_API_KEY 환경변수가 필요합니다.');
   }
-  // Vercel AI Gateway 우선. 게이트웨이가 OpenAI HTTP 호환이면 baseURL 변경 가능하지만,
-  // 가장 안정적인 건 Google 공식 API 직접 호출 (Gemini Flash 무료 한도).
-  return createGoogleGenerativeAI({ apiKey });
+  const google = createGoogleGenerativeAI({ apiKey });
+  return { model: google(modelName), label: `google/${modelName}` };
 }
 
 async function fetchPropertyContext(supabase, propertyId) {
@@ -185,10 +213,9 @@ const DEFAULT_MODEL = 'gemini-2.5-flash';
 const STALE_LOCK_MS = 3 * 60 * 1000;
 
 async function generateReport({ property, nearby }) {
-  const google = getGoogleProvider();
-  const modelName = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const { model, label } = getModel();
   const result = await generateObject({
-    model: google(modelName),
+    model,
     schema: REPORT_SCHEMA,
     system: SYSTEM_PROMPT,
     prompt: buildUserPrompt({ property, nearby }),
@@ -196,7 +223,7 @@ async function generateReport({ property, nearby }) {
   return {
     report: result.object,
     usage: result.usage,
-    model: modelName,
+    model: label, // 'vertex/gemini-2.5-pro' 또는 'google/gemini-2.5-flash'
   };
 }
 
@@ -280,7 +307,7 @@ export default async function handler(req, res) {
           property_id: id,
           report_data: report,
           status: 'ready',
-          model: `google/${model}`,
+          model, // generateReport 가 이미 'vertex/...' 또는 'google/...' 라벨 반환
           generated_at: new Date().toISOString(),
           prompt_token_count: usage?.promptTokens ?? null,
           completion_token_count: usage?.completionTokens ?? null,

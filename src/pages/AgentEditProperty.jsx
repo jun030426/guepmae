@@ -22,6 +22,8 @@ function AgentEditProperty() {
       title: property.title,
       price: String(property.price ?? ''),
       floor: property.floor ?? '',
+      direction: property.direction || '남향',
+      occupancyStatus: property.occupancyStatus || '공실',
       rooms: property.rooms ?? 0,
       bathrooms: property.bathrooms ?? 0,
       parking: property.parking ?? '',
@@ -77,6 +79,8 @@ function AgentEditProperty() {
         price: Number(form.price),
         discount_rate: Number(newDiscount),
         floor: form.floor,
+        direction: form.direction,
+        occupancy_status: form.occupancyStatus,
         rooms: Number(form.rooms),
         bathrooms: Number(form.bathrooms),
         parking: form.parking || '미공개',
@@ -146,10 +150,24 @@ function AgentEditProperty() {
               <input type="number" min="0" max="4" value={form.bathrooms} onChange={update('bathrooms')} />
             </label>
           </div>
-          <label>
-            주차
-            <input type="text" value={form.parking} onChange={update('parking')} placeholder="예: 세대당 1.3대" />
-          </label>
+          <div className="register-grid-3">
+            <label>
+              향
+              <select value={form.direction} onChange={update('direction')}>
+                {['남향', '동향', '서향', '북향', '남동향', '남서향'].map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </label>
+            <label>
+              현재 거주 상태
+              <select value={form.occupancyStatus} onChange={update('occupancyStatus')}>
+                {['공실', '세입자 거주', '집주인 거주'].map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            </label>
+            <label>
+              주차
+              <input type="text" value={form.parking} onChange={update('parking')} placeholder="예: 세대당 1.3대" />
+            </label>
+          </div>
         </fieldset>
 
         <fieldset className="register-section">

@@ -6,6 +6,9 @@ import { getAreaBucket, registerProperty, resolveReferencePrice } from '../servi
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
 
+const DIRECTIONS = ['남향', '동향', '서향', '북향', '남동향', '남서향'];
+const OCCUPANCY_OPTIONS = ['공실', '세입자 거주', '집주인 거주'];
+
 const initialForm = {
   title: '',
   complexName: '', // 단지명 (자동완성 선택)
@@ -15,10 +18,12 @@ const initialForm = {
   areaUnit: 'sqm', // 'sqm'(㎡) | 'pyeong'(평) — 입력 단위
   area: '',
   floor: '',
+  direction: '남향',
   rooms: 3,
   bathrooms: 2,
   builtYear: '',
   unitCount: '',
+  occupancyStatus: '공실',
   price: '',
   parking: '',
   saleReason: '',
@@ -163,7 +168,14 @@ function AgentRegisterProperty() {
               name="complexName"
               value={form.complexName}
               onChange={(text) => setForm((s) => ({ ...s, complexName: text, complexGu: '', complexSigungu: '' }))}
-              onSelect={(s) => setForm((prev) => ({ ...prev, complexName: s.complex, complexGu: s.gu, complexSigungu: s.sigungu }))}
+              onSelect={(s) => setForm((prev) => ({
+                ...prev,
+                complexName: s.complex,
+                complexGu: s.gu,
+                complexSigungu: s.sigungu,
+                // 건축연도 데이터가 있으면 자동 채움(없으면 기존 입력값 유지 → 수동 입력)
+                builtYear: s.built_year ? String(s.built_year) : prev.builtYear,
+              }))}
               placeholder="단지명 입력 후 목록에서 선택 (예: 마포래미안푸르지오)"
             />
             <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
@@ -207,7 +219,13 @@ function AgentRegisterProperty() {
           {areaSqm > 0 && (
             <p className="register-hint">전용 {formatArea(areaSqm)} 로 저장됩니다.</p>
           )}
-          <div className="register-grid-2">
+          <div className="register-grid-3">
+            <label>
+              향
+              <select value={form.direction} onChange={update('direction')}>
+                {DIRECTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </label>
             <label>
               방 개수
               <input type="number" min="1" max="6" value={form.rooms} onChange={update('rooms')} />
@@ -226,6 +244,9 @@ function AgentRegisterProperty() {
             <label>
               건축연도 *
               <input type="number" name="builtYear" min="1970" max="2030" value={form.builtYear} onChange={update('builtYear')} required />
+              {form.complexGu && form.builtYear ? (
+                <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>단지 선택으로 자동 입력됨 (수정 가능)</small>
+              ) : null}
               {fieldError('builtYear')}
             </label>
             <label>
@@ -237,6 +258,12 @@ function AgentRegisterProperty() {
               <input type="text" value={form.parking} onChange={update('parking')} placeholder="예: 세대당 1.3대" />
             </label>
           </div>
+          <label>
+            현재 거주 상태
+            <select value={form.occupancyStatus} onChange={update('occupancyStatus')}>
+              {OCCUPANCY_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </label>
         </fieldset>
 
         {/* Section 4: 가격 */}

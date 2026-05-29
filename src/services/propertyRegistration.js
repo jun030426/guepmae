@@ -196,6 +196,8 @@ export async function registerProperty(form, agentProfile) {
     area: Number(form.area),
     supply_area: Number(form.supplyArea) || Math.round(Number(form.area) * 1.33),
     floor: form.floor,
+    direction: form.direction || null,
+    occupancy_status: form.occupancyStatus || null,
     built_year: Number(form.builtYear) || null,
     image_label: '',
     verified: false, // 관리자 승인 전엔 false

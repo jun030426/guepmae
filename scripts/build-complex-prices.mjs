@@ -127,18 +127,33 @@ function main() {
       if (cancel && cancel !== '-') continue;
       const bucket = getAreaBucket(parseArea(pickColumn(row, ['전용면적(㎡)', '전용면적'])));
       const gu = toGu(sigungu);
+      const builtYear = Number(pickColumn(row, ['건축년도', '준공년도'])) || null;
       const key = `${complex}|${gu}|${bucket}`;
       if (!groups.has(key)) {
-        groups.set(key, { complex, gu, sigungu, bucket, amounts: [], latest: ym ?? '' });
+        groups.set(key, { complex, gu, sigungu, bucket, amounts: [], latest: ym ?? '', builtYears: new Map() });
       }
       const g = groups.get(key);
       g.amounts.push(amount);
       if (ym && ym > g.latest) g.latest = ym;
+      if (builtYear) g.builtYears.set(builtYear, (g.builtYears.get(builtYear) || 0) + 1);
     }
     console.log(`[complex] ${file} 처리`);
   }
 
-  const header = ['complex', 'sigungu', 'gu', 'area_bucket', 'median_price', 'sample_size', 'latest_year_month'];
+  // 그룹별 최빈 건축연도
+  const modeBuiltYear = (counts) => {
+    let best = null;
+    let bestCount = 0;
+    for (const [year, count] of counts) {
+      if (count > bestCount) {
+        best = year;
+        bestCount = count;
+      }
+    }
+    return best;
+  };
+
+  const header = ['complex', 'sigungu', 'gu', 'area_bucket', 'median_price', 'sample_size', 'latest_year_month', 'built_year'];
   const out = [header.join(',')];
   for (const g of groups.values()) {
     out.push([
@@ -149,6 +164,7 @@ function main() {
       median(g.amounts),
       g.amounts.length,
       csvCell(g.latest),
+      modeBuiltYear(g.builtYears) ?? '',
     ].join(','));
   }
 

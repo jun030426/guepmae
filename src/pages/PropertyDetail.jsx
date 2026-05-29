@@ -129,6 +129,8 @@ function PropertyDetail() {
     ['준공연도', `${property.builtYear}년`],
     ['층수', property.floor],
     ['주차', property.parking],
+    ...(property.direction ? [['향', property.direction]] : []),
+    ...(property.occupancyStatus ? [['거주 상태', property.occupancyStatus]] : []),
     ['지역', property.region],
   ];
 

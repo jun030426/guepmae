@@ -38,6 +38,8 @@ function normalizeProperty(row) {
     area: toNumber(row.area),
     supplyArea: toNumber(row.supply_area),
     floor: row.floor ?? '',
+    direction: row.direction ?? '',
+    occupancyStatus: row.occupancy_status ?? '',
     builtYear: toNumber(row.built_year),
     imageLabel: row.image_label ?? '',
     verified: Boolean(row.verified),

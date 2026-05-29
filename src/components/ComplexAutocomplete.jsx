@@ -24,7 +24,7 @@ function ComplexAutocomplete({ value, onChange, onSelect, name, placeholder, req
     const timer = setTimeout(async () => {
       const { data } = await supabase
         .from('complex_prices')
-        .select('complex, sigungu, gu')
+        .select('complex, sigungu, gu, built_year')
         .ilike('complex', `%${q}%`)
         .limit(40);
       if (!active) return;

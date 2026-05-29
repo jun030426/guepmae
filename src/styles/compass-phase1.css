@@ -2809,6 +2809,55 @@ tr.is-suspended {
   color: #d83324;
 }
 
+/* 내 등록 매물 — 상태 배지 + 행 액션 */
+.status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.status-badge.ok {
+  background: #e8f3ec;
+  color: #1f7a44;
+}
+
+.status-badge.wait {
+  background: #fdf0e3;
+  color: #b6781f;
+}
+
+.my-property-actions {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.row-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.row-action:hover {
+  background: var(--color-bg-soft);
+}
+
+.row-action.delete {
+  color: #c0392b;
+  border-color: #e6b0aa;
+}
+
 .register-grid-2,
 .register-grid-3 {
   display: grid;

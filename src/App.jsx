@@ -15,6 +15,8 @@ import AgentSignup from './pages/AgentSignup.jsx';
 import AgentLanding from './pages/AgentLanding.jsx';
 import AgentDashboard from './pages/AgentDashboard.jsx';
 import AgentRegisterProperty from './pages/AgentRegisterProperty.jsx';
+import AgentMyProperties from './pages/AgentMyProperties.jsx';
+import AgentEditProperty from './pages/AgentEditProperty.jsx';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -67,10 +69,18 @@ function App() {
             }
           />
           <Route
+            path="/agent/properties/:id/edit"
+            element={
+              <RequireRole allowedRoles={['admin', 'agent']}>
+                <AgentEditProperty />
+              </RequireRole>
+            }
+          />
+          <Route
             path="/agent/properties"
             element={
               <RequireRole allowedRoles={['admin', 'agent']}>
-                <AgentDashboard />
+                <AgentMyProperties />
               </RequireRole>
             }
           />

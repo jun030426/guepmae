@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import PropertyMediaViewer from '../components/PropertyMediaViewer.jsx';
 import PropertyLocationMap from '../components/PropertyLocationMap.jsx';
-import CommuteSearch from '../components/CommuteSearch.jsx';
 import PriceReport from '../components/PriceReport.jsx';
 import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
@@ -389,7 +388,11 @@ function PropertyDetail() {
                   })()}
                 </div>
               </div>
-              <CommuteSearch property={property} />
+              {/* 길찾기·소요시간 — 한국 길찾기 API(ODsay/카카오) 연동 후 제공 예정 */}
+              <div className="commute-coming-soon">
+                <strong>길찾기 · 소요시간</strong>
+                <span>대중교통·자동차 소요시간 길찾기는 곧 제공될 예정입니다.</span>
+              </div>
             </section>
 
             <section className="detail-section" id="lifestyle">

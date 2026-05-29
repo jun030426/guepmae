@@ -1341,7 +1341,31 @@ body {
   color: var(--color-text-muted);
 }
 
-/* ----------------------------- 길찾기 · 소요시간 (CommuteSearch) ----------------------------- */
+/* 길찾기 — 추후 제공 안내 (한국 길찾기 API 연동 전 placeholder) */
+.commute-coming-soon {
+  margin-top: var(--space-4);
+  padding: var(--space-3);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.commute-coming-soon strong {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.commute-coming-soon span {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* ----------------------------- 길찾기 · 소요시간 (CommuteSearch — 보류, 추후 재사용) ----------------------------- */
 .commute-search {
   margin-top: var(--space-4);
   padding-top: var(--space-4);

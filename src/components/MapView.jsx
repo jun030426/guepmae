@@ -4,7 +4,7 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
 import { formatPrice } from '../utils/priceUtils.js';
-import { MARKER_HOT, MARKER_WARM, MARKER_MILD, TEXT_STRONG } from '../styles/tokens.js';
+import { MARKER_HOT, MARKER_WARM, MARKER_MILD } from '../styles/tokens.js';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const NAVER_MAP_CLIENT_ID = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
@@ -267,6 +267,8 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
               anchor: new googleMaps.Point(active ? 48 : 36, active ? 23 : 15),
             },
           });
+          // clusterer가 평균 할인율로 묶음 색을 정할 때 자식 마커에서 꺼내 씀
+          marker.set('discountRate', property.discountRate);
 
           bounds.extend(position);
           marker.addListener('click', () => onSelect(property.id));
@@ -274,13 +276,21 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
           markersArr.push(marker);
         });
 
-        // 마커가 많을 때 줌 아웃 시 군집 표시 (검정 원 + 카운트)
+        // 마커가 많을 때 줌 아웃 시 군집 표시
+        // 묶음 색 = 자식 매물들의 할인율 단순 평균 → 등급(hot/warm/mild) 매핑
         clustererRef.current = new MarkerClusterer({
           map,
           markers: markersArr,
           renderer: {
-            render: ({ count, position }) =>
-              new googleMaps.Marker({
+            render: ({ count, position, markers }) => {
+              const rates = markers
+                .map((m) => m.get('discountRate'))
+                .filter((r) => typeof r === 'number');
+              const mean =
+                rates.length > 0 ? rates.reduce((s, r) => s + r, 0) / rates.length : 0;
+              const tone = getMarkerTone(mean);
+              const fill = MARKER_COLORS[tone];
+              return new googleMaps.Marker({
                 position,
                 label: {
                   text: String(count),
@@ -292,13 +302,14 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
                   url:
                     'data:image/svg+xml;charset=UTF-8,' +
                     encodeURIComponent(
-                      `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="${TEXT_STRONG}" stroke="#ffffff" stroke-width="2"/></svg>`,
+                      `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="${fill}" stroke="#ffffff" stroke-width="2"/></svg>`,
                     ),
                   scaledSize: new googleMaps.Size(44, 44),
                   anchor: new googleMaps.Point(22, 22),
                 },
                 zIndex: 1000 + count,
-              }),
+              });
+            },
           },
         });
 

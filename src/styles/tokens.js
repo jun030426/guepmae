@@ -23,7 +23,7 @@ export const PRIMARY_SUBTLE = '#faf1ed';
 // === Surface ===
 export const BG = '#faf7f2';
 export const SURFACE = '#ffffff';
-export const SURFACE_WARM = '#ebe5da';
+export const SURFACE_WARM = '#f3eee6';
 export const BORDER = '#e5dfd5';
 export const BORDER_STRONG = '#2b2622';
 

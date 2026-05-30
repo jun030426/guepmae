@@ -3272,6 +3272,21 @@ tr.is-suspended {
   color: rgba(255, 255, 255, 0.6);
 }
 
+/* 어두운 hero 사진 위에서 또렷하게 떠보이도록 — 베이지 알약 + 검정 글씨 invert */
+.hero-search-panel--minimal .primary-button {
+  background: var(--color-bg) !important;
+  border-color: var(--color-bg) !important;
+  color: var(--color-text) !important;
+}
+
+.hero-search-panel--minimal .primary-button:hover {
+  background: #ffffff !important;
+  border-color: #ffffff !important;
+  color: var(--color-text) !important;
+  transform: none;
+  box-shadow: none;
+}
+
 /* ----------------------------- AI Teaser ----------------------------- */
 .ai-teaser-section {
   margin-top: var(--space-5);

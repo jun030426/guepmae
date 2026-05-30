@@ -3586,9 +3586,11 @@ body {
 .primary-button:hover,
 .primary-link-button:hover,
 .hero-cta.primary:hover {
-  border-color: var(--text-strong);
-  background: var(--text-strong);
-  box-shadow: 0 12px 24px rgba(43, 38, 34, 0.22);
+  /* hover는 base(#4A433D)와 text-strong(#2B2622) 사이의 미디엄 톤 —
+     베이지 위에서 검정처럼 튀지 않고 미묘하게만 진해지도록. */
+  border-color: #3f3833;
+  background: #3f3833;
+  box-shadow: 0 12px 24px rgba(63, 56, 51, 0.22);
 }
 
 .mobile-menu-button {

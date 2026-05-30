@@ -70,7 +70,7 @@ body {
   color: var(--color-text);
   text-decoration: none;
   letter-spacing: 0.01em;
-  padding: 4px 0;
+  padding: 4px 0 2px;
   position: relative;
   transition: color 0.15s ease;
 }
@@ -82,7 +82,7 @@ body {
   position: absolute;
   left: 50%;
   right: 50%;
-  bottom: -4px;
+  bottom: 0;
   height: 1px;
   background: currentColor;
   transition: left 0.22s ease, right 0.22s ease, height 0.22s ease;

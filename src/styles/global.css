@@ -4247,7 +4247,7 @@ textarea:focus {
 
 .site-footer {
   border-top: 1px solid #d8d8d8;
-  background: #ffffff;
+  background: var(--surface-warm);
   color: #111111;
 }
 

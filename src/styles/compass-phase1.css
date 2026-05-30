@@ -172,7 +172,7 @@ body {
 
 /* ----------------------------- Footer ----------------------------- */
 .site-footer {
-  background: var(--color-bg);
+  background: var(--surface-warm);
   color: var(--color-text-muted);
   border-top: 1px solid var(--color-border);
   margin-top: var(--space-7);

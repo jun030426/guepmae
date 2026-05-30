@@ -482,24 +482,25 @@ body {
 
 .property-card-actions .outline-button {
   background: transparent;
-  border: 1px solid var(--color-border-strong);
-  color: var(--color-text);
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
 }
 
 .property-card-actions .outline-button:hover {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--color-accent);
+  color: #ffffff;
 }
 
 .property-card-actions .contact-button {
-  background: var(--color-text);
-  border: 1px solid var(--color-text);
-  color: var(--color-bg);
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  color: #ffffff;
 }
 
 .property-card-actions .contact-button:hover {
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: #864534;
+  border-color: #864534;
+  color: #ffffff;
 }
 
 /* ----------------------------- Urgent Badge ----------------------------- */
@@ -513,19 +514,19 @@ body {
   text-transform: uppercase;
   padding: 4px 10px;
   border-radius: 0;
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--color-accent);
+  color: #ffffff;
   border: none;
 }
 
 .urgent-badge.hot {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--color-accent);
+  color: #ffffff;
 }
 
 .urgent-badge.urgent {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--color-accent);
+  color: #ffffff;
 }
 
 .urgent-badge.pending {
@@ -3272,21 +3273,6 @@ tr.is-suspended {
   color: rgba(255, 255, 255, 0.6);
 }
 
-/* 어두운 hero 사진 위에서 또렷하게 떠보이도록 — 베이지 알약 + 검정 글씨 invert */
-.hero-search-panel--minimal .primary-button {
-  background: var(--color-bg) !important;
-  border-color: var(--color-bg) !important;
-  color: var(--color-text) !important;
-}
-
-.hero-search-panel--minimal .primary-button:hover {
-  background: #ffffff !important;
-  border-color: #ffffff !important;
-  color: var(--color-text) !important;
-  transform: none;
-  box-shadow: none;
-}
-
 /* ----------------------------- AI Teaser ----------------------------- */
 .ai-teaser-section {
   margin-top: var(--space-5);
@@ -4163,4 +4149,17 @@ tr.is-suspended {
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
   color: var(--color-text-subtle) !important;
+}
+
+/* ----------------------------- 매물 상세 — 갤러리 액션 도크 ----------------------------- */
+/* global.css에서 #050505 검정으로 hardcoded되어 있던 도크 버튼을 테라코타로 통일 */
+.gallery-action-tile {
+  background: var(--color-accent) !important;
+  border-right-color: rgba(255, 255, 255, 0.32) !important;
+  color: #ffffff !important;
+}
+
+.gallery-action-tile:hover {
+  background: #864534 !important;
+  color: #ffffff !important;
 }

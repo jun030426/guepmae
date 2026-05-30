@@ -1,18 +1,20 @@
 :root {
-  --color-bg: #f6f7f9;
+  /* 테라코타 + 베이지 어스 톤 — tokens.css와 정합 */
+  --color-bg: #faf7f2;
   --color-surface: #ffffff;
-  --color-surface-soft: #f1f3f6;
-  --color-text: #111827;
-  --color-muted: #667085;
-  --color-border: #dde2ea;
-  --color-line: #e8ebf0;
-  --color-navy: #172033;
-  --color-red: #d83324;
-  --color-red-dark: #b42318;
-  --color-orange: #f97316;
-  --color-yellow: #f6c945;
-  --shadow-soft: 0 16px 44px rgba(17, 24, 39, 0.08);
-  --shadow-tight: 0 8px 24px rgba(17, 24, 39, 0.08);
+  --color-surface-soft: #f4eee5;
+  --color-text: #1a1a1a;
+  --color-muted: #6e6864;
+  --color-border: #e5dfd5;
+  --color-line: #ece5d8;
+  --color-navy: #2a1f1a;
+  /* 빨강 강조 → 테라코타로 일괄 변경 (사이트 전 영역 강조 컬러) */
+  --color-red: #a85a44;
+  --color-red-dark: #864534;
+  --color-orange: #c4734a;
+  --color-yellow: #d9a85c;
+  --shadow-soft: 0 16px 44px rgba(60, 40, 28, 0.10);
+  --shadow-tight: 0 8px 24px rgba(60, 40, 28, 0.10);
   --radius-card: 8px;
   --radius-control: 6px;
   --header-height: 76px;

@@ -5,16 +5,16 @@
  */
 
 :root {
-  /* Color — 흑백 중심 */
-  --color-bg: #ffffff;
-  --color-bg-soft: #fafafa;
-  --color-text: #0f0f0f;
-  --color-text-muted: #6e6e6e;
-  --color-text-subtle: #8a8a8a;
-  --color-border: #e5e5e5;
+  /* Color — 테라코타 + 베이지 (따뜻한 어스 톤) */
+  --color-bg: #faf7f2;          /* 따뜻한 베이지 — 페이지 배경 */
+  --color-bg-soft: #ffffff;     /* 순백 — 카드면 (베이지 위에 떠있는 luxury 톤) */
+  --color-text: #1a1a1a;        /* 살짝 따뜻한 검정 */
+  --color-text-muted: #6e6864;  /* 따뜻 회색 */
+  --color-text-subtle: #948e88;
+  --color-border: #e5dfd5;      /* 베이지 톤 구분선 */
   --color-border-strong: #1a1a1a;
-  --color-accent: #1f2937;
-  --color-accent-soft: #f3f4f6;
+  --color-accent: #a85a44;      /* 테라코타 — 액센트 */
+  --color-accent-soft: #f4e8e3; /* 연한 테라코타 — 배지 배경용 */
 
   /* Status — 최소한의 컬러 */
   --color-success: #1a6b4a;

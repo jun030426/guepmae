@@ -44,6 +44,15 @@
   --danger: #d14343;
 
   /* ============================================================
+   * Map Marker — 할인율 등급 (톤다운 흙빛 신호등)
+   *   primary는 CTA·브랜드 포인트 전용으로 보존하고
+   *   마커는 별도 어스 톤 3단계로 구분
+   * ============================================================ */
+  --marker-hot: #a23b2e;         /* 차분한 벽돌 — 할인율 최상위 */
+  --marker-warm: #b0623e;        /* rust — 중간 */
+  --marker-mild: #c19a5b;        /* 가라앉은 골드 — 약함 */
+
+  /* ============================================================
    * 별칭 — 가독성·리브랜딩 안전망
    * ============================================================ */
   --terracotta: var(--primary);
@@ -69,10 +78,10 @@
   --color-navy: var(--text-strong);
   --color-accent: var(--primary);
   --color-accent-soft: var(--primary-subtle);
-  --color-red: var(--primary);
+  --color-red: var(--primary);       /* CTA·브랜드 강조용 (마커 .red는 global.css에서 --marker-hot으로 직접 참조) */
   --color-red-dark: var(--primary-hover);
-  --color-orange: var(--warning);
-  --color-yellow: var(--warning);
+  --color-orange: var(--marker-warm); /* 지도 마커 중간 등급 */
+  --color-yellow: var(--marker-mild); /* 지도 마커 약함 등급 — yellow의 #3b2f00 어두운 글씨 보존 */
   --color-success: var(--success);
   --color-danger: var(--danger);
 

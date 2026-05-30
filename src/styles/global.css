@@ -1486,7 +1486,7 @@ textarea:focus {
 }
 
 .google-map-marker-overlay.red {
-  background: var(--color-red);
+  background: var(--marker-hot);
 }
 
 .google-map-marker-overlay.orange {
@@ -1792,11 +1792,11 @@ textarea:focus {
 }
 
 .map-marker.red {
-  background: var(--color-red);
+  background: var(--marker-hot);
 }
 
 .naver-map-marker.red {
-  background: var(--color-red);
+  background: var(--marker-hot);
 }
 
 .map-marker.orange {
@@ -1937,7 +1937,7 @@ textarea:focus {
 }
 
 .legend-dot.red {
-  background: var(--color-red);
+  background: var(--marker-hot);
 }
 
 .legend-dot.orange {

@@ -378,13 +378,6 @@ function PropertyDetail() {
                   })()}
                 </div>
               </div>
-              {/* 길찾기·소요시간 — 한국 길찾기 API(ODsay/카카오) 연동 후 재활성화. 그때까지 노출 안 함. */}
-              {/*
-              <div className="commute-coming-soon">
-                <strong>길찾기 · 소요시간</strong>
-                <span>대중교통·자동차 소요시간 길찾기는 곧 제공될 예정입니다.</span>
-              </div>
-              */}
             </section>
 
             <section className="detail-section" id="lifestyle">

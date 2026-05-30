@@ -3594,7 +3594,7 @@ body {
 }
 
 .mobile-nav-link.active {
-  color: #111111;
+  color: var(--primary);
 }
 
 .mobile-signup {

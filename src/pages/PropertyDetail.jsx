@@ -17,7 +17,6 @@ import {
   MapPin,
   Phone,
   Ruler,
-  Search,
   Share2,
   ShieldCheck,
   TrendingDown,
@@ -175,15 +174,6 @@ function PropertyDetail() {
   return (
     <div className="detail-page compass-detail">
       <section className="property-masthead" id="overview">
-        <div className="container detail-search-strip">
-          <div className="detail-search-box">
-            <input type="search" placeholder="지역, 단지명, 주소, 매물번호 검색" aria-label="매물 검색" />
-            <button type="button" aria-label="검색">
-              <Search size={19} />
-            </button>
-          </div>
-        </div>
-
         <div className="container property-masthead-inner">
           <div className="masthead-copy">
             <h1>{property.title}</h1>

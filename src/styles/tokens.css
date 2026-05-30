@@ -6,6 +6,11 @@
  *
  * 토큰은 '역할(의미)' 기반으로 등록 — 리브랜딩 시 색 값만 교체.
  * legacy color 토큰(--color-XXX)은 신규 시스템을 var()로 참조하는 alias.
+ *
+ * ⚠️ JSX/SVG 미러 동기화:
+ *    Recharts·인라인 <svg>·data URL 등 CSS var() 못 쓰는 곳을 위해
+ *    src/styles/tokens.js에 동일 hex 상수가 미러링되어 있음.
+ *    여기 색 값을 바꿀 땐 tokens.js도 반드시 같이 수정. (CSS가 truth)
  */
 
 :root {

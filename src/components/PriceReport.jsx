@@ -14,6 +14,7 @@ import {
   formatPrice,
   isUrgentSale,
 } from '../utils/priceUtils.js';
+import { PRIMARY, BORDER } from '../styles/tokens.js';
 
 function PriceReport({ property }) {
   const discountRate = calculateDiscountRate(property.price, property.actualTransactionPrice);
@@ -24,16 +25,16 @@ function PriceReport({ property }) {
   const hasChart = Array.isArray(chartData) && chartData.length > 0;
   const hasEstimated = hasChart && chartData.some((point) => point.estimated);
 
-  // 실거래=채운 점, 재생산 추정=빨강 테두리 빈 점
+  // 실거래=채운 점, 재생산 추정=테라코타 테두리 빈 점
   const renderDot = (props) => {
     const { cx, cy, payload, index } = props;
     if (cx == null || cy == null) return null;
     if (payload?.estimated) {
       return (
-        <circle key={payload.yearMonth ?? index} cx={cx} cy={cy} r={4} fill="#ffffff" stroke="#d83324" strokeWidth={2} />
+        <circle key={payload.yearMonth ?? index} cx={cx} cy={cy} r={4} fill="#ffffff" stroke={PRIMARY} strokeWidth={2} />
       );
     }
-    return <circle key={payload?.yearMonth ?? index} cx={cx} cy={cy} r={4} fill="#d83324" />;
+    return <circle key={payload?.yearMonth ?? index} cx={cx} cy={cy} r={4} fill={PRIMARY} />;
   };
 
   return (
@@ -86,7 +87,7 @@ function PriceReport({ property }) {
           <>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={chartData} margin={{ top: 20, right: 16, left: 8, bottom: 8 }}>
-                <CartesianGrid stroke="#e7eaf0" vertical={false} />
+                <CartesianGrid stroke={BORDER} vertical={false} />
                 <XAxis dataKey="month" tickLine={false} axisLine={false} interval="preserveStartEnd" />
                 <YAxis
                   width={86}
@@ -104,7 +105,7 @@ function PriceReport({ property }) {
                 <Line
                   type="monotone"
                   dataKey="price"
-                  stroke="#d83324"
+                  stroke={PRIMARY}
                   strokeWidth={3}
                   dot={renderDot}
                   activeDot={{ r: 6 }}

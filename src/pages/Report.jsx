@@ -22,10 +22,12 @@ import {
   getDataSource,
 } from '../services/reportData.js';
 import { formatPrice } from '../utils/priceUtils.js';
+import { TEXT_STRONG, TEXT_MUTED, BORDER } from '../styles/tokens.js';
 
-const CHART_INK = '#0f0f0f';
-const CHART_MUTED = '#8a8a8a';
-const CHART_GRID = '#e5e5e5';
+// 차트 의미 이름 유지 + 토큰 미러 사용 (tokens.js가 truth 미러)
+const CHART_INK = TEXT_STRONG;
+const CHART_MUTED = TEXT_MUTED;
+const CHART_GRID = BORDER;
 
 function formatPercent(value) {
   return Number.isFinite(value) ? `${value.toFixed(1)}%` : '—';

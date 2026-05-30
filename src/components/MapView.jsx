@@ -4,6 +4,7 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
 import { formatPrice } from '../utils/priceUtils.js';
+import { MARKER_HOT, MARKER_WARM, MARKER_MILD, TEXT_STRONG } from '../styles/tokens.js';
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const NAVER_MAP_CLIENT_ID = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
@@ -24,9 +25,9 @@ const markerPositions = [
 ];
 
 const MARKER_COLORS = {
-  red: '#0f0f0f',
-  orange: '#1a1a1a',
-  yellow: '#3a3a3a',
+  red: MARKER_HOT,
+  orange: MARKER_WARM,
+  yellow: MARKER_MILD,
 };
 
 const DEFAULT_CENTER = { lat: 37.5665, lng: 126.978 }; // Seoul
@@ -63,7 +64,7 @@ function buildPillIconDataUrl(text, fillColor, active = false) {
   const height = 30;
   const stroke = active ? '#ffffff' : 'rgba(255,255,255,0.85)';
   const strokeWidth = active ? 3 : 2;
-  const fill = active ? '#0f0f0f' : fillColor;
+  const fill = active ? TEXT_STRONG : fillColor;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
     <rect x="${strokeWidth / 2}" y="${strokeWidth / 2}" width="${width - strokeWidth}" height="${
     height - strokeWidth
@@ -272,7 +273,7 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
                   url:
                     'data:image/svg+xml;charset=UTF-8,' +
                     encodeURIComponent(
-                      `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="#0f0f0f" stroke="#ffffff" stroke-width="2"/></svg>`,
+                      `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="20" fill="${TEXT_STRONG}" stroke="#ffffff" stroke-width="2"/></svg>`,
                     ),
                   scaledSize: new googleMaps.Size(44, 44),
                   anchor: new googleMaps.Point(22, 22),

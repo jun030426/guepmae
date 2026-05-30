@@ -4531,12 +4531,15 @@ textarea:focus {
   font-size: 14px;
   font-weight: 650;
   cursor: pointer;
-  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease,
+              transform 0.16s ease, box-shadow 0.16s ease;
 }
 
+/* 공유(outline): 살짝 lift + 차콜 fade */
 .pill-action-button:hover,
 .pill-action-button:focus-visible {
   background: rgba(43, 38, 34, 0.08);
+  transform: translateY(-1px);
 }
 
 /* primary = 채움 스타일 (저장 버튼 등). :first-child 위치 의존 제거하고 명시 modifier로 */
@@ -4546,11 +4549,14 @@ textarea:focus {
   color: #ffffff;
 }
 
+/* 저장(채움): 차콜 색 자체는 변화가 미세하므로 매물 카드 hover와 같은 패턴(lift + soft shadow)으로 신호 강화 */
 .pill-action-button.primary:hover,
 .pill-action-button.primary:focus-visible {
   background: #1a1612; /* text-strong 한 단계 진하게 */
   border-color: #1a1612;
   color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(43, 38, 34, 0.28);
 }
 
 .detail-anchor-tabs {

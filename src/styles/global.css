@@ -5175,7 +5175,7 @@ textarea:focus {
   gap: 16px;
   min-width: 0;
   border-bottom: 1px solid #dedede;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .viewer-title-block {
@@ -5222,16 +5222,23 @@ textarea:focus {
 .viewer-mode-tabs button {
   min-height: 38px;
   padding: 0 16px;
-  border: 1px solid #d0d0d0;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: #ffffff;
-  color: #111111;
+  background: transparent;
+  color: var(--text-strong);
   font-weight: 650;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+}
+
+.viewer-mode-tabs button:hover,
+.viewer-mode-tabs button:focus-visible {
+  background: rgba(43, 38, 34, 0.08);
 }
 
 .viewer-mode-tabs button.active {
-  border-color: #111111;
-  background: #111111;
+  border-color: var(--primary);
+  background: var(--primary);
   color: #ffffff;
 }
 

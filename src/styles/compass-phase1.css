@@ -4057,25 +4057,7 @@ tr.is-suspended {
   margin: 4px 0;
 }
 
-/* ----------------------------- 매물 상세 — 리포트 버튼(준비 중) & 리포트 패널 placeholder ----------------------------- */
-.gallery-action-tile.is-coming-soon {
-  position: relative;
-}
-
-.gallery-action-tile.is-coming-soon::after {
-  content: 'SOON';
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  padding: 1px 5px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--color-bg);
-  background: var(--color-text);
-  border-radius: 3px;
-}
-
+/* ----------------------------- 매물 상세 — 리포트 패널 placeholder ----------------------------- */
 .viewer-report-placeholder {
   max-width: 640px;
   margin: 0 auto;
@@ -4167,8 +4149,3 @@ tr.is-suspended {
   color: #ffffff !important;
 }
 
-/* SOON 라벨(매물 리포트)도 hover 시 테라코타 위에서 잘 보이게 */
-.gallery-action-tile.is-coming-soon:hover::after,
-.gallery-action-tile.is-coming-soon:focus-visible::after {
-  color: #ffffff;
-}

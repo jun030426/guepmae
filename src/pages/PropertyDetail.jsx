@@ -292,7 +292,7 @@ function PropertyDetail() {
                 </button>
                 <button
                   type="button"
-                  className="gallery-action-tile is-coming-soon"
+                  className="gallery-action-tile"
                   onClick={() => setViewerMode('report')}
                   aria-label="매물 리포트"
                 >

@@ -70,7 +70,7 @@ body {
 .agent-signup-button,
 .text-arrow-link {
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   color: var(--color-text);
   text-decoration: none;
@@ -3220,23 +3220,13 @@ tr.is-suspended {
   gap: 6px;
 }
 
-/* ----------------------------- Hero 타이틀 — 크기 + 가독성 보강 ----------------------------- */
-/* 사진 배경 위에서도 또렷하게 보이도록 흰색 고정 + 살짝 그림자 */
+/* ----------------------------- Hero 타이틀 — 크기 축소 + 가독성 보강 ----------------------------- */
+/* 폰트 사이즈 한 단계 줄이고, 사진 배경 위에서도 또렷하게 보이도록 흰색 고정 + 살짝 그림자 */
 .hero-content h1 {
-  font-size: clamp(48px, 6vw, 88px) !important;
+  font-size: clamp(36px, 4.6vw, 64px) !important;
   color: #ffffff;
   opacity: 1;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
-}
-
-/* eyebrow 한 단계 키움 */
-.hero-kicker {
-  font-size: 16px !important;
-}
-
-/* 서브카피 한 단계 키움 */
-.hero-subtitle {
-  font-size: clamp(19px, 1.8vw, 24px) !important;
 }
 
 /* ----------------------------- Hero 검색 패널 — 미니멀(투명) 변형 ----------------------------- */

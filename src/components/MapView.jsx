@@ -59,20 +59,37 @@ function escapeHtml(value) {
   });
 }
 
+/*
+ * 알약 마커 SVG data URL 생성.
+ * - 비활성: 72×30 알약 + 얇은 반투명 흰테 (그림자 없음, 캔버스도 72×30)
+ * - 활성:   86×36 알약(1.2배) + 굵은 흰테 4px + drop-shadow.
+ *   그림자가 잘리지 않도록 SVG 캔버스를 96×46(여백 5px)으로 키우고
+ *   알약을 그 중앙에 배치. 등급색(fillColor)은 그대로 유지 — 선택은 색이 아니라 형태로 표현.
+ *   marker setIcon의 scaledSize/anchor도 96×46 / (48,23)으로 분기 필요.
+ */
 function buildPillIconDataUrl(text, fillColor, active = false) {
-  const width = 72;
-  const height = 30;
+  const pillW = active ? 86 : 72;
+  const pillH = active ? 36 : 30;
+  const padding = active ? 5 : 0;
+  const svgW = pillW + padding * 2;
+  const svgH = pillH + padding * 2;
   const stroke = active ? '#ffffff' : 'rgba(255,255,255,0.85)';
-  const strokeWidth = active ? 3 : 2;
-  const fill = active ? TEXT_STRONG : fillColor;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
-    <rect x="${strokeWidth / 2}" y="${strokeWidth / 2}" width="${width - strokeWidth}" height="${
-    height - strokeWidth
-  }" rx="${(height - strokeWidth) / 2}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>
-    <text x="${width / 2}" y="${height / 2 + 4}" font-family="Pretendard, -apple-system, system-ui, sans-serif" font-size="13" font-weight="600" fill="#ffffff" text-anchor="middle">${escapeHtml(
+  const strokeWidth = active ? 4 : 2;
+  const fontSize = active ? 16 : 13;
+  const filterDef = active
+    ? '<defs><filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.35"/></filter></defs>'
+    : '';
+  const filterAttr = active ? ' filter="url(#s)"' : '';
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">` +
+    filterDef +
+    `<rect x="${padding + strokeWidth / 2}" y="${padding + strokeWidth / 2}" width="${
+      pillW - strokeWidth
+    }" height="${pillH - strokeWidth}" rx="${(pillH - strokeWidth) / 2}" fill="${fillColor}" stroke="${stroke}" stroke-width="${strokeWidth}"${filterAttr}/>` +
+    `<text x="${svgW / 2}" y="${svgH / 2 + (active ? 5 : 4)}" font-family="Pretendard, -apple-system, system-ui, sans-serif" font-size="${fontSize}" font-weight="600" fill="#ffffff" text-anchor="middle">${escapeHtml(
       text,
-    )}</text>
-  </svg>`;
+    )}</text>` +
+    `</svg>`;
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
@@ -239,13 +256,15 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
           );
 
           // clusterer가 마커의 map을 직접 관리하므로 여기선 map을 지정하지 않음
+          // 활성 마커는 86×36 알약 + 그림자 여백 5px → SVG 96×46, anchor 중앙(48,23)
           const marker = new googleMaps.Marker({
             position,
             title: property.title,
+            zIndex: active ? 1500 : undefined, // 활성 마커가 항상 다른 마커 위로
             icon: {
               url: iconUrl,
-              scaledSize: new googleMaps.Size(72, 30),
-              anchor: new googleMaps.Point(36, 15),
+              scaledSize: new googleMaps.Size(active ? 96 : 72, active ? 46 : 30),
+              anchor: new googleMaps.Point(active ? 48 : 36, active ? 23 : 15),
             },
           });
 
@@ -330,20 +349,22 @@ function GoogleJsMap({ properties, selectedId, onSelect }) {
     const selectedMarker = markerRefs.current.get(selectedId);
     if (!map || !infoWindow || !property || !selectedMarker) return;
 
-    // 모든 마커 아이콘 재생성 (활성화 표시 갱신)
+    // 모든 마커 아이콘 재생성 (활성화 표시 갱신) + zIndex 토글
     markerRefs.current.forEach((marker, propertyId) => {
       const target = propertyById.get(propertyId);
       if (!target) return;
       const tone = getMarkerTone(target.discountRate);
+      const isActive = propertyId === selectedId;
       marker.setIcon({
         url: buildPillIconDataUrl(
           formatDiscount(target.discountRate),
           MARKER_COLORS[tone],
-          propertyId === selectedId,
+          isActive,
         ),
-        scaledSize: new googleMaps.Size(72, 30),
-        anchor: new googleMaps.Point(36, 15),
+        scaledSize: new googleMaps.Size(isActive ? 96 : 72, isActive ? 46 : 30),
+        anchor: new googleMaps.Point(isActive ? 48 : 36, isActive ? 23 : 15),
       });
+      marker.setZIndex(isActive ? 1500 : null);
     });
 
     map.panTo({ lat: property.coordinates.lat, lng: property.coordinates.lng });

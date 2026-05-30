@@ -299,8 +299,8 @@ body {
 .property-card:hover {
   box-shadow: none;
   opacity: 1;
-  /* 카드 전체가 살짝 들리는 효과 — Compass borderless 톤 유지 */
-  transform: translateY(-3px);
+  /* 카드 전체가 들리는 효과 */
+  transform: translateY(-8px);
 }
 
 .property-image-link {

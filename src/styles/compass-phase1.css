@@ -63,10 +63,12 @@ body {
   transform: translate(-50%, -50%);
 }
 
-/* 헤더 nav + 우측 액션(로그인/회원가입, 중개사 가입)을 동일 underline 시스템으로 통일 */
+/* 헤더 nav + 우측 액션(로그인/회원가입, 중개사 가입) + 섹션 끝 텍스트 링크(전체 보기 등)를
+   동일 underline 시스템으로 통일 */
 .nav-link,
 .login-link,
-.agent-signup-button {
+.agent-signup-button,
+.text-arrow-link {
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -88,7 +90,8 @@ body {
 /* 가운데에서 양쪽으로 펴지는 underline — hover 피드백 + active 표식을 한 시스템으로 통일 */
 .nav-link::after,
 .login-link::after,
-.agent-signup-button::after {
+.agent-signup-button::after,
+.text-arrow-link::after {
   content: '';
   display: block;
   position: absolute;
@@ -105,19 +108,27 @@ body {
 .login-link:hover::after,
 .login-link:focus-visible::after,
 .agent-signup-button:hover::after,
-.agent-signup-button:focus-visible::after {
+.agent-signup-button:focus-visible::after,
+.text-arrow-link:hover::after,
+.text-arrow-link:focus-visible::after {
   left: 0;
   right: 0;
 }
 
-/* hover 시 다른 효과(배경 invert 등)는 모두 무력화 — underline만 보이게 */
+/* hover 시 다른 효과(배경 invert·항상 표시 border 등)는 모두 무력화 — underline만 보이게 */
 .login-link:hover,
-.agent-signup-button:hover {
+.agent-signup-button:hover,
+.text-arrow-link:hover {
   background: transparent;
   color: var(--color-text);
   text-decoration: none;
   transform: none;
   border-color: transparent;
+}
+
+/* global.css의 항상 표시 border-bottom 무력화 */
+.text-arrow-link {
+  border-bottom: 0;
 }
 
 .nav-link.active {
@@ -282,13 +293,14 @@ body {
   box-shadow: none;
   overflow: visible;
   padding: 0;
-  transition: opacity 0.2s ease;
+  transition: transform 0.28s ease;
 }
 
 .property-card:hover {
-  transform: none;
   box-shadow: none;
-  opacity: 0.92;
+  opacity: 1;
+  /* 카드 전체가 살짝 들리는 효과 — Compass borderless 톤 유지 */
+  transform: translateY(-3px);
 }
 
 .property-image-link {
@@ -329,6 +341,13 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.45s ease;
+}
+
+/* 이미지 위에 마우스 올리면 사진만 살짝 확대 — 카드는 .property-image-link의 overflow: hidden으로 잘림 */
+.property-image-link:hover .property-card-photo,
+.property-card:hover .property-card-photo {
+  transform: scale(1.05);
 }
 
 .property-card-body {

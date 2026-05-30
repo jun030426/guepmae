@@ -37,10 +37,18 @@
    *   L2  --text-strong   #2B2622  미디어 컨트롤 면 — 사진·이미지 위 어두운 컨트롤.
    *                                 (사진 색에 흔들리지 않고 사진 자체를 부각.
    *                                  매물 상세 갤러리 도크 등. text-strong을 면으로 재활용)
+   *
+   *   fill on L1  --text-strong-soft  #4A433D  L1(밝은 면) 위 차콜 채움 전용.
+   *                                 #2B2622(L2)는 베이지·흰 위에선 검정처럼 진하게 튀어서
+   *                                 한 단계 부드러운 미디엄 차콜로 분리.
+   *                                 사용처: '저장' 버튼·'결과 보기'·중개사 portal 채움 등
+   *                                 (사진 위 배지 .gallery-badges span은 L2와 같이 --text-strong 유지)
+   *                                 hover는 --text-strong로 한 단계 진해짐.
    * ============================================================ */
   --bg: #faf7f2;                 /* L0 페이지 배경 */
   --surface: #ffffff;            /* L1 콘텐츠 면 */
   --surface-warm: #ebe5da;       /* L1.5 보조 면 (푸터 등) */
+  --text-strong-soft: #4a433d;   /* fill on L1 — 밝은 면 위 차콜 채움 */
   --border: #e5dfd5;             /* 베이지 톤 구분선 */
   --border-strong: #2b2622;      /* 강조 보더 */
 

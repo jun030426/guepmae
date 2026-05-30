@@ -29,6 +29,7 @@ export const BORDER_STRONG = '#2b2622';
 
 // === Text (따뜻한 차콜 계열) ===
 export const TEXT_STRONG = '#2b2622';
+export const TEXT_STRONG_SOFT = '#4a433d'; // fill on L1 — 밝은 면 위 차콜 채움
 export const TEXT_SECONDARY = '#6e6864';
 export const TEXT_MUTED = '#9a9087';
 

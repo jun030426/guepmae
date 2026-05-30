@@ -4649,7 +4649,7 @@ textarea:focus {
   min-height: 24px;
   border-radius: 0;
   padding: 2px 8px;
-  background: #000000;
+  background: var(--text-strong);
   color: #ffffff;
   font-size: 13px;
   font-weight: 750;
@@ -4687,7 +4687,7 @@ textarea:focus {
   display: flex;
   align-items: stretch;
   height: 74px;
-  background: #050505;
+  background: var(--text-strong);
   overflow: hidden;
 }
 
@@ -4732,7 +4732,7 @@ textarea:focus {
   flex: 0 0 auto;
   border: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.42);
-  background: #050505;
+  background: var(--text-strong);
   color: #ffffff;
 }
 

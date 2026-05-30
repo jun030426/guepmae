@@ -3006,8 +3006,12 @@ textarea:focus {
   width: 100%;
   margin-top: 34px;
   border: 0;
-  background: #111111;
+  background: var(--text-strong-soft);
   color: white;
+}
+
+.agent-next-button:hover:not(:disabled) {
+  background: #3f3833;
 }
 
 .admin-grid {
@@ -4069,15 +4073,21 @@ body {
 }
 
 .contact-button {
-  border-color: #111111;
-  background: #111111;
+  border-color: var(--text-strong-soft);
+  background: var(--text-strong-soft);
   color: #ffffff;
 }
 
 .outline-dark-button {
-  border-color: #111111;
-  background: #111111;
+  border-color: var(--text-strong-soft);
+  background: var(--text-strong-soft);
   color: #ffffff;
+}
+
+.contact-button:hover,
+.outline-dark-button:hover {
+  border-color: #3f3833;
+  background: #3f3833;
 }
 
 .neighborhood-grid {
@@ -5116,11 +5126,16 @@ textarea:focus {
   width: 100%;
   min-height: 62px;
   margin-top: 22px;
-  border: 1px solid #111111;
+  border: 1px solid var(--primary);
   border-radius: 999px;
-  background: #111111;
+  background: var(--primary);
   color: #ffffff;
   font-weight: 750;
+}
+
+.tour-button:hover {
+  border-color: var(--primary-hover);
+  background: var(--primary-hover);
 }
 
 .tour-button span {

@@ -1,20 +1,10 @@
 :root {
-  /* 테라코타 + 베이지 어스 톤 — tokens.css와 정합 */
-  --color-bg: #faf7f2;
-  --color-surface: #ffffff;
-  --color-surface-soft: #f4eee5;
-  --color-text: #1a1a1a;
-  --color-muted: #6e6864;
-  --color-border: #e5dfd5;
-  --color-line: #ece5d8;
-  --color-navy: #2a1f1a;
-  /* 빨강 강조 → 테라코타로 일괄 변경 (사이트 전 영역 강조 컬러) */
-  --color-red: #a85a44;
-  --color-red-dark: #864534;
-  --color-orange: #c4734a;
-  --color-yellow: #d9a85c;
-  --shadow-soft: 0 16px 44px rgba(60, 40, 28, 0.10);
-  --shadow-tight: 0 8px 24px rgba(60, 40, 28, 0.10);
+  /* === 색 토큰은 모두 tokens.css가 단일 진실원으로 관리 ===
+   *  legacy --color-XXX 토큰들은 tokens.css에서 신규 시스템(--primary, --bg, --text-strong 등)을
+   *  var()로 참조하는 alias로 등록되어 있어 여기서 재정의 불필요.
+   *  이 :root에는 색이 아닌 그림자·레이아웃 토큰만 유지. */
+  --shadow-soft: 0 16px 44px rgba(43, 38, 34, 0.10);
+  --shadow-tight: 0 8px 24px rgba(43, 38, 34, 0.10);
   --radius-card: 8px;
   --radius-control: 6px;
   --header-height: 76px;

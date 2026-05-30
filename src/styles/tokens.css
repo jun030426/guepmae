@@ -1,26 +1,84 @@
 /*
- * Design tokens — Compass.com 레퍼런스 톤
- * Phase 1: 컬러/타이포/스페이싱 변수 + 전역 reset
- * 기존 global.css의 클래스들은 점진 마이그레이션됨
+ * Design tokens — 단일 진실원 (Single Source of Truth)
+ *
+ * 컬러 무드: 따뜻한 베이지 + 테라코타 + 따뜻한 차콜 톤.
+ * "신뢰감 · 따뜻함 · 세련됨"의 균형.
+ *
+ * 토큰은 '역할(의미)' 기반으로 등록 — 리브랜딩 시 색 값만 교체.
+ * legacy color 토큰(--color-XXX)은 신규 시스템을 var()로 참조하는 alias.
  */
 
 :root {
-  /* Color — 테라코타 + 베이지 (따뜻한 어스 톤) */
-  --color-bg: #faf7f2;          /* 따뜻한 베이지 — 페이지 배경 */
-  --color-bg-soft: #ffffff;     /* 순백 — 카드면 (베이지 위에 떠있는 luxury 톤) */
-  --color-text: #1a1a1a;        /* 살짝 따뜻한 검정 */
-  --color-text-muted: #6e6864;  /* 따뜻 회색 */
-  --color-text-subtle: #948e88;
-  --color-border: #e5dfd5;      /* 베이지 톤 구분선 */
-  --color-border-strong: #1a1a1a;
-  --color-accent: #a85a44;      /* 테라코타 — 액센트 */
-  --color-accent-soft: #f4e8e3; /* 연한 테라코타 — 배지 배경용 */
+  /* ============================================================
+   * Brand — Primary (테라코타)
+   * ============================================================ */
+  --primary: #a95c48;            /* CTA, 급매물 마커핀, 인하액 강조 */
+  --primary-hover: #97503d;
+  --primary-active: #823f30;
+  --primary-strong: #8a4634;     /* 흰 배경 위 텍스트용 (대비 6.2:1 확보) */
+  --primary-subtle: #faf1ed;     /* 연한 워시 — 배지 배경 등 */
 
-  /* Status — 최소한의 컬러 */
-  --color-success: #1a6b4a;
-  --color-danger: #a01717;
+  /* ============================================================
+   * Surface — 따뜻한 베이지 + 흰색 카드
+   * ============================================================ */
+  --bg: #faf7f2;                 /* 페이지 배경 (베이지) */
+  --surface: #ffffff;            /* 기본 카드 면 */
+  --surface-warm: #f3eee6;       /* 따뜻한 보조 면 */
+  --border: #e5dfd5;             /* 베이지 톤 구분선 */
+  --border-strong: #2b2622;      /* 강조 보더 */
 
-  /* Typography */
+  /* ============================================================
+   * Text — 따뜻한 차콜 계열 (모두 흰 배경 대비 4.5:1+)
+   * ============================================================ */
+  --text-strong: #2b2622;        /* GNB · 헤드라인 · 메인 (14.5:1) */
+  --text-secondary: #6e6864;     /* 본문 보조 (6.1:1) */
+  --text-muted: #9a9087;         /* 캡션 · placeholder — 본문 금지 */
+
+  /* ============================================================
+   * Status — 시세·상태
+   * ============================================================ */
+  --price-up: #e0453e;           /* 시세 상승 (테라코타와 충돌 방지용 빨강) */
+  --price-down: #2563eb;         /* 시세 하락 */
+  --success: #2e9e6b;
+  --warning: #e0a82e;
+  --danger: #d14343;
+
+  /* ============================================================
+   * 별칭 — 가독성·리브랜딩 안전망
+   * ============================================================ */
+  --terracotta: var(--primary);
+  --terracotta-hover: var(--primary-hover);
+  --terracotta-strong: var(--primary-strong);
+  --deep-charcoal: var(--text-strong);
+
+  /* ============================================================
+   * Legacy alias — 기존 컴포넌트 무수정 호환
+   * (compass-phase1.css / global.css가 광범위하게 var(--color-XXX) 사용)
+   * ============================================================ */
+  --color-bg: var(--bg);
+  --color-bg-soft: var(--surface);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-warm);
+  --color-text: var(--text-strong);
+  --color-text-muted: var(--text-secondary);
+  --color-text-subtle: var(--text-muted);
+  --color-muted: var(--text-secondary);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-line: var(--border);
+  --color-navy: var(--text-strong);
+  --color-accent: var(--primary);
+  --color-accent-soft: var(--primary-subtle);
+  --color-red: var(--primary);
+  --color-red-dark: var(--primary-hover);
+  --color-orange: var(--warning);
+  --color-yellow: var(--warning);
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+
+  /* ============================================================
+   * Typography
+   * ============================================================ */
   --font-serif: 'Noto Serif KR', 'Cormorant Garamond', 'Times New Roman', serif;
   --font-sans:
     'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
@@ -42,11 +100,12 @@
   --ls-normal: 0;
   --ls-wide: 0.08em;
 
-  /* Layout */
+  /* ============================================================
+   * Layout
+   * ============================================================ */
   --content-width: 1280px;
   --content-width-wide: 1440px;
 
-  /* Spacing scale */
   --space-1: 8px;
   --space-2: 16px;
   --space-3: 24px;
@@ -56,13 +115,11 @@
   --space-7: 96px;
   --space-8: 128px;
 
-  /* Radius — 거의 안 쓰지만 */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-pill: 999px;
 
-  /* Header height (sticky 계산용) */
   --header-height: 72px;
 }
 

@@ -4524,16 +4524,32 @@ textarea:focus {
   gap: 7px;
   min-height: 40px;
   padding: 0 16px;
-  border: 1px solid #111111;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  background: #ffffff;
-  color: #111111;
+  background: transparent;
+  color: var(--text-strong);
   font-size: 14px;
   font-weight: 650;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
 
-.pill-action-button:first-child {
-  background: #111111;
+.pill-action-button:hover,
+.pill-action-button:focus-visible {
+  background: rgba(43, 38, 34, 0.08);
+}
+
+/* primary = 채움 스타일 (저장 버튼 등). :first-child 위치 의존 제거하고 명시 modifier로 */
+.pill-action-button.primary {
+  background: var(--text-strong);
+  border-color: var(--text-strong);
+  color: #ffffff;
+}
+
+.pill-action-button.primary:hover,
+.pill-action-button.primary:focus-visible {
+  background: #1a1612; /* text-strong 한 단계 진하게 */
+  border-color: #1a1612;
   color: #ffffff;
 }
 

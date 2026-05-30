@@ -206,7 +206,7 @@ function PropertyDetail() {
             </div>
 
             <div className="masthead-actions">
-              <button type="button" className="pill-action-button">
+              <button type="button" className="pill-action-button primary">
                 <Heart size={17} />
                 저장
               </button>

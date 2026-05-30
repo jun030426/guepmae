@@ -791,54 +791,10 @@ body {
   color: var(--color-text-muted);
 }
 
-/* 페이지네이션 — 패널 하단 고정 */
+/* 페이지네이션 — global.css의 .map-pagination/.map-page-* 정의가 더 specific해서 우선 적용됨.
+   여기선 패널 레이아웃 정합용 flex만 유지. 색·상태는 global.css에서 토큰화 */
 .map-pagination {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: var(--space-2);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-bg);
-}
-
-.map-page-arrow,
-.map-page-number {
-  min-width: 32px;
-  height: 32px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: var(--color-text);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  cursor: pointer;
-  border-radius: 0;
-  padding: 0 8px;
-}
-
-.map-page-arrow:hover:not(:disabled),
-.map-page-number:hover {
-  background: var(--color-accent-soft);
-}
-
-.map-page-number.active {
-  background: var(--color-accent);
-  color: #ffffff;
-}
-
-.map-page-arrow:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.map-page-ellipsis {
-  color: var(--color-text-subtle);
-  padding: 0 4px;
-  font-size: 13px;
 }
 
 /* 오른쪽 지도 영역 — 남은 공간 모두 차지 */
@@ -3531,8 +3487,9 @@ tr.is-suspended {
 }
 
 .map-view-toggle button.active {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
 }
 
 .map-view-toggle button:not(.active):hover {
@@ -3738,7 +3695,8 @@ tr.is-suspended {
 }
 
 .map-filter-bar.is-expanded .map-filter-toggle:hover {
-  background: #2a2a2a;
+  background: #1a1612; /* text-strong 한 단계 진하게 — '저장' 버튼 hover와 일관 */
+  border-color: #1a1612;
 }
 
 /* 펼친 상세 필터 — 인라인 패널 (왼쪽 패널 안에서 펼침) */
@@ -3998,9 +3956,9 @@ tr.is-suspended {
 }
 
 .map-filter-chip.active {
-  background: var(--color-text);
-  border-color: var(--color-text);
-  color: var(--color-bg);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
 }
 
 .map-filter-actions {
@@ -4042,7 +4000,7 @@ tr.is-suspended {
 }
 
 .map-filter-apply:hover {
-  background: #2a2a2a;
+  background: #1a1612; /* text-strong 한 단계 진하게 */
 }
 
 /* 빈 목록 상태 */

@@ -1254,9 +1254,10 @@ textarea:focus {
   padding: 0 16px;
 }
 
-.pagination button:hover:not(:disabled) {
-  border-color: #111111;
-  color: #111111;
+.pagination button:hover:not(:disabled):not(.active) {
+  border-color: var(--color-accent-soft);
+  background: var(--color-accent-soft);
+  color: var(--text-strong);
   transform: translateY(-1px);
 }
 
@@ -1265,14 +1266,18 @@ textarea:focus {
   opacity: 0.45;
 }
 
+/* 현재 페이지 — 테라코타 채움 */
 .pagination-page.active {
-  border-color: #111111;
-  background: #111111;
+  border-color: var(--primary);
+  background: var(--primary);
   color: #ffffff;
 }
 
 .pagination-page.active:hover {
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
+  transform: none;
 }
 
 .empty-state {
@@ -1389,18 +1394,26 @@ textarea:focus {
   place-items: center;
   width: 32px;
   height: 32px;
-  border: 1px solid #bfc5ce;
+  border: 1px solid var(--border);
   border-radius: 4px;
-  background: #ffffff;
-  color: #111111;
+  background: var(--surface);
+  color: var(--text-strong);
   font-size: 14px;
   font-weight: 750;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
 
-.map-pagination button:hover:not(:disabled),
+/* hover (비활성) — 연한 테라코타 fade */
+.map-pagination button:hover:not(:disabled):not(.active) {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent-soft);
+  color: var(--text-strong);
+}
+
+/* 현재 페이지 — 테라코타 채움. hover와 시각 분리 */
 .map-pagination button.active {
-  border-color: #111111;
-  background: #111111;
+  background: var(--primary);
+  border-color: var(--primary);
   color: #ffffff;
 }
 

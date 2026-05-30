@@ -1318,7 +1318,7 @@ textarea:focus {
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   border-right: 1px solid var(--color-border);
-  background: #f8f9fb;
+  background: var(--surface);
   overflow: hidden;
 }
 
@@ -5291,7 +5291,7 @@ textarea:focus {
 .viewer-body {
   min-height: 0;
   overflow: auto;
-  background: #ffffff;
+  background: var(--surface);
 }
 
 .viewer-photo-grid {

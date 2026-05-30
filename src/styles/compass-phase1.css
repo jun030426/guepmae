@@ -3036,15 +3036,25 @@ tr.is-suspended {
   color: var(--color-text);
   cursor: pointer;
   text-decoration: none;
+  transition: background 0.16s ease, border-color 0.16s ease;
 }
 
+/* outline 버튼 hover — 연한 테라코타 fade. 페이지네이션 비활성 hover와 같은 패턴
+   (이전엔 var(--color-bg-soft)=흰색이라 베이지 페이지 위에서 콘트라스트 0이었음) */
 .row-action:hover {
-  background: var(--color-bg-soft);
+  background: var(--color-accent-soft);
+  border-color: var(--primary);
 }
 
 .row-action.delete {
   color: #c0392b;
   border-color: #e6b0aa;
+}
+
+/* delete는 빨강 톤이라 hover도 별도 — 연한 빨강 fade로 의미 유지 */
+.row-action.delete:hover {
+  background: #fdecea;
+  border-color: #c0392b;
 }
 
 /* 매물 수정 — 사진 편집 그리드 */

@@ -3586,9 +3586,9 @@ body {
 .primary-button:hover,
 .primary-link-button:hover,
 .hero-cta.primary:hover {
-  border-color: #000000;
-  background: #000000;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  border-color: var(--text-strong);
+  background: var(--text-strong);
+  box-shadow: 0 12px 24px rgba(43, 38, 34, 0.22);
 }
 
 .mobile-menu-button {
@@ -3744,9 +3744,9 @@ body {
 .primary-link-button,
 .hero-cta.primary {
   min-height: 46px;
-  border-color: #111111;
+  border-color: var(--text-strong-soft);
   border-radius: 0;
-  background: #111111;
+  background: var(--text-strong-soft);
   color: #ffffff;
   font-weight: 600;
 }

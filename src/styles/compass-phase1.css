@@ -75,20 +75,33 @@ body {
   transition: color 0.15s ease;
 }
 
+/* 가운데에서 양쪽으로 펴지는 underline — hover 피드백 + active 표식을 한 시스템으로 통일 */
 .nav-link::after {
-  display: none;
+  content: '';
+  display: block;
+  position: absolute;
+  left: 50%;
+  right: 50%;
+  bottom: -4px;
+  height: 1px;
+  background: currentColor;
+  transition: left 0.22s ease, right 0.22s ease, height 0.22s ease;
 }
 
-.nav-link.active,
-.nav-link:hover {
-  color: var(--color-text);
-  opacity: 1;
+.nav-link:hover::after,
+.nav-link:focus-visible::after {
+  left: 0;
+  right: 0;
 }
 
 .nav-link.active {
-  text-decoration: underline;
-  text-underline-offset: 6px;
-  text-decoration-thickness: 1px;
+  text-decoration: none;
+}
+
+.nav-link.active::after {
+  left: 0;
+  right: 0;
+  height: 1.5px; /* active는 hover보다 살짝 더 두껍게 → 두 상태 구분 */
 }
 
 .header-actions {

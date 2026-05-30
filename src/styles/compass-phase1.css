@@ -4152,14 +4152,23 @@ tr.is-suspended {
 }
 
 /* ----------------------------- 매물 상세 — 갤러리 액션 도크 ----------------------------- */
-/* global.css에서 #050505 검정으로 hardcoded되어 있던 도크 버튼을 테라코타로 통일 */
+/* 평소엔 도크와 같은 차콜 배경(.thumbnail-dock과 한 면처럼 보이게),
+   마우스 올린 버튼 하나만 테라코타 포인트로 — 4개 다 채워두면 도크가 강조 일색이 되어 피로함 */
 .gallery-action-tile {
-  background: var(--color-accent) !important;
-  border-right-color: rgba(255, 255, 255, 0.32) !important;
+  background: var(--text-strong) !important;
+  border-right-color: rgba(255, 255, 255, 0.12) !important; /* 차콜 위 옅은 구분선 */
+  color: #ffffff !important;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.gallery-action-tile:hover,
+.gallery-action-tile:focus-visible {
+  background: var(--primary) !important;
   color: #ffffff !important;
 }
 
-.gallery-action-tile:hover {
-  background: #864534 !important;
-  color: #ffffff !important;
+/* SOON 라벨(매물 리포트)도 hover 시 테라코타 위에서 잘 보이게 */
+.gallery-action-tile.is-coming-soon:hover::after,
+.gallery-action-tile.is-coming-soon:focus-visible::after {
+  color: #ffffff;
 }

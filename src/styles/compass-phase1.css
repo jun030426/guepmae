@@ -826,8 +826,8 @@ body {
 }
 
 .map-page-number.active {
-  background: var(--color-text);
-  color: var(--color-bg);
+  background: var(--color-accent);
+  color: #ffffff;
 }
 
 .map-page-arrow:disabled {

@@ -978,6 +978,11 @@ body {
   letter-spacing: var(--ls-wide);
 }
 
+/* 클릭 가능한 지역 차트 — 차트 영역 안의 막대에 cursor pointer 신호 */
+.chart-card-clickable .recharts-bar-rectangle {
+  cursor: pointer;
+}
+
 /* h3 + 부제 묶음 — 새 div 래퍼 (다른 차트는 영향 없음) */
 .chart-title-stack {
   display: flex;

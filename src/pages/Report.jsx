@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bar,
   BarChart,
@@ -175,6 +176,17 @@ function RegionChartNotes({ rows }) {
 }
 
 function Report() {
+  const navigate = useNavigate();
+
+  // 차트 막대(또는 차트 영역 빈공간) 클릭 → 해당 시도 매물 목록으로.
+  // ComposedChart/BarChart 의 onClick state.activePayload[0].payload 에서 row 추출.
+  // 매물 0인 지역(강원·제주 등)도 navigate — Properties.jsx 의 empty-state 가 안내.
+  const handleRegionChartClick = (state) => {
+    const region = state?.activePayload?.[0]?.payload?.region;
+    if (!region) return;
+    navigate(`/properties?region=${encodeURIComponent(region)}`);
+  };
+
   const [insights, setInsights] = useState([]);
   const [regionalRows, setRegionalRows] = useState([]);
   const [monthlyTrend, setMonthlyTrend] = useState([]);
@@ -236,16 +248,18 @@ function Report() {
       </section>
 
       <section className="container report-grid-layout">
-        <div className="chart-card">
+        <div className="chart-card chart-card-clickable">
           <div className="chart-title-row">
             <div className="chart-title-stack">
               <h3>지역별 시세 대비 등락</h3>
-              <p className="chart-subtitle">음수 = 프리미엄(또래 시세보다 비싸게) · 양수 = 할인</p>
+              <p className="chart-subtitle">
+                음수 = 프리미엄(또래 시세보다 비싸게) · 양수 = 할인 · <strong>막대 클릭 → 해당 지역 매물</strong>
+              </p>
             </div>
             <span>단위 %</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart data={regionalRows} margin={{ top: 20, right: 12, left: 0, bottom: 0 }}>
+            <ComposedChart data={regionalRows} margin={{ top: 20, right: 12, left: 0, bottom: 0 }} onClick={handleRegionChartClick}>
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="region" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
               <YAxis tickLine={false} axisLine={false} unit="%" stroke={CHART_MUTED} />
@@ -332,13 +346,18 @@ function Report() {
           </ResponsiveContainer>
         </div>
 
-        <div className="chart-card">
+        <div className="chart-card chart-card-clickable">
           <div className="chart-title-row">
-            <h3>지역별 거래량</h3>
-            <span>최근 30일</span>
+            <div className="chart-title-stack">
+              <h3>지역별 거래량</h3>
+              <p className="chart-subtitle">
+                최근 30일 · <strong>막대 클릭 → 해당 지역 매물</strong>
+              </p>
+            </div>
+            <span>건</span>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={regionalRows} layout="vertical" margin={{ top: 12, right: 12, left: 12, bottom: 0 }}>
+            <BarChart data={regionalRows} layout="vertical" margin={{ top: 12, right: 12, left: 12, bottom: 0 }} onClick={handleRegionChartClick}>
               <CartesianGrid stroke={CHART_GRID} horizontal={false} />
               <XAxis type="number" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
               <YAxis type="category" dataKey="region" tickLine={false} axisLine={false} stroke={CHART_MUTED} width={48} />

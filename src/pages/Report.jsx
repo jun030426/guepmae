@@ -15,7 +15,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ArrowDownRight, ArrowUpRight, Database, Info } from 'lucide-react';
+import { ArrowDownRight, ArrowRight as ArrowFlatRight, ArrowUpRight, Database, Info } from 'lucide-react';
 import SectionTitle from '../components/SectionTitle.jsx';
 import AiMarketReport from '../components/report/AiMarketReport.jsx';
 import {
@@ -42,20 +42,40 @@ function formatPercent(value) {
   return Number.isFinite(value) ? `${value.toFixed(1)}%` : '—';
 }
 
-function InsightCard({ insight }) {
-  const isUp = insight.direction === 'up';
-  const Arrow = isUp ? ArrowUpRight : ArrowDownRight;
-  const className = isUp ? 'report-insight up' : 'report-insight down';
+// 상단 헤드라인 카드 — 4개. 차콜 화살표(↗↘→) + 의미는 텍스트로.
+function HeadlineCard({ tone, label, mainValue, mainSub, change, sub, meta, linkTo }) {
+  const Wrap = linkTo ? Link : 'div';
+  const wrapProps = linkTo ? { to: linkTo } : {};
+
+  const ChangeIcon =
+    change?.direction === 'up'
+      ? ArrowUpRight
+      : change?.direction === 'down'
+        ? ArrowDownRight
+        : ArrowFlatRight;
 
   return (
-    <div className={className}>
-      <span className="report-insight-label">{insight.label}</span>
-      <strong>{insight.value}</strong>
-      <span className="report-insight-delta">
-        <Arrow size={14} />
-        {insight.delta} <em>· {insight.note}</em>
-      </span>
-    </div>
+    <Wrap
+      {...wrapProps}
+      className={`headline-card headline-card-${tone}${linkTo ? ' headline-card-clickable' : ''}`}
+    >
+      <div className="headline-card-head">
+        <span className="headline-card-dot" aria-hidden="true" />
+        <h3>{label}</h3>
+      </div>
+      <div className="headline-card-main">
+        <strong className="headline-card-value">{mainValue}</strong>
+        {mainSub && <span className="headline-card-value-sub">{mainSub}</span>}
+        {change && (
+          <span className="headline-card-change">
+            <ChangeIcon size={14} aria-hidden="true" />
+            {change.text}
+          </span>
+        )}
+      </div>
+      {sub && <p className="headline-card-sub">{sub}</p>}
+      {meta && <p className="headline-card-meta">{meta}</p>}
+    </Wrap>
   );
 }
 
@@ -199,6 +219,96 @@ function Report() {
   const [insights, setInsights] = useState([]);
   const [regionalRows, setRegionalRows] = useState([]);
   const [monthlyTrend, setMonthlyTrend] = useState([]);
+
+  // 4개 헤드라인 카드 데이터 — monthly·regional·insights 에서 추출/계산
+  const headlineCards = useMemo(() => {
+    if (!monthlyTrend.length || !regionalRows.length) return null;
+
+    // --- 카드 1: 급매 압력 (2026-05 vs 2026-04, %p) ---
+    const last = monthlyTrend[monthlyTrend.length - 1]; // 부분월 OK
+    const prev = monthlyTrend[monthlyTrend.length - 2];
+    const lastRatio = last?.transactionVolume
+      ? (last.urgentCount / last.transactionVolume) * 100
+      : 0;
+    const prevRatio = prev?.transactionVolume
+      ? (prev.urgentCount / prev.transactionVolume) * 100
+      : 0;
+    const ratioDiff = lastRatio - prevRatio;
+    const ratioDir =
+      Math.abs(ratioDiff) <= 0.5 ? 'flat' : ratioDiff > 0 ? 'up' : 'down';
+    const ratioText =
+      ratioDir === 'flat'
+        ? '≈ 0%p vs 전월'
+        : `${ratioDir === 'up' ? '+' : ''}${ratioDiff.toFixed(1)}%p vs 전월`;
+    const oneOutOfN = lastRatio > 0 ? Math.round(100 / lastRatio) : null;
+
+    // --- 카드 2: 할인 강도 (1년 누적, marketInsights 에서 추출) ---
+    const discountInsight = insights.find((i) => i.label === '급매 평균 할인율');
+    const discountNum = discountInsight ? parseFloat(discountInsight.value) : 0;
+    const medianMatch = discountInsight?.delta?.match(/(\d+\.?\d*)/);
+    const medianNum = medianMatch ? parseFloat(medianMatch[1]) : null;
+    const discountPerEok = Math.round(discountNum * 100); // 1억당 만원
+
+    // --- 카드 3: 오늘의 주목 지역 (regional 양수 1위) ---
+    const featured = [...regionalRows]
+      .filter((r) => r.averageDiscount > 0)
+      .sort((a, b) => b.averageDiscount - a.averageDiscount)[0];
+
+    // --- 카드 4: 거래 모멘텀 (완료월 vs 직전 완료월) ---
+    const completed = monthlyTrend[monthlyTrend.length - 2]; // 직전 완료월
+    const prevCompleted = monthlyTrend[monthlyTrend.length - 3];
+    const volDiff =
+      prevCompleted?.transactionVolume
+        ? ((completed.transactionVolume - prevCompleted.transactionVolume) /
+            prevCompleted.transactionVolume) *
+          100
+        : 0;
+    const volDir =
+      Math.abs(volDiff) < 0.5 ? 'flat' : volDiff > 0 ? 'up' : 'down';
+    const volText =
+      volDir === 'flat'
+        ? '≈ 0% vs 전월'
+        : `${volDir === 'up' ? '+' : ''}${volDiff.toFixed(1)}% vs 전월`;
+
+    return {
+      urgentPressure: {
+        tone: 'primary',
+        label: '급매 압력',
+        mainValue: `${lastRatio.toFixed(1)}%`,
+        change: { direction: ratioDir, text: ratioText },
+        sub: oneOutOfN ? `${oneOutOfN}건 중 1건이 급매` : null,
+        meta: '기준: peer 대비 5%↑ 할인',
+      },
+      discountIntensity: {
+        tone: 'primary',
+        label: '할인 강도',
+        mainValue: `${discountNum.toFixed(1)}%`,
+        mainSub: medianNum != null ? `중앙값 ${medianNum.toFixed(1)}%` : null,
+        sub: `1억당 ${discountPerEok.toLocaleString()}만원 할인`,
+        meta: 'peer = 같은 단지·면적 1년 중앙값',
+      },
+      featuredRegion: featured
+        ? {
+            tone: 'soft',
+            label: '오늘의 주목 지역',
+            mainValue: featured.region,
+            mainSub: `+${featured.averageDiscount}%`,
+            sub: '할인 우세 1위 — 급매 발굴 여지',
+            meta: `중앙값 +${featured.medianDiscount ?? 0}% · 거래 ${featured.transactionVolume?.toLocaleString() ?? '?'}건 · → 매물 보기`,
+            linkTo: `/properties?region=${encodeURIComponent(featured.region)}`,
+          }
+        : null,
+      momentum: completed
+        ? {
+            tone: 'soft',
+            label: '거래 모멘텀',
+            mainValue: `${completed.transactionVolume?.toLocaleString() ?? '?'}건`,
+            change: { direction: volDir, text: volText },
+            meta: `${completed.month} 완료월 기준 (${last?.month}은 공시 지연으로 변동)`,
+          }
+        : null,
+    };
+  }, [monthlyTrend, regionalRows, insights]);
   const [areaBreakdown, setAreaBreakdown] = useState([]);
   const [topComplexes, setTopComplexes] = useState([]);
   const [dataSource, setDataSource] = useState({ name: '국토교통부 실거래가', lastUpdated: '-', disclosureLag: '데이터 로딩 중', totalTrades: 0 });
@@ -248,13 +358,20 @@ function Report() {
         </div>
       </section>
 
-      <MarketCategoryCards rows={regionalRows} />
+      {headlineCards && (
+        <section className="container headline-cards-grid">
+          <HeadlineCard {...headlineCards.urgentPressure} />
+          <HeadlineCard {...headlineCards.discountIntensity} />
+          {headlineCards.featuredRegion && (
+            <HeadlineCard {...headlineCards.featuredRegion} />
+          )}
+          {headlineCards.momentum && (
+            <HeadlineCard {...headlineCards.momentum} />
+          )}
+        </section>
+      )}
 
-      <section className="container report-insight-grid">
-        {insights.map((insight) => (
-          <InsightCard key={insight.label} insight={insight} />
-        ))}
-      </section>
+      <MarketCategoryCards rows={regionalRows} />
 
       <section className="container report-grid-layout">
         <div className="chart-card chart-card-clickable">

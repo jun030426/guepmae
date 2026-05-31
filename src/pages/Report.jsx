@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Bar,
   BarChart,
@@ -97,11 +97,16 @@ function MarketCategoryCards({ rows }) {
           <ul className="market-category-list">
             {premium.map((r) => (
               <li key={r.region}>
-                <span className="market-category-region">{r.region}</span>
-                <span className="market-category-values">
-                  <strong>{r.averageDiscount}%</strong>
-                  <em>중앙값 {fmtMedian(r.medianDiscount)}</em>
-                </span>
+                <Link
+                  to={`/properties?region=${encodeURIComponent(r.region)}`}
+                  className="market-category-row"
+                >
+                  <span className="market-category-region">{r.region}</span>
+                  <span className="market-category-values">
+                    <strong>{r.averageDiscount}%</strong>
+                    <em>중앙값 {fmtMedian(r.medianDiscount)}</em>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -120,11 +125,16 @@ function MarketCategoryCards({ rows }) {
           <ul className="market-category-list">
             {discount.map((r) => (
               <li key={r.region}>
-                <span className="market-category-region">{r.region}</span>
-                <span className="market-category-values">
-                  <strong>+{r.averageDiscount}%</strong>
-                  <em>중앙값 {fmtMedian(r.medianDiscount)}</em>
-                </span>
+                <Link
+                  to={`/properties?region=${encodeURIComponent(r.region)}`}
+                  className="market-category-row"
+                >
+                  <span className="market-category-region">{r.region}</span>
+                  <span className="market-category-values">
+                    <strong>+{r.averageDiscount}%</strong>
+                    <em>중앙값 {fmtMedian(r.medianDiscount)}</em>
+                  </span>
+                </Link>
               </li>
             ))}
           </ul>

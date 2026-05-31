@@ -275,14 +275,17 @@ function aggregate(rows) {
     }))
     .sort((a, b) => a.month.localeCompare(b.month));
 
-  /* 5-3. 면적대별 */
+  /* 5-3. 면적대별 — medianDiscount 와 urgentRatio 도 같이 (regional 과 동일 패턴) */
   const areaMap = new Map();
   enrichedRows.forEach((row) => {
     const bucket = row.areaBucket;
-    if (!areaMap.has(bucket)) areaMap.set(bucket, { bucket, amounts: [], discounts: [] });
+    if (!areaMap.has(bucket)) areaMap.set(bucket, { bucket, amounts: [], discounts: [], urgentCount: 0 });
     const stat = areaMap.get(bucket);
     stat.amounts.push(row.dealAmount);
-    if (row.discount != null) stat.discounts.push(row.discount);
+    if (row.discount != null) {
+      stat.discounts.push(row.discount);
+      if (row.discount >= URGENT_THRESHOLD) stat.urgentCount += 1;
+    }
   });
   const bucketOrder = ['60㎡ 이하', '60–85㎡', '85–102㎡', '102–135㎡', '135㎡ 초과', '미상'];
   const areaTypeBreakdown = bucketOrder
@@ -293,7 +296,9 @@ function aggregate(rows) {
         bucket,
         averageDealPrice: Math.round(average(stat.amounts) ?? 0),
         averageDiscount: stat.discounts.length ? Number(average(stat.discounts).toFixed(1)) : 0,
+        medianDiscount: stat.discounts.length ? Number(median(stat.discounts).toFixed(1)) : 0,
         transactionVolume: stat.amounts.length,
+        urgentRatio: stat.amounts.length ? Number((stat.urgentCount / stat.amounts.length).toFixed(2)) : 0,
       };
     });
 

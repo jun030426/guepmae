@@ -241,6 +241,10 @@ function aggregate(rows) {
       region: stat.region,
       averageDealPrice: Math.round(average(stat.amounts) ?? 0),
       averageDiscount: stat.discounts.length ? Number(average(stat.discounts).toFixed(1)) : 0,
+      // medianDiscount — 평균은 강남·신축 등 고가 거래 outlier에 끌려가서
+      // 서울 평균 -32.8% 같은 왜곡이 생김. 중앙값은 일반 매물 기준이라
+      // 사용자에게 "평균만 보면 안 됨" 정합을 제공 (UI에서 평균과 같이 표시).
+      medianDiscount: stat.discounts.length ? Number(median(stat.discounts).toFixed(1)) : 0,
       transactionVolume: stat.transactionVolume,
       urgentRatio: stat.transactionVolume ? Number((stat.urgentCount / stat.transactionVolume).toFixed(2)) : 0,
     }))

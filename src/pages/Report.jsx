@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  ComposedChart,
   Legend,
   Line,
   LineChart,
   ResponsiveContainer,
+  Scatter,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
-import { ArrowDownRight, ArrowUpRight, Database, Sparkles, Lock } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Database, Info, Sparkles, Lock } from 'lucide-react';
 import SectionTitle from '../components/SectionTitle.jsx';
 import {
   fetchAreaTypeBreakdown,
@@ -22,12 +25,15 @@ import {
   getDataSource,
 } from '../services/reportData.js';
 import { formatPrice } from '../utils/priceUtils.js';
-import { TEXT_STRONG, TEXT_MUTED, BORDER } from '../styles/tokens.js';
+import { PRIMARY, TEXT_STRONG, TEXT_STRONG_SOFT, TEXT_MUTED, BORDER } from '../styles/tokens.js';
 
 // 차트 의미 이름 유지 + 토큰 미러 사용 (tokens.js가 truth 미러)
 const CHART_INK = TEXT_STRONG;
 const CHART_MUTED = TEXT_MUTED;
 const CHART_GRID = BORDER;
+// 부호별 막대 색 — 프리미엄(음수)=테라코타, 할인(양수)=차콜 (사이트 톤 통일)
+const PREMIUM_FILL = PRIMARY;
+const DISCOUNT_FILL = TEXT_STRONG_SOFT;
 
 function formatPercent(value) {
   return Number.isFinite(value) ? `${value.toFixed(1)}%` : '—';
@@ -46,6 +52,47 @@ function InsightCard({ insight }) {
         <Arrow size={14} />
         {insight.delta} <em>· {insight.note}</em>
       </span>
+    </div>
+  );
+}
+
+// 지역 차트 아래 자동 해석 — 데이터 규칙으로 한 줄씩 자동 생성
+function RegionChartNotes({ rows }) {
+  const notes = useMemo(() => {
+    if (!rows?.length) return null;
+    const gapRows = rows.filter(
+      (r) => Math.abs((r.averageDiscount ?? 0) - (r.medianDiscount ?? 0)) >= 5,
+    );
+    const topDiscount = [...rows].sort((a, b) => b.averageDiscount - a.averageDiscount)[0];
+    const premiumCount = rows.filter((r) => r.averageDiscount < 0).length;
+    return { gapRows, topDiscount, premiumCount };
+  }, [rows]);
+
+  if (!notes) return null;
+
+  return (
+    <div className="chart-note">
+      <p className="chart-note-help">
+        <Info size={13} aria-hidden="true" />
+        막대 = 전체 거래 평균 · ● 점 = 일반 매물 기준(중앙값). 둘이 멀면 소수 고가 거래가 평균을 흔든 것입니다.
+      </p>
+      <ul className="chart-note-list">
+        {notes.gapRows.length > 0 && (
+          <li>
+            <strong>{notes.gapRows.map((r) => r.region).join(' · ')}</strong>는 평균과 중앙값 차이가 큽니다 — 소수 고가 거래가 평균을 끌어내림(일반 매물은 거의 시세대로).
+          </li>
+        )}
+        {notes.topDiscount && notes.topDiscount.averageDiscount > 0 && (
+          <li>
+            <strong>{notes.topDiscount.region}</strong>가 가장 할인 우세 (+{notes.topDiscount.averageDiscount}%) — 급매 발굴 여지.
+          </li>
+        )}
+        {notes.premiumCount > 0 && (
+          <li>
+            프리미엄 우세 <strong>{notes.premiumCount}곳</strong> — 시세 상승세, 매수 신중.
+          </li>
+        )}
+      </ul>
     </div>
   );
 }
@@ -109,21 +156,43 @@ function Report() {
       <section className="container report-grid-layout">
         <div className="chart-card">
           <div className="chart-title-row">
-            <h3>지역별 평균 할인율</h3>
+            <div className="chart-title-stack">
+              <h3>지역별 시세 대비 등락</h3>
+              <p className="chart-subtitle">음수 = 프리미엄(또래 시세보다 비싸게) · 양수 = 할인</p>
+            </div>
             <span>단위 %</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
-            <BarChart data={regionalRows} margin={{ top: 20, right: 12, left: 0, bottom: 0 }}>
+            <ComposedChart data={regionalRows} margin={{ top: 20, right: 12, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="region" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
               <YAxis tickLine={false} axisLine={false} unit="%" stroke={CHART_MUTED} />
               <Tooltip
                 cursor={{ fill: 'rgba(15,15,15,0.04)' }}
-                formatter={(value) => [`${value}%`, '평균 할인율']}
+                formatter={(value, name) => {
+                  const label = name === 'averageDiscount' ? '평균' : '중앙값(일반)';
+                  return [`${value}%`, label];
+                }}
               />
-              <Bar dataKey="averageDiscount" fill={CHART_INK} radius={[2, 2, 0, 0]} />
-            </BarChart>
+              <Bar dataKey="averageDiscount" radius={[2, 2, 0, 0]}>
+                {regionalRows.map((entry) => (
+                  <Cell
+                    key={entry.region}
+                    fill={entry.averageDiscount < 0 ? PREMIUM_FILL : DISCOUNT_FILL}
+                  />
+                ))}
+              </Bar>
+              <Scatter
+                dataKey="medianDiscount"
+                fill="#ffffff"
+                stroke={TEXT_STRONG}
+                strokeWidth={2}
+                shape="circle"
+                r={5}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
+          <RegionChartNotes rows={regionalRows} />
         </div>
 
         <div className="chart-card">

@@ -13,6 +13,50 @@ import { gradeReliability } from '../utils/trendStats.js';
 
 const EMPTY = { series: [], reliability: 'low', realMonths: 0, sampleTotal: 0 };
 
+/* 시도/구 select 옵션 — 페이지 마운트 시 한 번 로드해서 모듈 캐시.
+ * 254개 구 + 17개 시도라 한 번 받으면 충분. 동시 호출도 inflight로 묶음. */
+const EMPTY_OPTIONS = { sidos: [], guBySido: {} };
+let cachedRegionOptions = null;
+let inflightRegionOptions = null;
+
+export async function fetchRegionOptions() {
+  if (cachedRegionOptions) return cachedRegionOptions;
+  if (inflightRegionOptions) return inflightRegionOptions;
+  if (!isSupabaseConfigured) return EMPTY_OPTIONS;
+
+  inflightRegionOptions = (async () => {
+    // 14,391행이지만 region·gu 두 컬럼만 select. PostgREST 기본 1000 limit 초과라 range 명시.
+    const { data, error } = await supabase
+      .from('price_trends')
+      .select('region, gu')
+      .range(0, 15000);
+
+    if (error || !data) {
+      if (error) console.warn('region options 조회 실패:', error.message);
+      return EMPTY_OPTIONS;
+    }
+
+    const guMap = new Map();
+    for (const row of data) {
+      if (!guMap.has(row.region)) guMap.set(row.region, new Set());
+      guMap.get(row.region).add(row.gu);
+    }
+    const sidos = [...guMap.keys()].sort();
+    const guBySido = {};
+    for (const sido of sidos) {
+      guBySido[sido] = [...guMap.get(sido)].sort();
+    }
+    cachedRegionOptions = { sidos, guBySido };
+    return cachedRegionOptions;
+  })();
+
+  try {
+    return await inflightRegionOptions;
+  } finally {
+    inflightRegionOptions = null;
+  }
+}
+
 export async function fetchPriceTrend({ gu, areaBucket }) {
   if (!isSupabaseConfigured || !gu || !areaBucket || areaBucket === '미상') {
     return EMPTY;

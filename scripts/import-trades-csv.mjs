@@ -295,6 +295,9 @@ function aggregate(rows) {
       return {
         bucket,
         averageDealPrice: Math.round(average(stat.amounts) ?? 0),
+        // medianDealPrice — 대형 평형의 초고가 거래(펜트하우스 등) outlier 가 평균을 끌어올리므로
+        // 차트 막대는 중앙값(일반 매물 기준)으로 그림. regional 의 medianDiscount 와 같은 의도.
+        medianDealPrice: Math.round(median(stat.amounts) ?? 0),
         averageDiscount: stat.discounts.length ? Number(average(stat.discounts).toFixed(1)) : 0,
         medianDiscount: stat.discounts.length ? Number(median(stat.discounts).toFixed(1)) : 0,
         transactionVolume: stat.amounts.length,

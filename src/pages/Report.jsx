@@ -244,6 +244,38 @@ function RegionDiscountTooltip({ active, payload }) {
   );
 }
 
+// 월별 추이 차트 custom Tooltip — null(반대 segment) 자동 제외, 한글 라벨
+function MonthlyTrendTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const vol = payload.find(
+    (p) =>
+      (p.dataKey === 'volumeCompleted' || p.dataKey === 'volumePartial') &&
+      p.value != null,
+  );
+  const urg = payload.find(
+    (p) =>
+      (p.dataKey === 'urgentCompleted' || p.dataKey === 'urgentPartial') &&
+      p.value != null,
+  );
+  return (
+    <div className="region-tooltip">
+      <p className="region-tooltip-name">{label}</p>
+      {vol && (
+        <p className="region-tooltip-row">
+          <span>거래량</span>
+          <strong>{vol.value.toLocaleString()}건</strong>
+        </p>
+      )}
+      {urg && (
+        <p className="region-tooltip-row">
+          <span>급매 매물</span>
+          <strong>{urg.value.toLocaleString()}건</strong>
+        </p>
+      )}
+    </div>
+  );
+}
+
 // 월별 추이 차트 아래 자동 해석 — 부분월 안내 + 1년 평균 급매비율 + 직전 완료월
 function MonthlyTrendNotes({ rows }) {
   const notes = useMemo(() => {
@@ -601,26 +633,12 @@ function Report() {
                   ifOverflow="extendDomain"
                 />
               )}
-              <Tooltip
-                formatter={(value, name) => {
-                  if (value == null) return [null, null];
-                  const label =
-                    name === 'volumeCompleted' || name === 'volumePartial'
-                      ? '거래량'
-                      : '급매 매물';
-                  return [value.toLocaleString(), label];
-                }}
-              />
-              <Legend
-                wrapperStyle={{ fontSize: '12px', color: CHART_MUTED }}
-                payload={[
-                  { value: '거래량', type: 'line', color: CHART_MUTED },
-                  { value: '급매 매물', type: 'line', color: CHART_INK },
-                ]}
-              />
+              <Tooltip content={<MonthlyTrendTooltip />} />
+              <Legend wrapperStyle={{ fontSize: '12px', color: CHART_MUTED }} />
               <Line
                 type="monotone"
                 dataKey="volumeCompleted"
+                name="거래량"
                 stroke={CHART_MUTED}
                 strokeWidth={2}
                 dot={false}
@@ -629,6 +647,8 @@ function Report() {
               <Line
                 type="monotone"
                 dataKey="volumePartial"
+                name="거래량"
+                legendType="none"
                 stroke={CHART_MUTED}
                 strokeWidth={2}
                 strokeDasharray="4 4"
@@ -638,6 +658,7 @@ function Report() {
               <Line
                 type="monotone"
                 dataKey="urgentCompleted"
+                name="급매 매물"
                 stroke={CHART_INK}
                 strokeWidth={2.5}
                 dot={false}
@@ -646,6 +667,8 @@ function Report() {
               <Line
                 type="monotone"
                 dataKey="urgentPartial"
+                name="급매 매물"
+                legendType="none"
                 stroke={CHART_INK}
                 strokeWidth={2.5}
                 strokeDasharray="4 4"

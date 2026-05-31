@@ -19,6 +19,7 @@ import {
 import { ArrowDownRight, ArrowRight as ArrowFlatRight, ArrowUpRight, Database, Info } from 'lucide-react';
 import SectionTitle from '../components/SectionTitle.jsx';
 import AiMarketReport from '../components/report/AiMarketReport.jsx';
+import RegionRadar from '../components/report/RegionRadar.jsx';
 import {
   fetchAreaTypeBreakdown,
   fetchMarketInsights,
@@ -577,34 +578,7 @@ function Report() {
           <AreaChartNotes rows={areaBreakdown} />
         </div>
 
-        <div className="chart-card chart-card-clickable">
-          <div className="chart-title-row">
-            <div className="chart-title-stack">
-              <h3>지역별 거래량</h3>
-              <p className="chart-subtitle">
-                최근 30일 · <strong>막대 클릭 → 해당 지역 매물</strong>
-              </p>
-            </div>
-            <span>건</span>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={regionalRows} layout="vertical" margin={{ top: 12, right: 12, left: 12, bottom: 0 }}>
-              <CartesianGrid stroke={CHART_GRID} horizontal={false} />
-              <XAxis type="number" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
-              <YAxis type="category" dataKey="region" tickLine={false} axisLine={false} stroke={CHART_MUTED} width={48} />
-              <Tooltip formatter={(value) => [`${value}건`, '거래량']} />
-              <Bar dataKey="transactionVolume" fill={CHART_INK} radius={[0, 2, 2, 0]}>
-                {regionalRows.map((entry) => (
-                  <Cell
-                    key={entry.region}
-                    fill={CHART_INK}
-                    onClick={() => goToRegion(entry.region)}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+        <RegionRadar rows={regionalRows} />
       </section>
 
       <section className="container">

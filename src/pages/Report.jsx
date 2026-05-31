@@ -178,11 +178,10 @@ function RegionChartNotes({ rows }) {
 function Report() {
   const navigate = useNavigate();
 
-  // 차트 막대(또는 차트 영역 빈공간) 클릭 → 해당 시도 매물 목록으로.
-  // ComposedChart/BarChart 의 onClick state.activePayload[0].payload 에서 row 추출.
+  // 차트 막대 클릭 → 해당 시도 매물 목록으로 navigate.
+  // Chart-level onClick 은 Recharts 버전 차이로 안 잡힐 수 있어 Cell/Bar 레벨에서 직접 처리.
   // 매물 0인 지역(강원·제주 등)도 navigate — Properties.jsx 의 empty-state 가 안내.
-  const handleRegionChartClick = (state) => {
-    const region = state?.activePayload?.[0]?.payload?.region;
+  const goToRegion = (region) => {
     if (!region) return;
     navigate(`/properties?region=${encodeURIComponent(region)}`);
   };
@@ -259,7 +258,7 @@ function Report() {
             <span>단위 %</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
-            <ComposedChart data={regionalRows} margin={{ top: 20, right: 12, left: 0, bottom: 0 }} onClick={handleRegionChartClick}>
+            <ComposedChart data={regionalRows} margin={{ top: 20, right: 12, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="region" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
               <YAxis tickLine={false} axisLine={false} unit="%" stroke={CHART_MUTED} />
@@ -275,6 +274,7 @@ function Report() {
                   <Cell
                     key={entry.region}
                     fill={entry.averageDiscount < 0 ? PREMIUM_FILL : DISCOUNT_FILL}
+                    onClick={() => goToRegion(entry.region)}
                   />
                 ))}
               </Bar>
@@ -357,12 +357,20 @@ function Report() {
             <span>건</span>
           </div>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={regionalRows} layout="vertical" margin={{ top: 12, right: 12, left: 12, bottom: 0 }} onClick={handleRegionChartClick}>
+            <BarChart data={regionalRows} layout="vertical" margin={{ top: 12, right: 12, left: 12, bottom: 0 }}>
               <CartesianGrid stroke={CHART_GRID} horizontal={false} />
               <XAxis type="number" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
               <YAxis type="category" dataKey="region" tickLine={false} axisLine={false} stroke={CHART_MUTED} width={48} />
               <Tooltip formatter={(value) => [`${value}건`, '거래량']} />
-              <Bar dataKey="transactionVolume" fill={CHART_INK} radius={[0, 2, 2, 0]} />
+              <Bar dataKey="transactionVolume" fill={CHART_INK} radius={[0, 2, 2, 0]}>
+                {regionalRows.map((entry) => (
+                  <Cell
+                    key={entry.region}
+                    fill={CHART_INK}
+                    onClick={() => goToRegion(entry.region)}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>

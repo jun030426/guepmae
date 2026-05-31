@@ -14,8 +14,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { ArrowDownRight, ArrowUpRight, Database, Info, Sparkles, Lock } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Database, Info } from 'lucide-react';
 import SectionTitle from '../components/SectionTitle.jsx';
+import AiMarketReport from '../components/report/AiMarketReport.jsx';
 import {
   fetchAreaTypeBreakdown,
   fetchMarketInsights,
@@ -24,6 +25,7 @@ import {
   fetchTopUrgentComplexes,
   getDataSource,
 } from '../services/reportData.js';
+import { fetchMarketReport } from '../services/marketReport.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { PRIMARY, TEXT_STRONG, TEXT_STRONG_SOFT, TEXT_MUTED, BORDER } from '../styles/tokens.js';
 
@@ -179,6 +181,7 @@ function Report() {
   const [areaBreakdown, setAreaBreakdown] = useState([]);
   const [topComplexes, setTopComplexes] = useState([]);
   const [dataSource, setDataSource] = useState({ name: '국토교통부 실거래가', lastUpdated: '-', disclosureLag: '데이터 로딩 중', totalTrades: 0 });
+  const [aiReport, setAiReport] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -189,7 +192,8 @@ function Report() {
       fetchAreaTypeBreakdown(),
       fetchTopUrgentComplexes(10),
       getDataSource(),
-    ]).then(([nextInsights, nextRegional, nextMonthly, nextArea, nextTop, nextSource]) => {
+      fetchMarketReport(),
+    ]).then(([nextInsights, nextRegional, nextMonthly, nextArea, nextTop, nextSource, nextAi]) => {
       if (!active) return;
       setInsights(nextInsights);
       setRegionalRows(nextRegional);
@@ -197,6 +201,7 @@ function Report() {
       setAreaBreakdown(nextArea);
       setTopComplexes(nextTop);
       if (nextSource) setDataSource(nextSource);
+      setAiReport(nextAi);
     });
     return () => {
       active = false;
@@ -379,63 +384,7 @@ function Report() {
         </div>
       </section>
 
-      <section className="container ai-teaser-section">
-        <div className="ai-teaser-card">
-          <div className="ai-teaser-header">
-            <span className="ai-teaser-badge">
-              <Sparkles size={13} />
-              COMING SOON
-            </span>
-            <h2>AI 시장 분석 리포트</h2>
-            <p>
-              국토부 실거래가 데이터와 국토연구원·부동산시장조사 보고서를 종합하여
-              <strong> 매주 자동으로 정성 분석을 생성</strong>합니다. 단지·지역별 상승·하락 흐름,
-              관찰 포인트, 다음 달 모니터링 지표까지 한 화면에서.
-            </p>
-          </div>
-
-          <div className="ai-teaser-preview" aria-hidden="true">
-            <div className="ai-teaser-row">
-              <span className="ai-teaser-eyebrow">상승 관찰 지역</span>
-              <div className="ai-teaser-chips">
-                <span>서울 강남구 +0.8%p</span>
-                <span>경기 성남시 +0.6%p</span>
-                <span>인천 연수구 +0.5%p</span>
-              </div>
-            </div>
-            <div className="ai-teaser-row">
-              <span className="ai-teaser-eyebrow">관찰 포인트</span>
-              <p>
-                ████████ 거래량이 ████ 증가하는 패턴이 관찰됩니다. ██████ 면적대에서 ████████
-                할인율이 ██████ 형성되어 있어 ████████.
-              </p>
-            </div>
-            <div className="ai-teaser-lock">
-              <Lock size={18} />
-              <span>AI 분석은 출시 후 공개됩니다</span>
-            </div>
-          </div>
-
-          <div className="ai-teaser-meta">
-            <div>
-              <strong>예정 기능</strong>
-              <ul>
-                <li>지역·단지별 상승·하락 자동 추천</li>
-                <li>국토연구원 보고서 자동 인용</li>
-                <li>주간 리포트 이메일 발송</li>
-              </ul>
-            </div>
-            <div>
-              <strong>현재 상태</strong>
-              <ul>
-                <li>데이터 파이프라인 ✓</li>
-                <li>분석 모델 설계 중</li>
-                <li>법무 검토 대기</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+      <AiMarketReport report={aiReport} />
 
       <section className="container report-disclaimer">
         <p>

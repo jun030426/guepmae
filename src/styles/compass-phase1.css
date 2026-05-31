@@ -994,6 +994,131 @@ body {
   font-weight: 400;
 }
 
+/* ----------------------------- Market Category Cards (프리미엄/할인 분류) ----------------------------- */
+.market-category-section {
+  margin-top: var(--space-4);
+}
+
+.market-category-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+@media (max-width: 760px) {
+  .market-category-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.market-category-card {
+  border: 1px solid var(--color-border);
+  background: var(--surface);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  display: flex;
+  flex-direction: column;
+}
+
+.market-category-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-2);
+}
+
+.market-category-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 7px;
+}
+
+.market-category-premium .market-category-dot {
+  background: var(--primary);
+}
+
+.market-category-discount .market-category-dot {
+  background: var(--text-strong-soft);
+}
+
+.market-category-header h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.market-category-premium .market-category-header h2 strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.market-category-discount .market-category-header h2 strong {
+  color: var(--text-strong-soft);
+  font-weight: 600;
+}
+
+.market-category-header p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.market-category-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.market-category-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13.5px;
+}
+
+.market-category-list li:last-child {
+  border-bottom: 0;
+}
+
+.market-category-region {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.market-category-values {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.market-category-values strong {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.market-category-premium .market-category-values strong {
+  color: var(--primary);
+}
+
+.market-category-discount .market-category-values strong {
+  color: var(--text-strong-soft);
+}
+
+.market-category-values em {
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
 /* 차트 아래 자동 해석 노트 — 데이터 규칙으로 한 줄씩 생성 */
 .chart-note {
   margin-top: var(--space-3);

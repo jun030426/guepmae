@@ -56,6 +56,81 @@ function InsightCard({ insight }) {
   );
 }
 
+// Hero 아래 분류 카드 — 평균 부호로 프리미엄/할인 분류, 17개 시도 다 표시
+function MarketCategoryCards({ rows }) {
+  const { premium, discount } = useMemo(() => {
+    if (!rows?.length) return { premium: [], discount: [] };
+    return {
+      premium: rows
+        .filter((r) => r.averageDiscount < 0)
+        .sort((a, b) => a.averageDiscount - b.averageDiscount), // 음수가 큰(=프리미엄 강한) 순
+      discount: rows
+        .filter((r) => r.averageDiscount > 0)
+        .sort((a, b) => b.averageDiscount - a.averageDiscount), // 양수가 큰(=할인 강한) 순
+    };
+  }, [rows]);
+
+  if (!premium.length && !discount.length) return null;
+
+  const fmtMedian = (v) => {
+    if (v == null) return '—';
+    if (v === 0) return '0%';
+    return v > 0 ? `+${v}%` : `${v}%`;
+  };
+
+  return (
+    <section className="container market-category-section">
+      <div className="market-category-grid">
+        <article className="market-category-card market-category-premium">
+          <header className="market-category-header">
+            <span className="market-category-dot" aria-hidden="true" />
+            <div>
+              <h2>
+                프리미엄 지역 <strong>{premium.length}곳</strong>
+              </h2>
+              <p>또래 시세 대비 평균 음수 — 시세 상승세, 매수 신중</p>
+            </div>
+          </header>
+          <ul className="market-category-list">
+            {premium.map((r) => (
+              <li key={r.region}>
+                <span className="market-category-region">{r.region}</span>
+                <span className="market-category-values">
+                  <strong>{r.averageDiscount}%</strong>
+                  <em>중앙값 {fmtMedian(r.medianDiscount)}</em>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <article className="market-category-card market-category-discount">
+          <header className="market-category-header">
+            <span className="market-category-dot" aria-hidden="true" />
+            <div>
+              <h2>
+                할인 우세 지역 <strong>{discount.length}곳</strong>
+              </h2>
+              <p>또래 시세 대비 평균 양수 — 급매 발굴 여지</p>
+            </div>
+          </header>
+          <ul className="market-category-list">
+            {discount.map((r) => (
+              <li key={r.region}>
+                <span className="market-category-region">{r.region}</span>
+                <span className="market-category-values">
+                  <strong>+{r.averageDiscount}%</strong>
+                  <em>중앙값 {fmtMedian(r.medianDiscount)}</em>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </article>
+      </div>
+    </section>
+  );
+}
+
 // 지역 차트 아래 자동 해석 — 데이터 규칙으로 한 줄씩 자동 생성
 function RegionChartNotes({ rows }) {
   const notes = useMemo(() => {
@@ -146,6 +221,8 @@ function Report() {
           </div>
         </div>
       </section>
+
+      <MarketCategoryCards rows={regionalRows} />
 
       <section className="container report-insight-grid">
         {insights.map((insight) => (

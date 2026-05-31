@@ -983,6 +983,52 @@ body {
   cursor: pointer;
 }
 
+/* ----------------------------- Region Tooltip (지역 차트·레이더 공통) ----------------------------- */
+.region-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--color-border);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow: 0 8px 18px rgba(43, 38, 34, 0.08);
+  min-width: 160px;
+}
+
+.region-tooltip-name {
+  margin: 0 0 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.region-tooltip-row {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.region-tooltip-row span {
+  color: var(--color-text-muted);
+  min-width: 54px;
+}
+
+.region-tooltip-row strong {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.region-tooltip-row em {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
 /* ----------------------------- RegionRadar 탭 (4탭 underline) ----------------------------- */
 .radar-tabs {
   display: flex;

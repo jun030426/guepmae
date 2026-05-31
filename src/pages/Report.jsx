@@ -10,6 +10,7 @@ import {
   Legend,
   Line,
   LineChart,
+  ReferenceArea,
   ResponsiveContainer,
   Scatter,
   Tooltip,
@@ -31,7 +32,7 @@ import {
 import { fetchMarketReport } from '../services/marketReport.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { formatRegionName } from '../utils/regionName.js';
-import { PRIMARY, TEXT_STRONG, TEXT_STRONG_SOFT, TEXT_MUTED, BORDER } from '../styles/tokens.js';
+import { PRIMARY, SURFACE_WARM, TEXT_STRONG, TEXT_STRONG_SOFT, TEXT_MUTED, BORDER } from '../styles/tokens.js';
 
 // 차트 의미 이름 유지 + 토큰 미러 사용 (tokens.js가 truth 미러)
 const CHART_INK = TEXT_STRONG;
@@ -203,6 +204,87 @@ function RegionChartNotes({ rows }) {
             프리미엄 우세 <strong>{notes.premiumCount}곳</strong> — 시세 상승세, 매수 신중.
           </li>
         )}
+      </ul>
+    </div>
+  );
+}
+
+// 지역 차트 ComposedChart 의 custom Tooltip — 평균/중앙값/거래량 한꺼번에
+function RegionDiscountTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const row = payload[0]?.payload;
+  if (!row) return null;
+  const avg = row.averageDiscount ?? 0;
+  const med = row.medianDiscount ?? 0;
+  const meaning = avg > 0 ? '할인 우세' : avg < 0 ? '프리미엄' : '중립';
+  return (
+    <div className="region-tooltip">
+      <p className="region-tooltip-name">{formatRegionName(row.region)}</p>
+      <p className="region-tooltip-row">
+        <span>평균</span>
+        <strong>
+          {avg >= 0 ? '+' : ''}
+          {avg}%
+        </strong>
+        <em>{meaning}</em>
+      </p>
+      <p className="region-tooltip-row">
+        <span>중앙값</span>
+        <strong>
+          {med >= 0 ? '+' : ''}
+          {med}%
+        </strong>
+        <em>일반 매물</em>
+      </p>
+      <p className="region-tooltip-row">
+        <span>거래</span>
+        <strong>{row.transactionVolume?.toLocaleString() ?? '?'}건</strong>
+      </p>
+    </div>
+  );
+}
+
+// 월별 추이 차트 아래 자동 해석 — 부분월 안내 + 1년 평균 급매비율 + 직전 완료월
+function MonthlyTrendNotes({ rows }) {
+  const notes = useMemo(() => {
+    if (!rows?.length || rows.length < 2) return null;
+    const N = rows.length;
+    const partial = rows[N - 1];
+    const completed = rows.slice(0, N - 1);
+    const totalUrgent = completed.reduce((s, m) => s + (m.urgentCount ?? 0), 0);
+    const totalVol = completed.reduce((s, m) => s + (m.transactionVolume ?? 0), 0);
+    const avgUrgent = totalVol > 0 ? (totalUrgent / totalVol) * 100 : 0;
+    const ratios = completed
+      .map((m) => (m.transactionVolume > 0 ? (m.urgentCount / m.transactionVolume) * 100 : null))
+      .filter((v) => v != null);
+    const minRatio = ratios.length ? Math.min(...ratios) : 0;
+    const maxRatio = ratios.length ? Math.max(...ratios) : 0;
+    const lastCompleted = completed[completed.length - 1];
+    return {
+      avgUrgent: avgUrgent.toFixed(1),
+      range: `${minRatio.toFixed(1)} ~ ${maxRatio.toFixed(1)}`,
+      lastCompletedMonth: lastCompleted.month,
+      lastCompletedVol: lastCompleted.transactionVolume,
+      partialMonth: partial.month,
+    };
+  }, [rows]);
+
+  if (!notes) return null;
+
+  return (
+    <div className="chart-note">
+      <p className="chart-note-help">
+        <Info size={13} aria-hidden="true" />
+        실선 = 완료월 · 점선 + 음영 = <strong>{notes.partialMonth}</strong>(공시 지연으로 변동 가능)
+      </p>
+      <ul className="chart-note-list">
+        <li>
+          1년 평균 급매비율 <strong>{notes.avgUrgent}%</strong> (월별 {notes.range}% 범위 — 안정적 추세)
+        </li>
+        <li>
+          직전 완료월 <strong>{notes.lastCompletedMonth}</strong> 거래{' '}
+          {notes.lastCompletedVol?.toLocaleString()}건
+        </li>
       </ul>
     </div>
   );
@@ -460,10 +542,7 @@ function Report() {
               <YAxis tickLine={false} axisLine={false} unit="%" stroke={CHART_MUTED} />
               <Tooltip
                 cursor={{ fill: 'rgba(15,15,15,0.04)' }}
-                formatter={(value, name) => {
-                  const label = name === 'averageDiscount' ? '평균' : '중앙값(일반)';
-                  return [`${value}%`, label];
-                }}
+                content={<RegionDiscountTooltip />}
               />
               <Bar dataKey="averageDiscount" radius={[2, 2, 0, 0]}>
                 {regionalRows.map((entry) => (
@@ -489,34 +568,93 @@ function Report() {
 
         <div className="chart-card">
           <div className="chart-title-row">
-            <h3>월별 거래량과 급매 매물 추이</h3>
-            <span>최근 12개월</span>
+            <div className="chart-title-stack">
+              <h3>월별 거래량과 급매 매물 추이</h3>
+              <p className="chart-subtitle">최근 12개월 · 마지막 점선 = 공시 진행 중</p>
+            </div>
+            <span>건</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={monthlyTrend} margin={{ top: 20, right: 12, left: 0, bottom: 0 }}>
+            <LineChart
+              data={monthlyTrend.map((m, idx) => {
+                const N = monthlyTrend.length;
+                return {
+                  ...m,
+                  // 직전 완료월(N-2)에서 두 라인 연결, 부분월(N-1)은 점선만
+                  volumeCompleted: idx <= N - 2 ? m.transactionVolume : null,
+                  volumePartial: idx >= N - 2 ? m.transactionVolume : null,
+                  urgentCompleted: idx <= N - 2 ? m.urgentCount : null,
+                  urgentPartial: idx >= N - 2 ? m.urgentCount : null,
+                };
+              })}
+              margin={{ top: 20, right: 12, left: 0, bottom: 0 }}
+            >
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="month" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
               <YAxis tickLine={false} axisLine={false} stroke={CHART_MUTED} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: '12px', color: CHART_MUTED }} />
+              {monthlyTrend.length >= 2 && (
+                <ReferenceArea
+                  x1={monthlyTrend[monthlyTrend.length - 2].month}
+                  x2={monthlyTrend[monthlyTrend.length - 1].month}
+                  fill={SURFACE_WARM}
+                  fillOpacity={0.5}
+                  ifOverflow="extendDomain"
+                />
+              )}
+              <Tooltip
+                formatter={(value, name) => {
+                  if (value == null) return [null, null];
+                  const label =
+                    name === 'volumeCompleted' || name === 'volumePartial'
+                      ? '거래량'
+                      : '급매 매물';
+                  return [value.toLocaleString(), label];
+                }}
+              />
+              <Legend
+                wrapperStyle={{ fontSize: '12px', color: CHART_MUTED }}
+                payload={[
+                  { value: '거래량', type: 'line', color: CHART_MUTED },
+                  { value: '급매 매물', type: 'line', color: CHART_INK },
+                ]}
+              />
               <Line
                 type="monotone"
-                dataKey="transactionVolume"
-                name="거래량"
+                dataKey="volumeCompleted"
                 stroke={CHART_MUTED}
                 strokeWidth={2}
                 dot={false}
+                connectNulls={false}
               />
               <Line
                 type="monotone"
-                dataKey="urgentCount"
-                name="급매 매물"
+                dataKey="volumePartial"
+                stroke={CHART_MUTED}
+                strokeWidth={2}
+                strokeDasharray="4 4"
+                dot={false}
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="urgentCompleted"
                 stroke={CHART_INK}
                 strokeWidth={2.5}
                 dot={false}
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="urgentPartial"
+                stroke={CHART_INK}
+                strokeWidth={2.5}
+                strokeDasharray="4 4"
+                dot={false}
+                connectNulls={false}
               />
             </LineChart>
           </ResponsiveContainer>
+          <MonthlyTrendNotes rows={monthlyTrend} />
         </div>
       </section>
 

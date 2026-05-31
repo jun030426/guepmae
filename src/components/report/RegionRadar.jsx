@@ -29,6 +29,42 @@ import { Info } from 'lucide-react';
 import { BORDER, PRIMARY, TEXT_MUTED, TEXT_STRONG_SOFT } from '../../styles/tokens.js';
 import { formatRegionName } from '../../utils/regionName.js';
 
+// 4지표 모두 보이는 custom Tooltip (탭 무관, 항상 풀 정보)
+function RegionRadarTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const row = payload[0]?.payload;
+  if (!row) return null;
+  const avg = row.averageDiscount ?? 0;
+  const med = row.medianDiscount ?? 0;
+  return (
+    <div className="region-tooltip">
+      <p className="region-tooltip-name">{formatRegionName(row.region)}</p>
+      <p className="region-tooltip-row">
+        <span>거래량</span>
+        <strong>{row.transactionVolume?.toLocaleString() ?? '?'}건</strong>
+      </p>
+      <p className="region-tooltip-row">
+        <span>급매비율</span>
+        <strong>{Math.round((row.urgentRatio ?? 0) * 100)}%</strong>
+      </p>
+      <p className="region-tooltip-row">
+        <span>평균할인</span>
+        <strong>
+          {avg >= 0 ? '+' : ''}
+          {avg}%
+        </strong>
+      </p>
+      <p className="region-tooltip-row">
+        <span>중앙값</span>
+        <strong>
+          {med >= 0 ? '+' : ''}
+          {med}%
+        </strong>
+      </p>
+    </div>
+  );
+}
+
 const formatVolumeTick = (v) => {
   if (v == null) return '';
   if (v >= 10000) return `${Math.round(v / 10000)}만`;
@@ -169,8 +205,7 @@ function RegionRadar({ rows }) {
           />
           <Tooltip
             cursor={{ fill: 'rgba(15,15,15,0.04)' }}
-            formatter={(value) => [active.formatValue(value), active.label]}
-            labelFormatter={(label) => formatRegionName(label)}
+            content={<RegionRadarTooltip />}
           />
           <Bar dataKey={active.dataKey} radius={[0, 2, 2, 0]}>
             {sorted.map((entry) => (

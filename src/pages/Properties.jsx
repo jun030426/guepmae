@@ -35,11 +35,27 @@ function matchesAreaRange(area, range) {
 
 function Properties() {
   const { properties: urgentProperties } = useProperties({ urgentOnly: true });
-  const [filters, setFilters] = useState(initialFilters);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const keyword = searchParams.get('keyword')?.toLowerCase() ?? '';
+  const urlRegion = searchParams.get('region');
+
+  // URL ?region= 값이 있으면 초기 필터에 반영 (차트에서 navigate 진입 시)
+  const [filters, setFilters] = useState(() => ({
+    ...initialFilters,
+    region: urlRegion ?? initialFilters.region,
+  }));
   const [sort, setSort] = useState('discount-desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const location = useLocation();
-  const keyword = new URLSearchParams(location.search).get('keyword')?.toLowerCase() ?? '';
+
+  // URL의 region 이 바뀌면 filter 도 갱신 (페이지 안에서 차트→매물 navigate 추적)
+  useEffect(() => {
+    if (urlRegion) {
+      setFilters((prev) =>
+        prev.region === urlRegion ? prev : { ...prev, region: urlRegion },
+      );
+    }
+  }, [urlRegion]);
 
   const filteredProperties = useMemo(() => {
     const result = urgentProperties
@@ -161,7 +177,11 @@ function Properties() {
             </>
           ) : (
             <div className="empty-state">
-              <h3>조건에 맞는 급매가 없습니다.</h3>
+              <h3>
+                {filters.region !== '전체'
+                  ? `${filters.region}에 등록된 급매가 없습니다.`
+                  : '조건에 맞는 급매가 없습니다.'}
+              </h3>
               <p>지역 또는 할인율 조건을 조금 넓혀 다시 확인해보세요.</p>
             </div>
           )}

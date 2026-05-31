@@ -1,6 +1,24 @@
 import { SlidersHorizontal } from 'lucide-react';
 
-const regionOptions = ['전체', '서울', '경기', '인천', '광주', '부산'];
+// 실제 매물 분포 기반 13개 시도 (매물 많은 순). 매물 0건 지역(세종·강원·제주·울산)은 제외.
+// 차트 onClick 등 외부에서 URL region=강원 같은 값이 와도 매칭은 시도되며,
+// 그 결과 매물 0건이면 Properties 의 empty-state 가 떠서 사용자에게 안내됨.
+const regionOptions = [
+  '전체',
+  '경기',
+  '서울',
+  '인천',
+  '충청북',
+  '충청남',
+  '부산',
+  '대전',
+  '전북',
+  '전라남',
+  '광주',
+  '경상북',
+  '대구',
+  '경상남',
+];
 const priceOptions = [
   { label: '전체', value: 'all' },
   { label: '5억 이하', value: 'under-500m' },

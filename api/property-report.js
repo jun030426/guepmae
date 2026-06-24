@@ -14,7 +14,7 @@
  * 환경변수:
  *   SUPABASE_URL             — public URL (이미 VITE_SUPABASE_URL 있음)
  *   SUPABASE_SERVICE_ROLE_KEY — service_role 키 (Settings → API → service_role)
- *   GEMINI_MODEL             — (선택) 모델 override. 기본 gemini-2.5-flash, 예: gemini-2.5-pro
+ *   GEMINI_MODEL             — (선택) 모델 override. 기본 gemini-2.5-flash-lite, 예: gemini-2.5-flash / gemini-2.5-pro
  *
  *   [모델 제공자 — 둘 중 하나]
  *   (A) Vertex AI (GCP 크레딧 사용, 우선):
@@ -225,7 +225,7 @@ ${Array.isArray(property.media) && property.media.length > 0
 // 모델은 환경변수 GEMINI_MODEL 로 오버라이드 가능. 기본값: 최신 stable 모델.
 // 1.5-flash 는 2026년 deprecated. 2.5-flash 가 현행 플래그십.
 // 만약 무료 한도(quota) 부족이면 GEMINI_MODEL=gemini-2.5-flash-lite 로 설정 가능 (더 가벼움 + 무료 한도 큼).
-const DEFAULT_MODEL = 'gemini-2.5-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
 
 // 'generating' 락이 이 시간보다 오래되면 죽은 요청으로 보고 다른 요청이 탈취 가능
 const STALE_LOCK_MS = 3 * 60 * 1000;

@@ -14,7 +14,7 @@
  * 환경변수:
  *   SUPABASE_URL             — public URL (이미 VITE_SUPABASE_URL 있음)
  *   SUPABASE_SERVICE_ROLE_KEY — service_role 키 (Settings → API → service_role)
- *   GEMINI_MODEL             — (선택) 모델 override. 기본 gemini-2.5-flash-lite, 예: gemini-2.5-flash / gemini-2.5-pro
+ *   GEMINI_MODEL             — (선택) 모델 override. 기본 gemini-2.5-flash (과부하/실패 시 flash-lite 자동 폴백)
  *
  *   [모델 제공자 — 둘 중 하나]
  *   (A) Vertex AI (GCP 크레딧 사용, 우선):
@@ -34,8 +34,8 @@ import { z } from 'zod';
 const REPORT_SCHEMA = z.object({
   summary: z.object({
     headline: z.string().describe('이 매물 한 줄 핵심 요약 (간결하게). 제공된 할인율·추세 등 "검증된 데이터"에만 근거. 예: "강남구 84㎡, 실거래가 대비 8% 급매 · 최근 1년 보합 · 학군은 직접 확인 필요"'),
-    merits: z.array(z.string()).min(3).max(6).describe('매수 시 핵심 메리트. 각 항목을 충분히 구체적으로(여러 문장 가능) 서술. 반드시 제공된 데이터(할인율/추세/면적/연식/향/역세권 등)에 근거. 추측·과장 금지.'),
-    cautions: z.array(z.string()).min(3).max(6).describe('매수 시 주의사항/약점. 각 항목 구체적으로. 데이터 공백(학군·권리관계 미확인 등)도 솔직히 약점으로 포함.'),
+    merits: z.array(z.string()).min(2).max(6).describe('매수 시 핵심 메리트. 각 항목을 충분히 구체적으로(여러 문장 가능) 서술. 반드시 제공된 데이터(할인율/추세/면적/연식/향/역세권 등)에 근거. 추측·과장 금지.'),
+    cautions: z.array(z.string()).min(2).max(6).describe('매수 시 주의사항/약점. 각 항목 구체적으로. 데이터 공백(학군·권리관계 미확인 등)도 솔직히 약점으로 포함.'),
   }),
   basic: z.object({
     summaryText: z.string().describe('매물 개요. 길이 제한 없이 충분히 상세하게 — 제공된 사실(연식·면적·층·향·거주상태·세대수·주차)을 풍부하게 엮어 서술. 없는 정보는 언급하지 말 것.'),
@@ -104,8 +104,7 @@ function getServiceClient() {
 
 // 모델 선택: GCP 서비스계정 env 가 있으면 Vertex AI(크레딧 사용), 없으면 AI Studio 키로 fallback.
 // → 서비스계정 env 넣기 전까지는 기존 방식대로 동작해서 배포해도 안 깨짐.
-function getModel() {
-  const modelName = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+function getModel(modelName) {
   const { GCP_PROJECT_ID, GCP_CLIENT_EMAIL, GCP_PRIVATE_KEY, GCP_LOCATION } = process.env;
 
   if (GCP_PROJECT_ID && GCP_CLIENT_EMAIL && GCP_PRIVATE_KEY) {
@@ -225,13 +224,12 @@ ${Array.isArray(property.media) && property.media.length > 0
 // 모델은 환경변수 GEMINI_MODEL 로 오버라이드 가능. 기본값: 최신 stable 모델.
 // 1.5-flash 는 2026년 deprecated. 2.5-flash 가 현행 플래그십.
 // 만약 무료 한도(quota) 부족이면 GEMINI_MODEL=gemini-2.5-flash-lite 로 설정 가능 (더 가벼움 + 무료 한도 큼).
-const DEFAULT_MODEL = 'gemini-2.5-flash-lite';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 // 'generating' 락이 이 시간보다 오래되면 죽은 요청으로 보고 다른 요청이 탈취 가능
 const STALE_LOCK_MS = 3 * 60 * 1000;
 
 async function generateReport({ property, nearby }) {
-  const { model, label } = getModel();
   const userText = buildUserPrompt({ property, nearby });
 
   // 사진(media)이 있으면 멀티모달 메시지로 전달 — Gemini가 직접 사진을 보고 photoAnalysis 채움.
@@ -246,17 +244,27 @@ async function generateReport({ property, nearby }) {
     ? [{ type: 'text', text: userText }, ...imageParts]
     : [{ type: 'text', text: userText }];
 
-  const result = await generateObject({
-    model,
-    schema: REPORT_SCHEMA,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userContent }],
-  });
-  return {
-    report: result.object,
-    usage: result.usage,
-    model: label, // 'vertex/gemini-2.5-pro' 또는 'google/gemini-2.5-flash'
-  };
+  // 모델 후보: 지정(env)→flash→flash-lite. 'high demand' 과부하나 스키마 불일치 시 다음 후보로 폴백.
+  const primary = process.env.GEMINI_MODEL || DEFAULT_MODEL;
+  const candidates = [...new Set([primary, 'gemini-2.5-flash', 'gemini-2.5-flash-lite'])];
+  let lastError;
+  for (const name of candidates) {
+    try {
+      const { model, label } = getModel(name);
+      const result = await generateObject({
+        model,
+        schema: REPORT_SCHEMA,
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userContent }],
+        maxRetries: 2,
+      });
+      return { report: result.object, usage: result.usage, model: label };
+    } catch (err) {
+      lastError = err;
+      console.warn(`[property-report] 모델 ${name} 실패 → 다음 후보:`, String(err?.message || err).slice(0, 140));
+    }
+  }
+  throw lastError;
 }
 
 export default async function handler(req, res) {

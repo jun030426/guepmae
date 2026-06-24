@@ -57,6 +57,7 @@ function normalizeProperty(row) {
     priceHistory,
     media: Array.isArray(row.media) ? row.media : [],
     createdAt: row.created_at ?? null,
+    priceBasis: row.price_basis ?? null,
   };
 }
 

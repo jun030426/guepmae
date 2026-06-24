@@ -159,6 +159,12 @@ function PropertyDetail() {
     ['가격 차이', formatPrice(property.actualTransactionPrice - property.price)],
   ];
 
+  // ④ 기준가 산출 근거 — priceBasis 있으면 동적, 없으면 기존 문구로 안전 폴백
+  const basis = property.priceBasis;
+  const priceBasisLabel = basis?.method
+    ? `${basis.method} · 국토부 기준${basis.confidence === 'low' ? ' (표본 적음)' : ''}`
+    : '동일 단지와 유사 면적 최근 실거래가 기준';
+
   // 방문 일정은 매물별로 다르고 매도자/중개사 일정에 따라 변동.
   // 통일된 시스템 만들기 전까지는 "협의" 메시지로 단순화.
   const openHouseItems = [];
@@ -447,7 +453,7 @@ function PropertyDetail() {
           <section className="sidebar-proof-card">
             <TrendingDown size={21} />
             <strong>{property.discountRate}% 저렴</strong>
-            <span>동일 단지와 유사 면적 최근 실거래가 기준</span>
+            <span>{priceBasisLabel}</span>
           </section>
 
           <section className="sidebar-proof-card verification-card">

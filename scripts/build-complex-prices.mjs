@@ -125,16 +125,22 @@ function main() {
       const cancel = pickColumn(row, ['해제사유발생일']);
       if (!sigungu || !complex || amount == null) continue;
       if (cancel && cancel !== '-') continue;
-      const bucket = getAreaBucket(parseArea(pickColumn(row, ['전용면적(㎡)', '전용면적'])));
+      const area = parseArea(pickColumn(row, ['전용면적(㎡)', '전용면적']));
+      if (area == null) continue; // 정밀 면적 그룹핑에 전용면적 필수
+      const areaM2 = Math.floor(area); // 84.97㎡ → "84타입" (한국 평형 타입 명명과 일치)
+      const bucket = getAreaBucket(area); // fallback·표시용 5구간
       const gu = toGu(sigungu);
       const builtYear = Number(pickColumn(row, ['건축년도', '준공년도'])) || null;
-      const key = `${complex}|${gu}|${bucket}`;
+      const key = `${complex}|${gu}|${areaM2}`;
       if (!groups.has(key)) {
-        groups.set(key, { complex, gu, sigungu, bucket, amounts: [], latest: ym ?? '', builtYears: new Map() });
+        groups.set(key, { complex, gu, sigungu, areaM2, bucket, amounts: [], earliest: '', latest: '', builtYears: new Map() });
       }
       const g = groups.get(key);
       g.amounts.push(amount);
-      if (ym && ym > g.latest) g.latest = ym;
+      if (ym) {
+        if (g.latest === '' || ym > g.latest) g.latest = ym;
+        if (g.earliest === '' || ym < g.earliest) g.earliest = ym;
+      }
       if (builtYear) g.builtYears.set(builtYear, (g.builtYears.get(builtYear) || 0) + 1);
     }
     console.log(`[complex] ${file} 처리`);
@@ -153,16 +159,18 @@ function main() {
     return best;
   };
 
-  const header = ['complex', 'sigungu', 'gu', 'area_bucket', 'median_price', 'sample_size', 'latest_year_month', 'built_year'];
+  const header = ['complex', 'sigungu', 'gu', 'area_m2', 'area_bucket', 'median_price', 'sample_size', 'earliest_year_month', 'latest_year_month', 'built_year'];
   const out = [header.join(',')];
   for (const g of groups.values()) {
     out.push([
       csvCell(g.complex),
       csvCell(g.sigungu),
       csvCell(g.gu),
+      g.areaM2,
       csvCell(g.bucket),
       median(g.amounts),
       g.amounts.length,
+      csvCell(g.earliest),
       csvCell(g.latest),
       modeBuiltYear(g.builtYears) ?? '',
     ].join(','));

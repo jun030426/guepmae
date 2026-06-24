@@ -73,34 +73,101 @@ export function getAreaBucket(area) {
   return '135㎡ 초과';
 }
 
-// 기준 실거래가(할인율 계산 기준) 자동 산출.
-//  1순위: 단지+구+평형 실거래 중앙값 (complex_prices)  → source 'complex'
-//  2순위: 구+평형 최근월 시세 (price_trends, 재생산 포함) → source 'region'
+// 신뢰도 등급(표본 수 기반) — ④ 감사/투명성용. 하드 표본 가드(③)는 별도 단계.
+function confidenceOf(sampleSize) {
+  if (sampleSize >= 5) return 'high';
+  if (sampleSize >= 3) return 'medium';
+  return 'low';
+}
+
+function periodLabel(start, end) {
+  if (start && end) return start === end ? start : `${start}~${end}`;
+  return end || start || '';
+}
+
+// 기준 실거래가(할인율 계산 기준) + 산출 근거 자동 산출.
+//  1순위: 동일 단지 + 동일 전용면적 타입(area_m2) 중앙값 (complex_prices) → 'complex'
+//  2순위: 동일 단지 + 근접 면적(±2㎡) 중 표본 최다                       → 'complex'(approxArea)
+//  3순위: 구 + 평형대 최근 시세 (price_trends, 재생산 포함)              → 'region'
 // 중개사가 직접 입력하지 못하게 하여 할인율 조작을 차단.
-export async function resolveReferencePrice({ complexName, gu, areaBucket }) {
-  if (!isSupabaseConfigured || !gu || !areaBucket || areaBucket === '미상') {
-    return { price: null, source: null };
+export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucket }) {
+  if (!isSupabaseConfigured || !gu) {
+    return { price: null, source: null, basis: null };
   }
-  if (complexName) {
-    const { data } = await supabase
+
+  const fromComplex = (data, approxArea) => {
+    const sample = Number(data.sample_size) || 0;
+    return {
+      price: data.median_price,
+      source: 'complex',
+      basis: {
+        source: 'complex',
+        baselinePrice: data.median_price,
+        areaM2: data.area_m2,
+        requestedAreaM2: Number.isFinite(areaM2) ? areaM2 : null,
+        approxArea,
+        sampleSize: sample,
+        periodStart: data.earliest_year_month ?? null,
+        periodEnd: data.latest_year_month ?? null,
+        confidence: confidenceOf(sample),
+        method: `동일 단지 ${data.area_m2}㎡ · ${periodLabel(data.earliest_year_month, data.latest_year_month)} ${sample}건 중앙값`,
+      },
+    };
+  };
+
+  if (complexName && Number.isFinite(areaM2)) {
+    // 1순위: 정확 전용면적 타입
+    const { data: exact } = await supabase
       .from('complex_prices')
-      .select('median_price')
+      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
       .eq('complex', complexName)
       .eq('gu', gu)
-      .eq('area_bucket', areaBucket)
+      .eq('area_m2', areaM2)
       .maybeSingle();
-    if (data?.median_price) return { price: data.median_price, source: 'complex' };
+    if (exact?.median_price) return fromComplex(exact, false);
+
+    // 2순위: 근접 면적(±2㎡) 중 표본 최다
+    const { data: near } = await supabase
+      .from('complex_prices')
+      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
+      .eq('complex', complexName)
+      .eq('gu', gu)
+      .gte('area_m2', areaM2 - 2)
+      .lte('area_m2', areaM2 + 2)
+      .order('sample_size', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (near?.median_price) return fromComplex(near, true);
   }
-  const { data: trend } = await supabase
-    .from('price_trends')
-    .select('price')
-    .eq('gu', gu)
-    .eq('area_bucket', areaBucket)
-    .order('year_month', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (trend?.price) return { price: trend.price, source: 'region' };
-  return { price: null, source: null };
+
+  // 3순위: 지역(구+평형대) 최근 시세
+  if (areaBucket && areaBucket !== '미상') {
+    const { data: trend } = await supabase
+      .from('price_trends')
+      .select('price, year_month')
+      .eq('gu', gu)
+      .eq('area_bucket', areaBucket)
+      .order('year_month', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (trend?.price) {
+      return {
+        price: trend.price,
+        source: 'region',
+        basis: {
+          source: 'region',
+          baselinePrice: trend.price,
+          areaBucket,
+          sampleSize: null,
+          periodEnd: trend.year_month ?? null,
+          confidence: 'region',
+          method: `${gu} ${areaBucket} 최근 시세 기준`,
+        },
+      };
+    }
+  }
+
+  return { price: null, source: null, basis: null };
 }
 
 // 구/시/군 + 평형대로 13개월 실거래가 추이를 조회해 price_history 스냅샷 생성.
@@ -162,10 +229,11 @@ export async function registerProperty(form, agentProfile) {
   // gu 는 자동완성에서 고른 단지의 gu 우선, 없으면 Geocoding 결과
   const gu = form.complexGu || lookupResult.region?.gu || null;
   const areaBucket = getAreaBucket(Number(form.area));
+  const areaM2 = Number.isFinite(Number(form.area)) ? Math.floor(Number(form.area)) : null;
 
-  // 기준 실거래가 자동 산출(단지→구 fallback) + 13개월 추이 스냅샷 + 사무소명 자동
+  // 기준 실거래가 자동 산출(단지 면적타입→근접→구 fallback) + 13개월 추이 + 사무소명 자동
   const [reference, priceHistory, officeName] = await Promise.all([
-    resolveReferencePrice({ complexName: form.complexName, gu, areaBucket }),
+    resolveReferencePrice({ complexName: form.complexName, gu, areaM2, areaBucket }),
     fetchPriceHistory({ gu, areaBucket }),
     fetchAgentOfficeName(agentProfile?.email),
   ]);
@@ -181,6 +249,17 @@ export async function registerProperty(form, agentProfile) {
       ? Number((((marketPrice - sellPrice) / marketPrice) * 100).toFixed(1))
       : 0;
 
+  // ④ 할인율 산출 근거 스냅샷 (감사·표시용)
+  const priceBasis = reference.basis
+    ? { ...reference.basis, computedAt: now }
+    : {
+        source: 'asking',
+        baselinePrice: marketPrice,
+        confidence: 'none',
+        method: '기준 실거래가 없음 — 호가 기준(할인율 0)',
+        computedAt: now,
+      };
+
   // 2) 매물 INSERT
   const row = {
     id,
@@ -192,6 +271,7 @@ export async function registerProperty(form, agentProfile) {
     price: sellPrice,
     actual_transaction_price: marketPrice,
     discount_rate: discountRate,
+    price_basis: priceBasis,
     urgent_score: 0,
     area: Number(form.area),
     supply_area: Number(form.supplyArea) || Math.round(Number(form.area) * 1.33),

@@ -287,33 +287,33 @@ body {
 
 /* ----------------------------- Property Card ----------------------------- */
 .property-card {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  overflow: visible;
+  background: var(--surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.05);
+  overflow: hidden;
   padding: 0;
-  transition: transform 0.28s ease;
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
 }
 
 .property-card:hover {
-  box-shadow: none;
+  box-shadow: 0 14px 34px rgba(16, 24, 40, 0.1);
   opacity: 1;
-  /* 카드 전체가 들리는 효과 */
-  transform: translateY(-8px);
+  /* 카드 전체가 살짝 들리는 효과 */
+  transform: translateY(-4px);
 }
 
 .property-image-link {
   display: block;
   overflow: hidden;
-  border-radius: var(--radius-md);
+  border-radius: 0;
 }
 
 .property-image-placeholder {
   aspect-ratio: 16 / 10;
   width: 100%;
   background: var(--color-accent-soft);
-  border-radius: var(--radius-md);
+  border-radius: 0;
   position: relative;
   overflow: hidden;
 }
@@ -351,7 +351,7 @@ body {
 }
 
 .property-card-body {
-  padding: var(--space-2) 0 0;
+  padding: var(--space-2);
   background: transparent;
 }
 
@@ -451,8 +451,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: var(--color-text) !important;
-  font-weight: 500;
+  color: #157a4a !important;
+  font-weight: 700;
 }
 
 .property-card-actions {
@@ -470,7 +470,7 @@ body {
   padding: 10px 14px;
   text-align: center;
   text-decoration: none;
-  border-radius: 0;
+  border-radius: var(--radius-control);
   letter-spacing: 0.02em;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -513,7 +513,7 @@ body {
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
   padding: 4px 10px;
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--color-accent);
   color: #ffffff;
   border: none;
@@ -555,7 +555,7 @@ body {
   background: #ecf6f0;
   border: 1px solid #d6ede0;
   color: #157a4a;
-  border-radius: 0;
+  border-radius: 999px;
 }
 
 /* ----------------------------- Hero (background image) ----------------------------- */
@@ -950,7 +950,7 @@ body {
   padding: var(--space-3);
   border: 1px solid var(--color-border);
   background: var(--color-bg);
-  border-radius: 0;
+  border-radius: var(--radius-card);
   box-shadow: none;
 }
 
@@ -1546,7 +1546,7 @@ body {
   gap: 10px;
   width: 100%;
   height: 46px;
-  border-radius: 0;
+  border-radius: var(--radius-control);
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
@@ -1627,7 +1627,7 @@ body {
   padding: var(--space-2) var(--space-3);
   background: var(--color-bg-soft);
   border: 1px solid var(--color-border);
-  border-radius: 0;
+  border-radius: var(--radius-card);
   width: 100%;
   word-break: break-all;
 }
@@ -3883,7 +3883,7 @@ tr.is-suspended {
   display: inline-flex;
   background: var(--color-bg);
   border: 1px solid var(--color-border-strong);
-  border-radius: 0;
+  border-radius: var(--radius-card);
   z-index: 10;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   font-family: var(--font-sans);

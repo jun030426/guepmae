@@ -115,33 +115,14 @@ export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucke
     };
   };
 
-  if (complexName && Number.isFinite(areaM2)) {
-    // 1순위: 정확 전용면적 타입
-    const { data: exact } = await supabase
-      .from('complex_prices')
-      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
-      .eq('complex', complexName)
-      .eq('gu', gu)
-      .eq('area_m2', areaM2)
-      .maybeSingle();
-    if (exact?.median_price) return fromComplex(exact, false);
+  // ③ 최소 표본 가드 — 같은 단지·타입 거래가 이 수 이상일 때만 기준가로 신뢰.
+  //   미만이면 지역 시세로 fallback (1~2건짜리 중앙값을 권위값으로 쓰지 않음).
+  const MIN_SAMPLE = 3;
+  const enough = (row) => row?.median_price && (Number(row.sample_size) || 0) >= MIN_SAMPLE;
 
-    // 2순위: 근접 면적(±2㎡) 중 표본 최다
-    const { data: near } = await supabase
-      .from('complex_prices')
-      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
-      .eq('complex', complexName)
-      .eq('gu', gu)
-      .gte('area_m2', areaM2 - 2)
-      .lte('area_m2', areaM2 + 2)
-      .order('sample_size', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (near?.median_price) return fromComplex(near, true);
-  }
-
-  // 3순위: 지역(구+평형대) 최근 시세
-  if (areaBucket && areaBucket !== '미상') {
+  // 지역(구+평형대) 최근 시세 — 단지 표본이 얇을 때 fallback
+  const regionBasis = async () => {
+    if (!areaBucket || areaBucket === '미상') return null;
     const { data: trend } = await supabase
       .from('price_trends')
       .select('price, year_month')
@@ -150,22 +131,56 @@ export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucke
       .order('year_month', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (trend?.price) {
-      return {
-        price: trend.price,
+    if (!trend?.price) return null;
+    return {
+      price: trend.price,
+      source: 'region',
+      basis: {
         source: 'region',
-        basis: {
-          source: 'region',
-          baselinePrice: trend.price,
-          areaBucket,
-          sampleSize: null,
-          periodEnd: trend.year_month ?? null,
-          confidence: 'region',
-          method: `${gu} ${areaBucket} 최근 시세 기준`,
-        },
-      };
-    }
+        baselinePrice: trend.price,
+        areaBucket,
+        sampleSize: null,
+        periodEnd: trend.year_month ?? null,
+        confidence: 'region',
+        method: `${gu} ${areaBucket} 최근 시세 기준`,
+      },
+    };
+  };
+
+  let exact = null;
+  let near = null;
+  if (complexName && Number.isFinite(areaM2)) {
+    // 1순위: 정확 전용면적 타입 + 표본 충분
+    ({ data: exact } = await supabase
+      .from('complex_prices')
+      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
+      .eq('complex', complexName)
+      .eq('gu', gu)
+      .eq('area_m2', areaM2)
+      .maybeSingle());
+    if (enough(exact)) return fromComplex(exact, false);
+
+    // 2순위: 근접 면적(±2㎡) 중 표본 최다 + 표본 충분
+    ({ data: near } = await supabase
+      .from('complex_prices')
+      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
+      .eq('complex', complexName)
+      .eq('gu', gu)
+      .gte('area_m2', areaM2 - 2)
+      .lte('area_m2', areaM2 + 2)
+      .order('sample_size', { ascending: false })
+      .limit(1)
+      .maybeSingle());
+    if (enough(near)) return fromComplex(near, true);
   }
+
+  // 3순위: 지역 시세 (단지 표본이 MIN_SAMPLE 미만)
+  const region = await regionBasis();
+  if (region) return region;
+
+  // 4순위(최후): 지역도 없으면 얇은 단지 값이라도 사용 (confidence 'low' 로 표시됨)
+  if (exact?.median_price) return fromComplex(exact, false);
+  if (near?.median_price) return fromComplex(near, true);
 
   return { price: null, source: null, basis: null };
 }

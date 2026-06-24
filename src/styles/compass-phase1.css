@@ -498,8 +498,8 @@ body {
 }
 
 .property-card-actions .contact-button:hover {
-  background: #864534;
-  border-color: #864534;
+  background: #157a4a;
+  border-color: #157a4a;
   color: #ffffff;
 }
 
@@ -520,13 +520,14 @@ body {
 }
 
 .urgent-badge.hot {
-  background: var(--color-accent);
+  background: #0f5e39; /* 초급매 — 진한 초록 (할인율 10%+) */
   color: #ffffff;
 }
 
 .urgent-badge.urgent {
-  background: var(--color-accent);
-  color: #ffffff;
+  background: #ecf6f0; /* 급매 — 연한 초록 워시 (할인율 5%+) */
+  color: #157a4a;
+  border: 1px solid #d6ede0;
 }
 
 .urgent-badge.pending {
@@ -551,15 +552,15 @@ body {
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
   padding: 4px 8px;
-  background: transparent;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
+  background: #ecf6f0;
+  border: 1px solid #d6ede0;
+  color: #157a4a;
   border-radius: 0;
 }
 
 /* ----------------------------- Hero (background image) ----------------------------- */
 .hero-section {
-  background: #0f0f0f;
+  background: #1a2233;
 }
 
 .hero-visual {
@@ -1402,12 +1403,12 @@ body {
 }
 
 .chart-legend .legend-dot.real {
-  background: #d83324;
+  background: #c9453b;
 }
 
 .chart-legend .legend-dot.est {
   background: #ffffff;
-  border: 2px solid #d83324;
+  border: 2px solid #c9453b;
 }
 
 .chart-empty {
@@ -1855,7 +1856,7 @@ body {
 }
 
 .report-pill.discount strong {
-  color: #c0392b;
+  color: #c9453b;
 }
 
 .report-section {
@@ -1892,7 +1893,7 @@ body {
 }
 
 .report-section-key {
-  background: #fafafa;
+  background: #f8f9fb;
   margin: 0 calc(var(--space-4) * -1);
   padding: var(--space-4);
   border-radius: 12px;
@@ -1912,7 +1913,7 @@ body {
 }
 
 .report-merits {
-  background: #e8f5ed;
+  background: #ecf6f0;
 }
 
 .report-cautions {
@@ -1935,8 +1936,8 @@ body {
   line-height: 1.5;
 }
 
-.report-merits li::before { content: '✓ '; color: #2e7d32; font-weight: 700; }
-.report-cautions li::before { content: '! '; color: #c0392b; font-weight: 700; }
+.report-merits li::before { content: '✓ '; color: #157a4a; font-weight: 700; }
+.report-cautions li::before { content: '! '; color: #c9453b; font-weight: 700; }
 
 .report-note {
   margin-top: var(--space-2);
@@ -2003,9 +2004,9 @@ body {
   font-style: italic;
 }
 
-.risk-낮음 { color: #2e7d32; font-style: normal; font-weight: 700; margin-left: 6px; }
+.risk-낮음 { color: #157a4a; font-style: normal; font-weight: 700; margin-left: 6px; }
 .risk-보통 { color: #ef6c00; font-style: normal; font-weight: 700; margin-left: 6px; }
-.risk-높음 { color: #c0392b; font-style: normal; font-weight: 700; margin-left: 6px; }
+.risk-높음 { color: #c9453b; font-style: normal; font-weight: 700; margin-left: 6px; }
 
 .report-location-grid {
   display: grid;
@@ -2015,7 +2016,7 @@ body {
 
 .report-location-grid > div {
   padding: var(--space-2);
-  background: #fafafa;
+  background: #f8f9fb;
   border-radius: 8px;
 }
 
@@ -2098,7 +2099,7 @@ body {
   gap: 6px;
   padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid var(--color-border-strong, #c8c8c8);
+  border: 1px solid var(--color-border-strong, #d9dee7);
   background: var(--color-bg);
   color: var(--color-text);
   font-size: 12px;
@@ -2198,24 +2199,24 @@ body {
 }
 
 .admin-approve-button {
-  border-color: #2e7d32;
-  color: #2e7d32;
+  border-color: #157a4a;
+  color: #157a4a;
 }
 
 .admin-approve-button:hover:not(:disabled) {
-  background: #2e7d32;
+  background: #157a4a;
   color: var(--color-bg);
 }
 
 .admin-reject-button,
 .admin-revoke-button {
-  border-color: #c0392b;
-  color: #c0392b;
+  border-color: #c9453b;
+  color: #c9453b;
 }
 
 .admin-reject-button:hover:not(:disabled),
 .admin-revoke-button:hover:not(:disabled) {
-  background: #c0392b;
+  background: #c9453b;
   color: var(--color-bg);
 }
 
@@ -2268,7 +2269,7 @@ body {
   padding: 3px 8px;
   border-radius: 4px;
   background: #fdecea;
-  color: #c0392b;
+  color: #c9453b;
   font-size: 11px;
   font-weight: 600;
 }
@@ -2277,8 +2278,8 @@ body {
   display: inline-block;
   padding: 3px 8px;
   border-radius: 4px;
-  background: #e8f5ed;
-  color: #2e7d32;
+  background: #ecf6f0;
+  color: #157a4a;
   font-size: 11px;
   font-weight: 600;
 }
@@ -2295,7 +2296,7 @@ body {
 }
 
 tr.is-suspended {
-  background: #fff5f5;
+  background: #fdecea;
   opacity: 0.7;
 }
 
@@ -2360,7 +2361,7 @@ tr.is-suspended {
 
 .confirm-icon.danger {
   background: #fdecea;
-  color: #c0392b;
+  color: #c9453b;
 }
 
 .confirm-title {
@@ -2410,8 +2411,8 @@ tr.is-suspended {
 }
 
 .confirm-ok.danger {
-  background: #c0392b;
-  border-color: #c0392b;
+  background: #c9453b;
+  border-color: #c9453b;
   color: #ffffff;
 }
 
@@ -2491,7 +2492,7 @@ tr.is-suspended {
 .admin-modal-docs {
   margin-top: var(--space-3);
   padding: var(--space-2);
-  background: #fafafa;
+  background: #f8f9fb;
   border-radius: var(--radius-sm);
 }
 
@@ -2680,7 +2681,7 @@ tr.is-suspended {
 }
 
 .agent-login-card.non-agent svg {
-  color: #c0392b;
+  color: #c9453b;
   margin-bottom: var(--space-2);
 }
 
@@ -2700,7 +2701,7 @@ tr.is-suspended {
 }
 
 .agent-login-card.application-rejected svg {
-  color: #c0392b;
+  color: #c9453b;
   margin-bottom: var(--space-2);
 }
 
@@ -2746,8 +2747,8 @@ tr.is-suspended {
   height: 80px;
   margin: 0 auto var(--space-3);
   border-radius: 50%;
-  background: #e8f5ed;
-  color: #2e7d32;
+  background: #ecf6f0;
+  color: #157a4a;
 }
 
 .agent-signup-done h1 {
@@ -3223,12 +3224,12 @@ tr.is-suspended {
 }
 
 .ref-tag.complex {
-  background: #e8f3ec;
-  color: #1f7a44;
+  background: #ecf6f0;
+  color: #157a4a;
 }
 
 .ref-tag.region {
-  background: #fdf0e3;
+  background: #eef1f5;
   color: #b6781f;
 }
 
@@ -3254,7 +3255,7 @@ tr.is-suspended {
   margin-top: 4px;
   font-size: 12px;
   font-weight: 500;
-  color: #d83324;
+  color: #c9453b;
 }
 
 /* 내 등록 매물 — 상태 배지 + 행 액션 */
@@ -3267,12 +3268,12 @@ tr.is-suspended {
 }
 
 .status-badge.ok {
-  background: #e8f3ec;
-  color: #1f7a44;
+  background: #ecf6f0;
+  color: #157a4a;
 }
 
 .status-badge.wait {
-  background: #fdf0e3;
+  background: #eef1f5;
   color: #b6781f;
 }
 
@@ -3306,14 +3307,14 @@ tr.is-suspended {
 }
 
 .row-action.delete {
-  color: #c0392b;
+  color: #c9453b;
   border-color: #e6b0aa;
 }
 
 /* delete는 빨강 톤이라 hover도 별도 — 연한 빨강 fade로 의미 유지 */
 .row-action.delete:hover {
   background: #fdecea;
-  border-color: #c0392b;
+  border-color: #c9453b;
 }
 
 /* 매물 수정 — 사진 편집 그리드 */
@@ -3370,7 +3371,7 @@ tr.is-suspended {
 }
 
 .edit-photo-remove:hover {
-  background: #c0392b;
+  background: #c9453b;
 }
 
 .register-grid-2,
@@ -3390,7 +3391,7 @@ tr.is-suspended {
   color: var(--color-text-muted);
   margin: var(--space-2) 0 0;
   padding: var(--space-2);
-  background: #fafafa;
+  background: #f8f9fb;
   border-radius: 6px;
 }
 
@@ -3649,7 +3650,7 @@ tr.is-suspended {
 /* ----------------------------- AI Teaser (옛 placeholder — 죽은 셀렉터, 정리 백로그) ----------------------------- */
 .ai-teaser-card {
   border: 1px solid var(--color-border-strong);
-  background: linear-gradient(180deg, #0f0f0f 0%, #1a1a1a 100%);
+  background: linear-gradient(180deg, #1a2233 0%, #1a1a1a 100%);
   color: var(--color-bg);
   padding: var(--space-5);
   display: grid;
@@ -4090,7 +4091,7 @@ tr.is-suspended {
   font-size: 12.5px;
   font-weight: 600;
   font-family: inherit;
-  border: 1px solid var(--color-border-strong, #c8c8c8);
+  border: 1px solid var(--color-border-strong, #d9dee7);
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
@@ -4190,7 +4191,7 @@ tr.is-suspended {
 }
 
 .map-filter-stepper button:disabled {
-  color: #c8c8c8;
+  color: #d9dee7;
   cursor: not-allowed;
 }
 
@@ -4386,7 +4387,7 @@ tr.is-suspended {
   flex: 0 0 auto;
   padding: 9px 14px;
   border-radius: 999px;
-  border: 1px solid var(--color-border-strong, #c8c8c8);
+  border: 1px solid var(--color-border-strong, #d9dee7);
   background: var(--color-bg);
   color: var(--color-text);
   font-size: 12.5px;

@@ -7,17 +7,20 @@ function SerifHeadline({
   className,
 }) {
   const sizeStyle = {
-    display: 'clamp(48px, 6vw, 88px)',
-    h1: 'clamp(36px, 4.5vw, 56px)',
-    h2: 'clamp(28px, 3vw, 40px)',
-    h3: '22px',
+    display: 'clamp(40px, 5vw, 64px)',
+    h1: 'clamp(32px, 4vw, 48px)',
+    h2: 'clamp(26px, 3vw, 32px)',
+    h3: '20px',
   }[size];
+
+  // 새 시스템: Pretendard 단일, 위계는 굵기로 (Display/H1 800, H2/H3 700)
+  const weight = size === 'h2' || size === 'h3' ? 700 : 800;
 
   const wrapperStyle = align === 'center' ? { textAlign: 'center' } : undefined;
 
   const headingStyle = {
-    fontFamily: 'var(--font-serif)',
-    fontWeight: 500,
+    fontFamily: 'var(--font-sans)',
+    fontWeight: weight,
     fontSize: sizeStyle,
     letterSpacing: 'var(--ls-tight)',
     lineHeight: 'var(--lh-tight)',

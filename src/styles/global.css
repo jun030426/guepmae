@@ -192,7 +192,7 @@ main {
 .account-chip {
   max-width: 130px;
   overflow: hidden;
-  color: #111111;
+  color: #1a2233;
   font-size: 14px;
   font-weight: 800;
   text-overflow: ellipsis;
@@ -225,17 +225,17 @@ main {
 .primary-link-button:hover,
 .hero-cta.primary:hover {
   background: var(--color-red-dark);
-  box-shadow: 0 12px 28px rgba(216, 51, 36, 0.22);
+  box-shadow: 0 12px 28px rgba(30, 142, 90, 0.22);
   transform: translateY(-1px);
 }
 
 .header-actions .signup-button,
 .agent-signup-button {
   min-height: 38px;
-  border: 1px solid #d8d8d8;
+  border: 1px solid #e4e8ef;
   border-radius: 0;
   background: white;
-  color: #111111;
+  color: #1a2233;
   box-shadow: none;
   font-size: 14px;
   transform: none;
@@ -243,7 +243,7 @@ main {
 
 .header-actions .signup-button:hover,
 .agent-signup-button:hover {
-  border-color: #111111;
+  border-color: #1a2233;
   background: white;
   box-shadow: none;
   transform: none;
@@ -287,7 +287,7 @@ main {
   inset: 0;
   background:
     linear-gradient(180deg, rgba(20, 28, 42, 0.1) 0%, rgba(10, 14, 22, 0.75) 100%),
-    linear-gradient(115deg, #263245 0%, #6f7f93 42%, #c5ccd5 74%, #f4f0eb 100%);
+    linear-gradient(115deg, #263245 0%, #6f7f93 42%, #c5ccd5 74%, #f5f7fa 100%);
 }
 
 .hero-visual::before {
@@ -485,8 +485,8 @@ main {
 }
 
 .stat-card.accent {
-  border-color: rgba(216, 51, 36, 0.22);
-  background: linear-gradient(180deg, #fff, #fff7f6);
+  border-color: rgba(30, 142, 90, 0.22);
+  background: linear-gradient(180deg, #fff, #ecf6f0);
 }
 
 .stat-icon {
@@ -496,7 +496,7 @@ main {
   height: 42px;
   margin-bottom: 18px;
   border-radius: var(--radius-control);
-  background: #fff0ee;
+  background: #ecf6f0;
   color: var(--color-red);
 }
 
@@ -656,7 +656,7 @@ main {
   margin-top: 14px;
   padding: 7px 10px;
   border-radius: var(--radius-control);
-  background: #fff0ee;
+  background: #ecf6f0;
   color: var(--color-red);
   font-style: normal;
   font-weight: 850;
@@ -710,7 +710,7 @@ main {
 
 .property-card:hover {
   transform: translateY(-3px);
-  border-color: rgba(216, 51, 36, 0.24);
+  border-color: rgba(30, 142, 90, 0.24);
   box-shadow: var(--shadow-soft);
 }
 
@@ -825,8 +825,8 @@ main {
   min-height: 28px;
   padding: 0 9px;
   border-radius: var(--radius-control);
-  background: #eef8f2;
-  color: #16703b;
+  background: #ecf6f0;
+  color: #157a4a;
   font-size: 13px;
   font-weight: 850;
 }
@@ -854,7 +854,7 @@ main {
   padding: 14px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #fbfcfd;
+  background: #fbfcfe;
 }
 
 .price-stack span,
@@ -976,7 +976,7 @@ main {
   height: 110px;
   border-radius: var(--radius-card);
   background:
-    linear-gradient(145deg, rgba(216, 51, 36, 0.1), rgba(31, 42, 68, 0.36)),
+    linear-gradient(145deg, rgba(30, 142, 90, 0.1), rgba(31, 42, 68, 0.36)),
     linear-gradient(120deg, #f0f2f5, #aeb8c6);
 }
 
@@ -1173,8 +1173,8 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: rgba(216, 51, 36, 0.62);
-  box-shadow: 0 0 0 3px rgba(216, 51, 36, 0.1);
+  border-color: rgba(30, 142, 90, 0.62);
+  box-shadow: 0 0 0 3px rgba(30, 142, 90, 0.1);
 }
 
 .checkbox-filter {
@@ -1360,7 +1360,7 @@ textarea:focus {
   padding: 18px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #a9a9a9 #eeeeee;
+  scrollbar-color: #a9a9a9 #eef1f5;
   scrollbar-width: thin;
 }
 
@@ -1369,11 +1369,11 @@ textarea:focus {
 }
 
 .map-card-list::-webkit-scrollbar-track {
-  background: #eeeeee;
+  background: #eef1f5;
 }
 
 .map-card-list::-webkit-scrollbar-thumb {
-  border: 2px solid #eeeeee;
+  border: 2px solid #eef1f5;
   border-radius: 999px;
   background: #a1a1a1;
 }
@@ -1431,7 +1431,7 @@ textarea:focus {
   place-items: center;
   min-width: 20px;
   height: 32px;
-  color: #555555;
+  color: #4f5d75;
   font-weight: 750;
 }
 
@@ -1521,7 +1521,7 @@ textarea:focus {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #111111;
+  background: #1a2233;
 }
 
 .google-street-fallback img {
@@ -1595,19 +1595,19 @@ textarea:focus {
   border: 1px solid #cfd4dc;
   border-radius: 999px;
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
   font-weight: 750;
 }
 
 .google-map-mode button.active {
-  border-color: #111111;
-  background: #111111;
+  border-color: #1a2233;
+  background: #1a2233;
   color: #ffffff;
 }
 
 .google-map-toolbar p {
   margin: 0;
-  color: #555555;
+  color: #4f5d75;
   font-size: 13px;
   font-weight: 750;
 }
@@ -1637,13 +1637,13 @@ textarea:focus {
   padding: 7px 10px;
   border: 1px solid #d1d5db;
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
   text-align: left;
 }
 
 .google-map-property-strip button.active {
-  border-color: #111111;
-  background: #111111;
+  border-color: #1a2233;
+  background: #1a2233;
   color: #ffffff;
 }
 
@@ -1677,7 +1677,7 @@ textarea:focus {
 }
 
 .google-map-selected-card span {
-  color: #555555;
+  color: #4f5d75;
   font-size: 13px;
 }
 
@@ -1831,11 +1831,11 @@ textarea:focus {
 }
 
 .map-marker.active {
-  outline: 4px solid rgba(216, 51, 36, 0.2);
+  outline: 4px solid rgba(30, 142, 90, 0.2);
 }
 
 .naver-map-marker.active {
-  outline: 4px solid rgba(216, 51, 36, 0.22);
+  outline: 4px solid rgba(30, 142, 90, 0.22);
 }
 
 .map-popup {
@@ -2059,8 +2059,8 @@ textarea:focus {
 }
 
 .detail-price-grid .discount-block {
-  border-color: rgba(216, 51, 36, 0.26);
-  background: #fff5f4;
+  border-color: rgba(30, 142, 90, 0.26);
+  background: #ecf6f0;
 }
 
 .detail-price-grid .discount-block strong {
@@ -2113,8 +2113,8 @@ textarea:focus {
 }
 
 .verdict.positive {
-  background: #eef8f2;
-  color: #16703b;
+  background: #ecf6f0;
+  color: #157a4a;
 }
 
 .report-grid {
@@ -2128,7 +2128,7 @@ textarea:focus {
   padding: 17px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #fbfcfd;
+  background: #fbfcfe;
 }
 
 .report-stat strong {
@@ -2139,8 +2139,8 @@ textarea:focus {
 }
 
 .report-stat.highlight {
-  border-color: rgba(216, 51, 36, 0.22);
-  background: #fff5f4;
+  border-color: rgba(30, 142, 90, 0.22);
+  background: #ecf6f0;
 }
 
 .report-stat.highlight strong {
@@ -2154,7 +2154,7 @@ textarea:focus {
   margin-bottom: 20px;
   padding: 16px 18px;
   border-radius: var(--radius-card);
-  background: #fff5f4;
+  background: #ecf6f0;
   color: var(--color-red);
 }
 
@@ -2201,7 +2201,7 @@ textarea:focus {
   padding: 16px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #fbfcfd;
+  background: #fbfcfe;
 }
 
 .info-item strong,
@@ -2266,7 +2266,7 @@ textarea:focus {
 }
 
 .agent-verified svg {
-  color: #16703b;
+  color: #157a4a;
 }
 
 .primary-button.full,
@@ -2390,7 +2390,7 @@ textarea:focus {
   padding: 15px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #fbfcfd;
+  background: #fbfcfe;
 }
 
 .ranking-item > span {
@@ -2440,7 +2440,7 @@ textarea:focus {
   padding: 18px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #fbfcfd;
+  background: #fbfcfe;
 }
 
 .investor-summary strong {
@@ -2484,7 +2484,7 @@ textarea:focus {
   margin: 22px 0;
   border: 1px dashed #b8c0cc;
   border-radius: var(--radius-card);
-  background: #fbfcfd;
+  background: #fbfcfe;
   color: #667085;
   text-align: center;
 }
@@ -2534,7 +2534,7 @@ textarea:focus {
 }
 
 .result-verdict.success {
-  background: #fff0ee;
+  background: #ecf6f0;
 }
 
 .result-verdict strong,
@@ -2563,7 +2563,7 @@ textarea:focus {
   padding: 14px;
   border: 1px solid var(--color-line);
   border-radius: var(--radius-card);
-  background: #fbfcfd;
+  background: #fbfcfe;
 }
 
 .result-grid strong {
@@ -2615,9 +2615,9 @@ textarea:focus {
 }
 
 .role-card.active {
-  border-color: rgba(216, 51, 36, 0.48);
-  background: #fff7f6;
-  box-shadow: 0 0 0 3px rgba(216, 51, 36, 0.08);
+  border-color: rgba(30, 142, 90, 0.48);
+  background: #ecf6f0;
+  box-shadow: 0 0 0 3px rgba(30, 142, 90, 0.08);
 }
 
 .role-card.readonly {
@@ -2664,7 +2664,7 @@ textarea:focus {
 
 .auth-mode-tabs button.active,
 .signup-type-toggle button.active {
-  background: #111111;
+  background: #1a2233;
   color: white;
 }
 
@@ -2691,7 +2691,7 @@ textarea:focus {
   min-height: 620px;
   margin-top: 92px;
   padding: 58px 58px 34px;
-  border: 1px solid #d8d8d8;
+  border: 1px solid #e4e8ef;
   background: white;
 }
 
@@ -2705,7 +2705,7 @@ textarea:focus {
   justify-items: center;
   gap: 8px;
   margin: 8px auto 82px;
-  color: #111111;
+  color: #1a2233;
   font-size: 42px;
   font-weight: 900;
   letter-spacing: 0;
@@ -2720,8 +2720,8 @@ textarea:focus {
   place-items: center;
   width: 54px;
   height: 54px;
-  border: 1px solid #111111;
-  background: #111111;
+  border: 1px solid #1a2233;
+  background: #1a2233;
   color: white;
   font-size: 24px;
   line-height: 1;
@@ -2734,7 +2734,7 @@ textarea:focus {
 .auth-intro h1,
 .auth-intro p {
   margin: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 21px;
   font-weight: 900;
   line-height: 1.55;
@@ -2763,16 +2763,16 @@ textarea:focus {
   justify-content: center;
   gap: 12px;
   width: 100%;
-  border: 1px solid #dddddd;
+  border: 1px solid #e4e8ef;
 }
 
 .email-login-button {
   background: white;
-  color: #111111;
+  color: #1a2233;
 }
 
 .email-login-button:hover {
-  border-color: #111111;
+  border-color: #1a2233;
 }
 
 .inline-login-form,
@@ -2789,7 +2789,7 @@ textarea:focus {
 .signup-form label {
   display: grid;
   gap: 10px;
-  color: #111111;
+  color: #1a2233;
   font-size: 14px;
   font-weight: 900;
 }
@@ -2797,9 +2797,9 @@ textarea:focus {
 .inline-login-form input,
 .signup-form input {
   min-height: 44px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e4e8ef;
   padding: 0 16px;
-  color: #111111;
+  color: #1a2233;
 }
 
 .auth-submit-button {
@@ -2813,7 +2813,7 @@ textarea:focus {
 .auth-submit-button:disabled,
 .agent-next-button:disabled,
 .agent-outline-button:disabled {
-  background: #dddddd;
+  background: #e4e8ef;
   color: white;
   cursor: not-allowed;
 }
@@ -2828,7 +2828,7 @@ textarea:focus {
 
 .auth-divider span {
   height: 1px;
-  background: #eeeeee;
+  background: #eef1f5;
 }
 
 .auth-divider em {
@@ -2870,13 +2870,13 @@ textarea:focus {
 .signup-heading {
   margin-bottom: 38px;
   padding-bottom: 28px;
-  border-bottom: 1px solid #eeeeee;
+  border-bottom: 1px solid #eef1f5;
 }
 
 .signup-heading h1,
 .agent-signup-heading h1 {
   margin: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 30px;
   font-weight: 950;
 }
@@ -2884,7 +2884,7 @@ textarea:focus {
 .signup-heading p,
 .agent-signup-heading p {
   margin: 26px 0 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 14px;
   font-weight: 800;
   line-height: 1.7;
@@ -2910,7 +2910,7 @@ textarea:focus {
   width: min(614px, calc(100vw - 32px));
   margin-top: 60px;
   padding: 72px 64px 64px;
-  border: 1px solid #e5e5e5;
+  border: 1px solid #e4e8ef;
   background: white;
 }
 
@@ -2919,7 +2919,7 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   margin-bottom: 34px;
-  color: #666666;
+  color: #4f5d75;
   font-size: 13px;
   font-weight: 800;
 }
@@ -2933,19 +2933,19 @@ textarea:focus {
   grid-template-columns: minmax(0, 1fr) 220px;
   gap: 28px;
   padding: 34px 0;
-  border-top: 1px solid #eeeeee;
+  border-top: 1px solid #eef1f5;
 }
 
 .agent-form-section h2 {
   margin: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 20px;
   font-weight: 950;
 }
 
 .agent-form-section p {
   margin: 14px 0 0;
-  color: #666666;
+  color: #4f5d75;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.7;
@@ -2959,7 +2959,7 @@ textarea:focus {
 
 .agent-section-controls input {
   min-height: 42px;
-  border: 1px solid #e1e1e1;
+  border: 1px solid #e4e8ef;
   padding: 0 13px;
 }
 
@@ -2968,9 +2968,9 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid #d8d8d8;
+  border: 1px solid #e4e8ef;
   background: white;
-  color: #111111;
+  color: #1a2233;
 }
 
 .agent-file-control {
@@ -2980,8 +2980,8 @@ textarea:focus {
   justify-content: center;
   gap: 7px;
   min-height: 42px;
-  border: 1px solid #d8d8d8;
-  color: #111111;
+  border: 1px solid #e4e8ef;
+  color: #1a2233;
   font-size: 13px;
   font-weight: 850;
   overflow: hidden;
@@ -3011,7 +3011,7 @@ textarea:focus {
 }
 
 .agent-next-button:hover:not(:disabled) {
-  background: #3f3833;
+  background: #0e1a30;
 }
 
 .admin-grid {
@@ -3192,13 +3192,13 @@ td {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-control);
     background: white;
-    color: #111111;
+    color: #1a2233;
     font-weight: 850;
   }
 
 .mobile-signup {
     background: white;
-    color: #111111;
+    color: #1a2233;
     border-color: var(--color-border) !important;
   }
 
@@ -3487,12 +3487,12 @@ td {
 :root {
   --color-bg: #ffffff;
   --color-surface: #ffffff;
-  --color-surface-soft: #f7f7f7;
-  --color-text: #111111;
-  --color-muted: #6f6f6f;
-  --color-border: #d8d8d8;
-  --color-line: #ececec;
-  --color-navy: #111111;
+  --color-surface-soft: #f5f7fa;
+  --color-text: #1a2233;
+  --color-muted: #667085;
+  --color-border: #e4e8ef;
+  --color-line: #eef1f5;
+  --color-navy: #1a2233;
   --color-red: #c73b2f;
   --color-red-dark: #9d2f27;
   --shadow-soft: 0 18px 42px rgba(0, 0, 0, 0.08);
@@ -3504,7 +3504,7 @@ td {
 
 body {
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
   font-family:
     Pretendard,
     "Noto Sans KR",
@@ -3532,7 +3532,7 @@ body {
 
 .logo {
   gap: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 24px;
   font-weight: 700;
 }
@@ -3548,7 +3548,7 @@ body {
 .nav-link {
   min-height: 72px;
   padding: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 14px;
   font-weight: 500;
 }
@@ -3562,16 +3562,16 @@ body {
 
 .nav-link.active,
 .nav-link:hover {
-  color: #111111;
+  color: #1a2233;
 }
 
 .nav-link.active::after,
 .nav-link:hover::after {
-  background: #111111;
+  background: #1a2233;
 }
 
 .login-link {
-  color: #111111;
+  color: #1a2233;
   font-size: 14px;
   font-weight: 500;
 }
@@ -3579,8 +3579,8 @@ body {
 .signup-button {
   min-height: 38px;
   padding: 0 18px;
-  border-color: #111111;
-  background: #111111;
+  border-color: #1a2233;
+  background: #1a2233;
   color: #ffffff;
   font-size: 14px;
   font-weight: 600;
@@ -3592,23 +3592,23 @@ body {
 .hero-cta.primary:hover {
   /* hover는 base(#4A433D)와 text-strong(#2B2622) 사이의 미디엄 톤 —
      베이지 위에서 검정처럼 튀지 않고 미묘하게만 진해지도록. */
-  border-color: #3f3833;
-  background: #3f3833;
+  border-color: #0e1a30;
+  background: #0e1a30;
   box-shadow: 0 12px 24px rgba(63, 56, 51, 0.22);
 }
 
 .mobile-menu-button {
-  border-color: #111111;
+  border-color: #1a2233;
   border-radius: 0;
 }
 
 .mobile-nav {
-  border-bottom: 1px solid #d8d8d8;
+  border-bottom: 1px solid #e4e8ef;
   background: var(--surface);
 }
 
 .mobile-nav-link {
-  color: #111111;
+  color: #1a2233;
   font-weight: 500;
 }
 
@@ -3617,20 +3617,20 @@ body {
 }
 
 .mobile-signup {
-  background: #111111;
-  border-color: #111111 !important;
+  background: #1a2233;
+  border-color: #1a2233 !important;
 }
 
 .hero-section {
   min-height: 760px;
   padding: 150px 24px 104px;
-  background: #111111;
+  background: #1a2233;
 }
 
 .hero-visual {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.78)),
-    linear-gradient(115deg, #f5f5f5 0%, #b9b9b9 38%, #5f5f5f 72%, #222222 100%);
+    linear-gradient(115deg, #f5f7fa 0%, #b9b9b9 38%, #4f5d75 72%, #1a2233 100%);
 }
 
 .hero-visual::before {
@@ -3708,14 +3708,14 @@ body {
   border: 0;
   border-radius: 0;
   background: var(--surface);
-  color: #111111;
+  color: #1a2233;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
 }
 
 .search-tabs {
   display: flex;
   justify-content: center;
-  border-bottom: 1px solid #d9d9d9;
+  border-bottom: 1px solid #e4e8ef;
   background: var(--surface);
 }
 
@@ -3729,9 +3729,9 @@ body {
 }
 
 .search-tab.active {
-  color: #111111;
+  color: #1a2233;
   background: #ffffff;
-  box-shadow: inset 0 -2px 0 #111111;
+  box-shadow: inset 0 -2px 0 #1a2233;
 }
 
 .hero-search-row {
@@ -3742,7 +3742,7 @@ body {
 
 .hero-search-row input {
   min-height: 52px;
-  color: #111111;
+  color: #1a2233;
   font-size: 16px;
 }
 
@@ -3775,22 +3775,22 @@ body {
 .report-stat-grid,
 .admin-stat-grid {
   gap: 0;
-  border-top: 1px solid #dcdcdc;
-  border-left: 1px solid #dcdcdc;
+  border-top: 1px solid #e4e8ef;
+  border-left: 1px solid #e4e8ef;
 }
 
 .stat-card {
   min-height: 150px;
   border: 0;
-  border-right: 1px solid #dcdcdc;
-  border-bottom: 1px solid #dcdcdc;
+  border-right: 1px solid #e4e8ef;
+  border-bottom: 1px solid #e4e8ef;
   border-radius: 0;
   box-shadow: none;
   background: #ffffff;
 }
 
 .stat-card.accent {
-  border-color: #dcdcdc;
+  border-color: #e4e8ef;
   background: #ffffff;
 }
 
@@ -3800,17 +3800,17 @@ body {
   margin-bottom: 18px;
   border-radius: 0;
   background: transparent;
-  color: #111111;
+  color: #1a2233;
 }
 
 .stat-card span {
-  color: #606060;
+  color: #4f5d75;
   font-size: 13px;
   font-weight: 500;
 }
 
 .stat-card strong {
-  color: #111111;
+  color: #1a2233;
   font-size: 30px;
   font-weight: 600;
 }
@@ -3832,7 +3832,7 @@ body {
 
 .lifestyle-section,
 .report-preview-section {
-  background: #f7f7f7;
+  background: #f5f7fa;
 }
 
 .section-title {
@@ -3840,7 +3840,7 @@ body {
 }
 
 .section-eyebrow {
-  color: #6c6c6c;
+  color: #667085;
   font-size: 13px;
   font-weight: 500;
 }
@@ -3852,13 +3852,13 @@ body {
 .admin-panel h2,
 .calculation-panel h2,
 .login-panel h2 {
-  color: #111111;
+  color: #1a2233;
   font-size: clamp(30px, 3.1vw, 48px);
   font-weight: 600;
 }
 
 .section-title p:not(.section-eyebrow) {
-  color: #5f5f5f;
+  color: #4f5d75;
   font-size: 17px;
   font-weight: 400;
 }
@@ -3874,21 +3874,21 @@ body {
 
 .data-rule-list {
   gap: 0;
-  border-top: 1px solid #dcdcdc;
+  border-top: 1px solid #e4e8ef;
 }
 
 .data-rule-list div {
   padding: 20px 0;
   border: 0;
-  border-bottom: 1px solid #dcdcdc;
+  border-bottom: 1px solid #e4e8ef;
   border-radius: 0;
   background: transparent;
-  color: #222222;
+  color: #1a2233;
   font-weight: 500;
 }
 
 .data-rule-list svg {
-  color: #111111;
+  color: #1a2233;
 }
 
 .split-visual {
@@ -3896,7 +3896,7 @@ body {
   border-radius: 0;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.34)),
-    linear-gradient(125deg, #f1f1f1 0%, #c9c9c9 48%, #585858 100%);
+    linear-gradient(125deg, #f5f7fa 0%, #cfd4dc 48%, #585858 100%);
   box-shadow: none;
 }
 
@@ -3911,7 +3911,7 @@ body {
 
 .proof-card,
 .verify-panel {
-  border: 1px solid #d6d6d6;
+  border: 1px solid #e4e8ef;
   border-radius: 0;
   background: var(--surface);
   box-shadow: 0 18px 46px rgba(0, 0, 0, 0.16);
@@ -3919,25 +3919,25 @@ body {
 
 .proof-card strong,
 .verify-panel strong {
-  color: #111111;
+  color: #1a2233;
   font-weight: 600;
 }
 
 .proof-card em,
 .verify-panel em {
   border-radius: 0;
-  background: #111111;
+  background: #1a2233;
   color: #ffffff;
 }
 
 .proof-line {
-  background: #111111;
+  background: #1a2233;
 }
 
 .text-arrow-link {
-  color: #111111;
+  color: #1a2233;
   font-weight: 500;
-  border-bottom: 1px solid #111111;
+  border-bottom: 1px solid #1a2233;
 }
 
 .property-grid {
@@ -3945,7 +3945,7 @@ body {
 }
 
 .property-card {
-  border: 1px solid #d8d8d8;
+  border: 1px solid #e4e8ef;
   border-radius: 0;
   box-shadow: none;
   background: var(--surface);
@@ -3953,7 +3953,7 @@ body {
 
 .property-card:hover {
   transform: translateY(-2px);
-  border-color: #111111;
+  border-color: #1a2233;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
 }
 
@@ -3961,7 +3961,7 @@ body {
   min-height: 260px;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.55)),
-    linear-gradient(125deg, #eeeeee 0%, #bcbcbc 48%, #393939 100%);
+    linear-gradient(125deg, #eef1f5 0%, #aeb8c6 48%, #393939 100%);
 }
 
 .property-image-placeholder::before {
@@ -3983,42 +3983,57 @@ body {
 .urgent-badge,
 .verified-chip {
   min-height: 24px;
-  border-radius: 0;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.urgent-badge.hot,
-.urgent-badge.urgent {
-  background: #111111;
+/* 초급매 (할인율 10%+) — 진한 초록, 흰 글씨 */
+.urgent-badge.hot {
+  background: #0f5e39;
   color: #ffffff;
 }
 
+/* 급매 (할인율 5%+) — 연한 초록 워시 + 초록 글씨 + 보더 */
+.urgent-badge.urgent {
+  background: #ecf6f0;
+  color: #157a4a;
+  box-shadow: inset 0 0 0 1px #d6ede0;
+}
+
+/* 일반 — 중립 그레이 */
+.urgent-badge.neutral {
+  background: #f5f7fa;
+  color: #4f5d75;
+}
+
+/* 검증 대기 — 점선 보더, 미묘하게 */
 .urgent-badge.pending {
-  background: #f1f1f1;
-  color: #333333;
+  background: #ffffff;
+  color: #8a93a6;
+  box-shadow: inset 0 0 0 1px #d7dce5;
 }
 
 .verified-chip {
-  background: #f5f5f5;
-  color: #222222;
+  background: #ecf6f0;
+  color: #157a4a;
 }
 
 .property-title-link h3 {
-  color: #111111;
+  color: #1a2233;
   font-size: 20px;
   font-weight: 600;
 }
 
 .property-location {
-  color: #6f6f6f;
+  color: #667085;
   font-weight: 400;
 }
 
 .price-stack {
   border: 0;
-  border-top: 1px solid #e5e5e5;
-  border-bottom: 1px solid #e5e5e5;
+  border-top: 1px solid #e4e8ef;
+  border-bottom: 1px solid #e4e8ef;
   border-radius: 0;
   background: transparent;
   padding: 16px 0;
@@ -4032,19 +4047,19 @@ body {
 .report-stat span,
 .result-grid span,
 .investor-summary span {
-  color: #6c6c6c;
+  color: #667085;
   font-weight: 500;
 }
 
 .price-stack strong,
 .property-metrics strong {
-  color: #111111;
+  color: #1a2233;
   font-weight: 600;
 }
 
 .property-metrics {
   gap: 0;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid #e4e8ef;
 }
 
 .property-metrics > div {
@@ -4056,7 +4071,7 @@ body {
 
 .discount-metric,
 .discount-metric span {
-  color: #111111;
+  color: #1a2233;
 }
 
 .outline-button,
@@ -4067,9 +4082,9 @@ body {
 }
 
 .outline-button {
-  border-color: #111111;
+  border-color: #1a2233;
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
 }
 
 .contact-button {
@@ -4086,8 +4101,8 @@ body {
 
 .contact-button:hover,
 .outline-dark-button:hover {
-  border-color: #3f3833;
-  background: #3f3833;
+  border-color: #0e1a30;
+  background: #0e1a30;
 }
 
 .neighborhood-grid {
@@ -4098,7 +4113,7 @@ body {
   grid-template-columns: 1fr;
   gap: 0;
   padding: 0;
-  border: 1px solid #d8d8d8;
+  border: 1px solid #e4e8ef;
   border-radius: 0;
   background: #ffffff;
 }
@@ -4112,37 +4127,37 @@ body {
   border-radius: 0;
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.46)),
-    linear-gradient(120deg, #efefef, #9b9b9b);
+    linear-gradient(120deg, #eef1f5, #9b9b9b);
 }
 
 .neighborhood-card h3 {
-  color: #111111;
+  color: #1a2233;
   font-weight: 600;
 }
 
 .neighborhood-card p {
-  color: #666666;
+  color: #4f5d75;
 }
 
 .neighborhood-card span {
-  color: #111111;
+  color: #1a2233;
   font-weight: 500;
 }
 
 .cta-copy-list p {
   border-left: 0;
-  border-top: 1px solid #dcdcdc;
+  border-top: 1px solid #e4e8ef;
   background: transparent;
-  color: #333333;
+  color: #4f5d75;
   padding: 16px 0;
   font-weight: 500;
 }
 
 .report-preview-list span {
-  border-color: #d8d8d8;
+  border-color: #e4e8ef;
   border-radius: 0;
   background: #ffffff;
-  color: #222222;
+  color: #1a2233;
   font-weight: 500;
 }
 
@@ -4155,18 +4170,18 @@ body {
 .login-panel,
 .admin-panel,
 .report-panel {
-  border: 1px solid #d8d8d8;
+  border: 1px solid #e4e8ef;
   border-radius: 0;
   box-shadow: none;
 }
 
 .chart-title-row h3 {
-  color: #111111;
+  color: #1a2233;
   font-weight: 600;
 }
 
 .popular-cities-section {
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid #e4e8ef;
 }
 
 .popular-region-grid {
@@ -4174,7 +4189,7 @@ body {
   grid-template-columns: repeat(4, 1fr);
   gap: 28px;
   margin-top: 36px;
-  border-top: 1px solid #dcdcdc;
+  border-top: 1px solid #e4e8ef;
   padding-top: 28px;
 }
 
@@ -4187,7 +4202,7 @@ body {
 }
 
 .popular-region-grid a {
-  color: #222222;
+  color: #1a2233;
   font-size: 15px;
   font-weight: 400;
   text-decoration: underline;
@@ -4196,7 +4211,7 @@ body {
 }
 
 .popular-region-grid a:hover {
-  text-decoration-color: #111111;
+  text-decoration-color: #1a2233;
 }
 
 .page-shell,
@@ -4207,7 +4222,7 @@ body {
 .page-hero {
   background:
     linear-gradient(120deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.52)),
-    linear-gradient(120deg, #eeeeee, #606060);
+    linear-gradient(120deg, #eef1f5, #4f5d75);
 }
 
 .filter-panel,
@@ -4227,12 +4242,12 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #111111;
+  border-color: #1a2233;
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
 }
 
 .map-marker.red {
-  background: #111111;
+  background: #1a2233;
 }
 
 .map-marker.orange {
@@ -4240,19 +4255,19 @@ textarea:focus {
 }
 
 .map-marker.yellow {
-  background: #d7d7d7;
-  color: #111111;
+  background: #e4e8ef;
+  color: #1a2233;
 }
 
 .detail-image-placeholder {
   background:
     linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.62)),
-    linear-gradient(120deg, #eeeeee 0%, #a8a8a8 48%, #222222 100%);
+    linear-gradient(120deg, #eef1f5 0%, #a8a8a8 48%, #1a2233 100%);
 }
 
 .report-stat.highlight,
 .detail-price-grid .discount-block {
-  border-color: #111111;
+  border-color: #1a2233;
   background: #ffffff;
 }
 
@@ -4261,43 +4276,43 @@ textarea:focus {
 .sidebar-proof-card strong,
 .ranking-item em,
 .log-item em {
-  color: #111111;
+  color: #1a2233;
 }
 
 .verdict.positive,
 .result-verdict.success {
-  background: #f4f4f4;
-  color: #111111;
+  background: #f5f7fa;
+  color: #1a2233;
 }
 
 .site-footer {
   border-top: 1px solid var(--border);
   background: var(--surface-warm);
-  color: #111111;
+  color: #1a2233;
 }
 
 .footer-logo {
-  color: #111111;
+  color: #1a2233;
   font-weight: 700;
 }
 
 .footer-brand p,
 .footer-column a,
 .footer-bottom {
-  color: #666666;
+  color: #4f5d75;
 }
 
 .footer-column h3 {
-  color: #111111;
+  color: #1a2233;
   font-weight: 600;
 }
 
 .footer-column a:hover {
-  color: #111111;
+  color: #1a2233;
 }
 
 .footer-bottom {
-  border-top: 1px solid #d8d8d8;
+  border-top: 1px solid #e4e8ef;
 }
 
 @media (max-width: 1120px) {
@@ -4365,7 +4380,7 @@ textarea:focus {
   }
 
   .stat-card {
-    border-left: 1px solid #dcdcdc;
+    border-left: 1px solid #e4e8ef;
   }
 
   .popular-region-grid {
@@ -4375,7 +4390,7 @@ textarea:focus {
 
 /* Listing detail page inspired by dense broker listing pages. */
 .property-image-placeholder.has-photo {
-  background: #111111;
+  background: #1a2233;
 }
 
 .property-image-placeholder.has-photo::before {
@@ -4407,7 +4422,7 @@ textarea:focus {
 
 .compass-detail {
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
 }
 
 .compass-detail [id] {
@@ -4416,7 +4431,7 @@ textarea:focus {
 
 .property-masthead {
   padding-top: var(--header-height);
-  border-bottom: 1px solid #dedede;
+  border-bottom: 1px solid #e4e8ef;
   background: #ffffff;
 }
 
@@ -4434,7 +4449,7 @@ textarea:focus {
 
 .masthead-copy h1 {
   margin: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 21px;
   font-weight: 700;
   line-height: 1.25;
@@ -4445,7 +4460,7 @@ textarea:focus {
   align-items: center;
   gap: 6px;
   margin: 6px 0 0;
-  color: #5f5f5f;
+  color: #4f5d75;
   font-size: 14px;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -4468,7 +4483,7 @@ textarea:focus {
   justify-items: center;
   min-width: 82px;
   padding: 0 14px;
-  border-left: 1px solid #d8d8d8;
+  border-left: 1px solid #e4e8ef;
   text-align: center;
 }
 
@@ -4480,11 +4495,11 @@ textarea:focus {
 
 .masthead-stat svg {
   margin-bottom: 3px;
-  color: #111111;
+  color: #1a2233;
 }
 
 .masthead-stat strong {
-  color: #111111;
+  color: #1a2233;
   font-size: 17px;
   font-weight: 700;
   line-height: 1.2;
@@ -4497,7 +4512,7 @@ textarea:focus {
 .masthead-stat span,
 .masthead-stat em {
   display: block;
-  color: #666666;
+  color: #4f5d75;
   font-size: 13px;
   font-style: normal;
   line-height: 1.35;
@@ -4556,7 +4571,7 @@ textarea:focus {
   position: sticky;
   top: var(--header-height);
   z-index: 60;
-  border-bottom: 1px solid #dddddd;
+  border-bottom: 1px solid #e4e8ef;
   background: #ffffff;
 }
 
@@ -4592,12 +4607,12 @@ textarea:focus {
 
 .detail-anchor-list a.is-active,
 .detail-anchor-list a:hover {
-  color: #111111;
+  color: #1a2233;
 }
 
 .detail-anchor-list a.is-active::after,
 .detail-anchor-list a:hover::after {
-  background: #111111;
+  background: #1a2233;
 }
 
 .compass-detail-layout {
@@ -4630,7 +4645,7 @@ textarea:focus {
   min-height: 520px;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  background: #111111;
+  background: #1a2233;
 }
 
 .gallery-stage img {
@@ -4686,7 +4701,7 @@ textarea:focus {
   border: 1px solid rgba(255, 255, 255, 0.84);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.86);
-  color: #111111;
+  color: #1a2233;
   transform: translateY(-50%);
 }
 
@@ -4718,7 +4733,7 @@ textarea:focus {
   flex: 1 1 auto;
   min-width: 0;
   overflow-x: auto;
-  scrollbar-color: #9f9f9f #f1f1f1;
+  scrollbar-color: #9f9f9f #f5f7fa;
   scrollbar-width: thin;
 }
 
@@ -4727,7 +4742,7 @@ textarea:focus {
 }
 
 .thumbnail-track::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f5f7fa;
 }
 
 .thumbnail-track::-webkit-scrollbar-thumb {
@@ -4793,14 +4808,14 @@ textarea:focus {
   display: grid;
   gap: 0;
   margin-top: 30px;
-  border-top: 1px solid #dedede;
+  border-top: 1px solid #e4e8ef;
 }
 
 .compass-detail .detail-section {
   margin: 0;
   padding: 30px 0;
   border: 0;
-  border-bottom: 1px solid #dedede;
+  border-bottom: 1px solid #e4e8ef;
   background: transparent;
   box-shadow: none;
 }
@@ -4811,7 +4826,7 @@ textarea:focus {
 
 .compass-detail .detail-section h2 {
   margin: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 24px;
   font-weight: 650;
   line-height: 1.28;
@@ -4829,27 +4844,27 @@ textarea:focus {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   margin-top: 24px;
-  border-top: 1px solid #dedede;
-  border-left: 1px solid #dedede;
+  border-top: 1px solid #e4e8ef;
+  border-left: 1px solid #e4e8ef;
 }
 
 .detail-highlight-grid div {
   min-height: 94px;
   padding: 18px;
-  border-right: 1px solid #dedede;
-  border-bottom: 1px solid #dedede;
+  border-right: 1px solid #e4e8ef;
+  border-bottom: 1px solid #e4e8ef;
 }
 
 .detail-highlight-grid span {
   display: block;
-  color: #666666;
+  color: #4f5d75;
   font-size: 13px;
 }
 
 .detail-highlight-grid strong {
   display: block;
   margin-top: 8px;
-  color: #111111;
+  color: #1a2233;
   font-size: 18px;
   font-weight: 700;
 }
@@ -4858,7 +4873,7 @@ textarea:focus {
   display: grid;
   gap: 0;
   margin-top: 20px;
-  border-top: 1px solid #dedede;
+  border-top: 1px solid #e4e8ef;
 }
 
 .open-house-item {
@@ -4867,11 +4882,11 @@ textarea:focus {
   gap: 14px;
   align-items: center;
   padding: 16px 0;
-  border-bottom: 1px solid #dedede;
+  border-bottom: 1px solid #e4e8ef;
 }
 
 .open-house-item svg {
-  color: #111111;
+  color: #1a2233;
 }
 
 .open-house-item strong,
@@ -4880,13 +4895,13 @@ textarea:focus {
 }
 
 .open-house-item strong {
-  color: #111111;
+  color: #1a2233;
   font-weight: 650;
 }
 
 .open-house-item span,
 .open-house-item em {
-  color: #666666;
+  color: #4f5d75;
   font-size: 14px;
   font-style: normal;
 }
@@ -4907,8 +4922,8 @@ textarea:focus {
 .compass-detail .lifestyle-grid {
   gap: 0;
   margin-top: 20px;
-  border-top: 1px solid #dedede;
-  border-left: 1px solid #dedede;
+  border-top: 1px solid #e4e8ef;
+  border-left: 1px solid #e4e8ef;
 }
 
 .compass-detail .report-stat,
@@ -4917,27 +4932,27 @@ textarea:focus {
   min-height: 86px;
   padding: 16px;
   border: 0;
-  border-right: 1px solid #dedede;
-  border-bottom: 1px solid #dedede;
+  border-right: 1px solid #e4e8ef;
+  border-bottom: 1px solid #e4e8ef;
   border-radius: 0;
   background: #ffffff;
 }
 
 .compass-detail .report-stat.highlight {
-  background: #f7f7f7;
+  background: #f5f7fa;
 }
 
 .compass-detail .report-stat strong,
 .compass-detail .info-item strong,
 .compass-detail .lifestyle-item strong {
-  color: #111111;
+  color: #1a2233;
   font-weight: 650;
 }
 
 .compass-detail .report-verdict-box {
   border-radius: 0;
-  background: #f7f7f7;
-  color: #111111;
+  background: #f5f7fa;
+  color: #1a2233;
 }
 
 .compass-detail .chart-card {
@@ -4957,18 +4972,18 @@ textarea:focus {
   position: relative;
   min-height: 250px;
   overflow: hidden;
-  border: 1px solid #dedede;
+  border: 1px solid #e4e8ef;
   background:
     linear-gradient(90deg, rgba(17, 17, 17, 0.06) 1px, transparent 1px),
     linear-gradient(180deg, rgba(17, 17, 17, 0.06) 1px, transparent 1px),
-    #f5f5f5;
+    #f5f7fa;
   background-size: 54px 54px;
 }
 
 .map-line {
   position: absolute;
   display: block;
-  background: #cfcfcf;
+  background: #cfd4dc;
 }
 
 .map-line.horizontal {
@@ -5002,7 +5017,7 @@ textarea:focus {
   width: 44px;
   height: 44px;
   border-radius: 999px;
-  background: #111111;
+  background: #1a2233;
   color: #ffffff;
   transform: translate(-50%, -50%);
 }
@@ -5011,19 +5026,19 @@ textarea:focus {
   display: grid;
   align-content: center;
   gap: 14px;
-  border-top: 1px solid #dedede;
-  border-bottom: 1px solid #dedede;
+  border-top: 1px solid #e4e8ef;
+  border-bottom: 1px solid #e4e8ef;
 }
 
 .location-copy strong {
-  color: #111111;
+  color: #1a2233;
   font-size: 18px;
   font-weight: 650;
 }
 
 .location-copy p {
   margin: 0;
-  color: #555555;
+  color: #4f5d75;
 }
 
 .property-fact-panel {
@@ -5032,7 +5047,7 @@ textarea:focus {
 
 .fact-updated {
   margin: 0 0 8px;
-  color: #666666;
+  color: #4f5d75;
   font-size: 12px;
   font-weight: 750;
   letter-spacing: 0;
@@ -5040,7 +5055,7 @@ textarea:focus {
 
 .fact-table {
   margin: 0;
-  border-top: 1px solid #d8d8d8;
+  border-top: 1px solid #e4e8ef;
 }
 
 .fact-row {
@@ -5048,14 +5063,14 @@ textarea:focus {
   grid-template-columns: minmax(120px, 42%) minmax(0, 1fr);
   gap: 12px;
   padding: 8px 0;
-  border-bottom: 1px solid #d8d8d8;
+  border-bottom: 1px solid #e4e8ef;
 }
 
 .fact-row dt,
 .fact-row dd {
   margin: 0;
   min-width: 0;
-  color: #111111;
+  color: #1a2233;
   font-size: 14px;
 }
 
@@ -5072,13 +5087,13 @@ textarea:focus {
 .compass-detail .sidebar-proof-card {
   padding: 26px 0 0;
   border: 0;
-  border-top: 1px solid #d8d8d8;
+  border-top: 1px solid #e4e8ef;
   background: transparent;
   box-shadow: none;
 }
 
 .compass-detail .contact-panel h2 {
-  color: #111111;
+  color: #1a2233;
   font-size: 20px;
   font-weight: 650;
 }
@@ -5091,13 +5106,13 @@ textarea:focus {
   width: 72px;
   height: 72px;
   border-radius: 999px;
-  background: #d8d8d8;
-  color: #111111;
+  background: #e4e8ef;
+  color: #1a2233;
   font-size: 26px;
 }
 
 .compass-detail .agent-profile strong {
-  color: #111111;
+  color: #1a2233;
   font-size: 17px;
   font-weight: 650;
   text-decoration: underline;
@@ -5108,7 +5123,7 @@ textarea:focus {
 .compass-detail .agent-verified,
 .compass-detail .agent-phone,
 .compass-detail .agent-date {
-  color: #666666;
+  color: #4f5d75;
   font-weight: 450;
 }
 
@@ -5149,29 +5164,29 @@ textarea:focus {
 .compass-detail .outline-button.full {
   min-height: 40px;
   margin-top: 14px;
-  border-color: #bdbdbd;
+  border-color: #aeb8c6;
   border-radius: 999px;
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
 }
 
 .compass-detail .danger-link-button {
-  color: #555555;
+  color: #4f5d75;
   font-weight: 500;
 }
 
 .compass-detail .sidebar-proof-card svg {
-  color: #111111;
+  color: #1a2233;
 }
 
 .compass-detail .sidebar-proof-card strong {
-  color: #111111;
+  color: #1a2233;
   font-size: 21px;
   font-weight: 650;
 }
 
 .compass-detail .sidebar-proof-card span {
-  color: #666666;
+  color: #4f5d75;
 }
 
 .verification-card strong {
@@ -5185,7 +5200,7 @@ textarea:focus {
   display: grid;
   grid-template-rows: 56px minmax(0, 1fr);
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
 }
 
 .viewer-header {
@@ -5194,7 +5209,7 @@ textarea:focus {
   align-items: center;
   gap: 16px;
   min-width: 0;
-  border-bottom: 1px solid #dedede;
+  border-bottom: 1px solid #e4e8ef;
   background: var(--surface);
 }
 
@@ -5206,7 +5221,7 @@ textarea:focus {
 .viewer-title-block h2 {
   margin: 0;
   overflow: hidden;
-  color: #111111;
+  color: #1a2233;
   font-size: 18px;
   font-weight: 700;
   line-height: 1.1;
@@ -5219,7 +5234,7 @@ textarea:focus {
   gap: 6px;
   margin: 6px 0 0;
   overflow: hidden;
-  color: #111111;
+  color: #1a2233;
   font-size: 12px;
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -5269,7 +5284,7 @@ textarea:focus {
   height: 54px;
   border: 0;
   background: transparent;
-  color: #111111;
+  color: #1a2233;
 }
 
 .viewer-body {
@@ -5293,7 +5308,7 @@ textarea:focus {
   aspect-ratio: 4 / 3;
   margin: 0;
   overflow: hidden;
-  background: #f3f3f3;
+  background: #f5f7fa;
 }
 
 .viewer-photo-card:nth-child(5n + 1) {
@@ -5338,7 +5353,7 @@ textarea:focus {
   width: 100%;
   min-height: calc(100dvh - 56px);
   overflow: hidden;
-  background: #eeeeee;
+  background: #eef1f5;
 }
 
 .viewer-map-canvas,
@@ -5352,13 +5367,13 @@ textarea:focus {
 .viewer-tour-embed-shell iframe {
   display: block;
   border: 0;
-  background: #111111;
+  background: #1a2233;
 }
 
 .viewer-indoor-tour {
   display: grid;
   place-items: center;
-  background: #111111;
+  background: #1a2233;
 }
 
 .viewer-indoor-tour > img {
@@ -5426,7 +5441,7 @@ textarea:focus {
 .indoor-tour-scenes button.active {
   border-color: #ffffff;
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
 }
 
 .viewer-status-overlay {
@@ -5444,9 +5459,9 @@ textarea:focus {
 .viewer-map-popup {
   min-width: 210px;
   padding: 12px 14px;
-  border: 1px solid #111111;
+  border: 1px solid #1a2233;
   background: #ffffff;
-  color: #111111;
+  color: #1a2233;
 }
 
 .viewer-map-popup strong,
@@ -5460,7 +5475,7 @@ textarea:focus {
 
 .viewer-map-popup span {
   margin-top: 4px;
-  color: #555555;
+  color: #4f5d75;
   font-size: 12px;
 }
 
@@ -5468,14 +5483,14 @@ textarea:focus {
   background:
     linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
     linear-gradient(180deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
-    #f3f3f3;
+    #f5f7fa;
   background-size: 72px 72px;
 }
 
 .viewer-map-road {
   position: absolute;
   display: block;
-  background: #c7c7c7;
+  background: #cfd4dc;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.56);
 }
 
@@ -5510,7 +5525,7 @@ textarea:focus {
   width: 58px;
   height: 58px;
   border-radius: 999px;
-  background: #111111;
+  background: #1a2233;
   color: #ffffff;
   transform: translate(-50%, -50%);
 }
@@ -5565,7 +5580,7 @@ textarea:focus {
 }
 
 .viewer-street-fallback {
-  background: #111111;
+  background: #1a2233;
 }
 
 .viewer-street-fallback img {
@@ -5762,8 +5777,8 @@ textarea:focus {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
-    border-top: 1px solid #d8d8d8;
-    border-left: 1px solid #d8d8d8;
+    border-top: 1px solid #e4e8ef;
+    border-left: 1px solid #e4e8ef;
   }
 
   .masthead-stat,
@@ -5771,8 +5786,8 @@ textarea:focus {
     justify-items: start;
     min-width: 0;
     padding: 14px;
-    border-right: 1px solid #d8d8d8;
-    border-bottom: 1px solid #d8d8d8;
+    border-right: 1px solid #e4e8ef;
+    border-bottom: 1px solid #e4e8ef;
     border-left: 0;
     text-align: left;
   }

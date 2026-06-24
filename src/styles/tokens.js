@@ -13,34 +13,42 @@
  *    --text-strong   → TEXT_STRONG, …)
  */
 
-// === Brand — Primary (테라코타) ===
-export const PRIMARY = '#a95c48';
-export const PRIMARY_HOVER = '#97503d';
-export const PRIMARY_ACTIVE = '#823f30';
-export const PRIMARY_STRONG = '#8a4634';
-export const PRIMARY_SUBTLE = '#faf1ed';
+// === Brand — Primary (절약 초록 / Savings) ===
+export const PRIMARY = '#1e8e5a';
+export const PRIMARY_HOVER = '#157a4a';
+export const PRIMARY_ACTIVE = '#0f5e39';
+export const PRIMARY_STRONG = '#157a4a';
+export const PRIMARY_SUBTLE = '#ecf6f0';
 
-// === Surface ===
-export const BG = '#faf7f2';
+// === Savings green scale (할인 등급 농도) ===
+export const SAVE_50 = '#ecf6f0';
+export const SAVE_100 = '#d6ede0';
+export const SAVE_600 = '#1e8e5a';
+export const SAVE_700 = '#157a4a';
+export const SAVE_800 = '#0f5e39';
+
+// === Surface (쿨 톤) ===
+export const BG = '#fbfcfe';
 export const SURFACE = '#ffffff';
-export const SURFACE_WARM = '#f6f2eb';
-export const BORDER = '#e5dfd5';
-export const BORDER_STRONG = '#2b2622';
+export const SURFACE_WARM = '#f5f7fa';
+export const NAVY_DEEP = '#0e1a30';
+export const BORDER = '#e4e8ef';
+export const BORDER_STRONG = '#1a2233';
 
-// === Text (따뜻한 차콜 계열) ===
-export const TEXT_STRONG = '#2b2622';
-export const TEXT_STRONG_SOFT = '#4a433d'; // fill on L1 — 밝은 면 위 차콜 채움
-export const TEXT_SECONDARY = '#6e6864';
-export const TEXT_MUTED = '#9a9087';
+// === Text (쿨 잉크/슬레이트 계열) ===
+export const TEXT_STRONG = '#1a2233';
+export const TEXT_STRONG_SOFT = '#1f2a40'; // fill on L1 — 밝은 면 위 네이비 채움
+export const TEXT_SECONDARY = '#4f5d75';
+export const TEXT_MUTED = '#8a93a6';
 
-// === Status ===
-export const PRICE_UP = '#e0453e';
-export const PRICE_DOWN = '#2563eb';
-export const SUCCESS = '#2e9e6b';
+// === Status (상승=빨강, 하락=파랑) ===
+export const PRICE_UP = '#c9453b';
+export const PRICE_DOWN = '#2e6be6';
+export const SUCCESS = '#1e8e5a';
 export const WARNING = '#e0a82e';
-export const DANGER = '#d14343';
+export const DANGER = '#c9453b';
 
-// === Map Marker — 톤다운 흙빛 신호등 ===
-export const MARKER_HOT = '#a23b2e';
-export const MARKER_WARM = '#b0623e';
-export const MARKER_MILD = '#c19a5b';
+// === Map Marker — 할인율 등급(초록 농도) ===
+export const MARKER_HOT = '#0f5e39';
+export const MARKER_WARM = '#157a4a';
+export const MARKER_MILD = '#1e8e5a';

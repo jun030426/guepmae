@@ -16,26 +16,28 @@ import {
 } from '../utils/priceUtils.js';
 import { PRIMARY, BORDER } from '../styles/tokens.js';
 
+const fmtArea = (a) => `${a}㎡`;
+const fmtYm = (ym) => (ym ? ym.replace('-', '.') : '');
+const fmtDate = (ym, day) => `${fmtYm(ym)}${day ? '.' + String(day).padStart(2, '0') : ''}`;
+const eok = (won) => {
+  if (!won && won !== 0) return '-';
+  const v = won / 1e8;
+  return `${Number.isInteger(v) ? v.toFixed(0) : v.toFixed(1)}억`;
+};
+
 function PriceReport({ property }) {
   const discountRate = calculateDiscountRate(property.price, property.actualTransactionPrice);
   const priceGap = calculatePriceGap(property.price, property.actualTransactionPrice);
   const urgent = isUrgentSale(property.price, property.actualTransactionPrice);
 
-  const chartData = property.priceHistory;
-  const hasChart = Array.isArray(chartData) && chartData.length > 0;
-  const hasEstimated = hasChart && chartData.some((point) => point.estimated);
+  // 실거래만 (재생산/추정 없음)
+  const chartData = Array.isArray(property.priceHistory) ? property.priceHistory : [];
+  const hasChart = chartData.length >= 2;
 
-  // 실거래=채운 점, 재생산 추정=테라코타 테두리 빈 점
-  const renderDot = (props) => {
-    const { cx, cy, payload, index } = props;
-    if (cx == null || cy == null) return null;
-    if (payload?.estimated) {
-      return (
-        <circle key={payload.yearMonth ?? index} cx={cx} cy={cy} r={4} fill="#ffffff" stroke={PRIMARY} strokeWidth={2} />
-      );
-    }
-    return <circle key={payload?.yearMonth ?? index} cx={cx} cy={cy} r={4} fill={PRIMARY} />;
-  };
+  const table = property.priceTable || {};
+  const areaSummary = Array.isArray(table.areaSummary) ? table.areaSummary : [];
+  const recentTrades = Array.isArray(table.recentTrades) ? table.recentTrades : [];
+  const hasTable = areaSummary.length > 0 || recentTrades.length > 0;
 
   return (
     <section className="price-report">
@@ -80,47 +82,97 @@ function PriceReport({ property }) {
 
       <div className="chart-card">
         <div className="chart-title-row">
-          <h3>최근 1년 실거래가 추이</h3>
-          <span>단위: 원</span>
+          <h3>{table.complexName || '동일 단지'} 실거래가 (최근 3년)</h3>
+          <span>국토부 실거래 · 추정 없음</span>
         </div>
-        {hasChart ? (
+
+        {hasChart && (
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={chartData} margin={{ top: 16, right: 16, left: 8, bottom: 8 }}>
+              <CartesianGrid stroke={BORDER} vertical={false} />
+              <XAxis dataKey="month" tickLine={false} axisLine={false} interval="preserveStartEnd" fontSize={12} />
+              <YAxis
+                width={64}
+                tickLine={false}
+                axisLine={false}
+                fontSize={12}
+                tickFormatter={(value) => eok(value)}
+              />
+              <Tooltip
+                formatter={(value, _n, item) => [
+                  `${formatPrice(value)}${item?.payload?.count ? ` (${item.payload.count}건)` : ''}`,
+                  '실거래 중앙값',
+                ]}
+                labelFormatter={(label) => `${label} 거래`}
+              />
+              <Line type="monotone" dataKey="price" stroke={PRIMARY} strokeWidth={2.5} dot={{ r: 3, fill: PRIMARY }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+
+        {hasTable ? (
           <>
-            <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={chartData} margin={{ top: 20, right: 16, left: 8, bottom: 8 }}>
-                <CartesianGrid stroke={BORDER} vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis
-                  width={86}
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={(value) => formatPrice(value).replace(' 원', '')}
-                />
-                <Tooltip
-                  formatter={(value, _name, item) => [
-                    `${formatPrice(value)}${item?.payload?.estimated ? ' (추정)' : ''}`,
-                    item?.payload?.estimated ? '주변 시세 기반 추정' : '실거래가',
-                  ]}
-                  labelFormatter={(label) => `${label} 거래`}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="price"
-                  stroke={PRIMARY}
-                  strokeWidth={3}
-                  dot={renderDot}
-                  activeDot={{ r: 6 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-            {hasEstimated && (
-              <p className="chart-legend">
-                <span className="legend-dot real" /> 실거래
-                <span className="legend-dot est" /> 주변 시세 기반 추정(거래 없는 달)
-              </p>
+            {areaSummary.length > 0 && (
+              <div className="trade-block">
+                <h4>평형별 실거래 요약 <span className="trade-note">최근 3년 · 실거래만</span></h4>
+                <table className="trade-table">
+                  <thead>
+                    <tr>
+                      <th>전용면적</th>
+                      <th>거래</th>
+                      <th>최근 거래가</th>
+                      <th>3년 최저~최고</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {areaSummary.map((r) => (
+                      <tr key={r.areaM2} className={r.isMine ? 'mine' : ''}>
+                        <td>
+                          {fmtArea(r.areaM2)}
+                          {r.isMine && <span className="mine-tag">내 매물</span>}
+                        </td>
+                        <td>{r.count}건</td>
+                        <td>
+                          {eok(r.recentPrice)} <span className="muted">{fmtYm(r.recentMonth)}</span>
+                        </td>
+                        <td className="muted">{eok(r.minPrice)} ~ {eok(r.maxPrice)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {recentTrades.length > 0 && (
+              <div className="trade-block">
+                <h4>최근 실거래 내역 <span className="trade-note">전용 {table.myAreaM2}㎡</span></h4>
+                <div className="trade-scroll">
+                  <table className="trade-table">
+                    <thead>
+                      <tr>
+                        <th>계약</th>
+                        <th>전용</th>
+                        <th>층</th>
+                        <th>거래가</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentTrades.map((r, i) => (
+                        <tr key={`${r.yearMonth}-${r.day}-${i}`}>
+                          <td>{fmtDate(r.yearMonth, r.day)}</td>
+                          <td>{fmtArea(r.areaM2)}</td>
+                          <td>{r.floor ? `${r.floor}층` : '-'}</td>
+                          <td>{formatPrice(r.price)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
           </>
         ) : (
-          <p className="chart-empty">이 지역·평형의 실거래가 추이 데이터가 아직 없습니다.</p>
+          !hasChart && <p className="chart-empty">동일 단지의 최근 실거래 내역이 아직 없습니다.</p>
         )}
       </div>
     </section>

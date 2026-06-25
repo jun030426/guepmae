@@ -1420,6 +1420,70 @@ body {
   border-radius: var(--radius-sm);
 }
 
+/* 실거래 표 (PriceReport — 표 A 평형별 요약 / 표 B 실거래 내역) */
+.trade-block {
+  margin-top: var(--space-4, 16px);
+}
+.trade-block h4 {
+  margin: 0 0 var(--space-2, 8px);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text, #1e293b);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.trade-note {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted, #64748b);
+}
+.trade-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-sm, 10px);
+}
+.trade-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.trade-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-bg-soft, #f1f5f9);
+  color: var(--color-text-muted, #64748b);
+  font-weight: 600;
+  text-align: left;
+  padding: 8px 10px;
+  white-space: nowrap;
+}
+.trade-table tbody td {
+  padding: 8px 10px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+  color: var(--color-text, #1e293b);
+  white-space: nowrap;
+}
+.trade-table .muted {
+  color: var(--color-text-muted, #64748b);
+  font-size: 12px;
+}
+.trade-table tr.mine td {
+  background: var(--color-success-soft, #e7f6ef);
+  font-weight: 600;
+}
+.mine-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--color-success, #0c8a5a);
+  color: #fff;
+}
+
 .report-table-card {
   padding: var(--space-3);
   border: 1px solid var(--color-border);

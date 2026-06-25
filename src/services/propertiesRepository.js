@@ -55,6 +55,7 @@ function normalizeProperty(row) {
     agent: { ...defaultAgent, ...(row.agent ?? {}) },
     lifestyle: { ...defaultLifestyle, ...(row.lifestyle ?? {}) },
     priceHistory,
+    priceTable: row.price_table ?? null,
     media: Array.isArray(row.media) ? row.media : [],
     createdAt: row.created_at ?? null,
     priceBasis: row.price_basis ?? null,

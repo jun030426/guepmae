@@ -8,8 +8,8 @@ dist/
 supabase/.temp/
 supabase/.branches/
 
-# 국토부 원본 CSV — 너무 크고 scripts/import-trades-csv.mjs로 재생성 가능
-scripts/data/*.csv
+# 국토부 실거래가 원본/수집 CSV — 대용량, 파이프라인으로 재생성 가능
+scripts/data/
 
 # 단지×면적 룩업 — 3MB+, CSV에서 재생성 가능. /register에서 쓰게 되면 lazy-load 권장
 src/data/complexLookup.json
@@ -25,5 +25,12 @@ scripts/output/
 # Vercel 로컬 작업 폴더
 .vercel/
 
-# Claude Code 로컬 설정 (사용자별 권한 등 개인 설정)
-.claude/settings.local.json
+# Claude Code 로컬 설정
+.claude/
+
+# 일회성 스크린샷 캡처 헬퍼 (포트폴리오 무관)
+scripts/_capture_content.ps1
+scripts/_foreground.ps1
+
+# 지원사업 보고서 초안 (개인 문서)
+지원사업_*.md

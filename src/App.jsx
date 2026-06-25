@@ -9,8 +9,6 @@ import Properties from './pages/Properties.jsx';
 import MapPage from './pages/MapPage.jsx';
 import PropertyDetail from './pages/PropertyDetail.jsx';
 import Report from './pages/Report.jsx';
-// 시세 동향 보류 — 재개 시 import + 라우트 두 줄 복원 (참고: git show 9f090ac)
-// import PriceTrends from './pages/PriceTrends.jsx';
 import Login from './pages/Login.jsx';
 import Admin from './pages/Admin.jsx';
 import AgentSignup from './pages/AgentSignup.jsx';
@@ -47,7 +45,6 @@ function App() {
           <Route path="/map" element={<MapPage />} />
           <Route path="/properties/:id" element={<PropertyDetail />} />
           <Route path="/report" element={<Report />} />
-          {/* <Route path="/trends" element={<PriceTrends />} /> — 보류 */}
           <Route path="/login" element={<Login />} />
 
           {/* ----------------------------- 중개사 portal ----------------------------- */}

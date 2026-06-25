@@ -8,7 +8,6 @@ const navItems = [
   { label: '매물', path: '/properties' },
   { label: '지도 검색', path: '/map' },
   { label: '급매 리포트', path: '/report' },
-  // { label: '시세 동향', path: '/trends' }, // 보류 (코드는 pages/PriceTrends.jsx에 보존)
 ];
 
 function Header() {

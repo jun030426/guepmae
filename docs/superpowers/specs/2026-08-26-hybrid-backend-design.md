@@ -77,8 +77,23 @@ dataClient.js
 - 기준 2 (가입 흐름): 실 signUp → `handle_new_user` 트리거 → profiles 자동 생성(role=user) → 로그인 세션 발급 확인. 이메일 확인은 신규 프로젝트 기본값 ON.
 - 기준 3 (부분): user 권한 매물 INSERT → RLS 거부 확인. 익명 매물 SELECT 395건(전부 verified) 확인. agent/owner 플로우는 Phase 2.
 - 기준 6 (시크릿): `.env.local` gitignore 유지, 커밋 diff 에 키 부재.
-- 기준 1·4·5 (로컬 모드 회귀 · 정지 계정 · 잠든 백엔드): 코드 경로는 구현됨, 실측은 Phase 2 에서.
+- 기준 1 (로컬 모드 회귀): 로컬 경로 코드는 변경 없음(localFrom/localAuth 동일). env 부재 빌드 통과.
 - 테스트 계정 `guepmae+verify1@gmail.com` (role=user) 이 검증용으로 남아 있음.
+
+## 6.6 Phase 2 검증 결과 (2026-08-26)
+
+- 신규 프로젝트 기본 SMTP 는 시간당 발송 제한이 낮아 확인 메일에서 레이트리밋 발생 →
+  개발 단계 방침으로 "Confirm email" OFF (실서비스 전환 시 자체 SMTP + 재활성화, Phase 3).
+- 대표 계정: `guepmae@gmail.com` 가입 → owner 승격 완료.
+- 기준 3 (권한, 전체 실측): agent 가입 즉시 세션 → 승인(role=agent) → 매물 INSERT 허용 →
+  자기 미승인 매물 SELECT 허용(보완 정책 동작) → 자기 매물 UPDATE 허용 / 타인 매물 UPDATE 0행 차단 →
+  익명에게 미승인 매물 비노출. 7항목 전부 통과.
+- 기준 4 (정지 계정): suspended=true 세팅 후 로그인 시 프로필에 플래그 전달 확인
+  (강제 로그아웃은 AuthContext 기존 로직).
+- 기준 5 (잠든 백엔드): 일시정지된 프로젝트 REST 호출이 연결 예외로 실패함을 실측 —
+  어댑터의 catch → 번들 폴백 경로에 해당.
+- 남은 테스트 데이터: `test-agent-prop-1` (승인 대기 매물, 익명 비노출) — 운영 포털에서
+  승인/반려 UI 시연용으로 유지. 테스트 계정 2개(user 1·agent 1)도 유지.
 
 ## 7. 리스크와 한계
 

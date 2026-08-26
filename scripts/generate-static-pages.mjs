@@ -158,3 +158,47 @@ export function transformTemplate(template, page) {
   replaceOnce(/<div id="root"><\/div>/, `<div id="root">${page.rootHtml}</div>`, 'root');
   return html;
 }
+
+function main() {
+  const dist = path.join(ROOT, 'dist');
+  const templatePath = path.join(dist, 'index.html');
+  if (!fs.existsSync(templatePath)) {
+    throw new Error('dist/index.html 이 없습니다. 먼저 vite build 를 실행하세요.');
+  }
+  const template = fs.readFileSync(templatePath, 'utf-8');
+  const properties = JSON.parse(
+    fs.readFileSync(path.join(ROOT, 'public', 'data', 'properties.json'), 'utf-8'),
+  );
+
+  let written = 0;
+  for (const p of properties) {
+    if (!p?.id || !/^[a-z0-9-]+$/.test(p.id)) throw new Error(`잘못된 매물 id: ${p?.id}`);
+    if (!p.title || p.price == null) throw new Error(`필수 필드 누락: ${p.id}`);
+    const url = `${ORIGIN}/properties/${p.id}`;
+    const description = buildDescription(p);
+    const html = transformTemplate(template, {
+      title: buildTitle(p),
+      description,
+      headExtra: buildHeadExtra(p, url, description),
+      rootHtml: buildRootHtml(p),
+    });
+    const dir = path.join(dist, 'properties', p.id);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'index.html'), html, 'utf-8');
+    written += 1;
+  }
+
+  fs.writeFileSync(path.join(dist, 'sitemap.xml'), buildSitemap(properties, ORIGIN), 'utf-8');
+  fs.writeFileSync(path.join(dist, 'robots.txt'), buildRobots(ORIGIN), 'utf-8');
+  console.log(`정적 매물 페이지 ${written}건 + sitemap.xml(${written + 5} URL) + robots.txt 생성 완료`);
+}
+
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) {
+  try {
+    main();
+  } catch (err) {
+    console.error('실패:', err.message);
+    process.exitCode = 1;
+  }
+}

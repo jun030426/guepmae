@@ -1,14 +1,35 @@
 /*
- * dataClient.js — 로컬 데이터 어댑터 (백엔드 없이 동작).
+ * dataClient.js — 데이터 어댑터 (로컬 모드 + 하이브리드 모드).
  *
- * 이 프로젝트는 원래 Supabase(Postgres + Auth + Storage)에 의존했으나,
- * 백엔드 없이 누구나 clone → `npm run dev` 로 전체 앱이 작동하도록 로컬 모드로 전환됨.
+ * 서비스 코드는 `db.from(...)` / `db.auth.*` / `db.storage.*` 만 호출하고
+ * 어떤 모드인지 모른다. 모드는 이 파일 한 곳에서만 결정된다.
  *
- * - 읽기 데이터: public/data/*.json 번들 (국토부 실거래가로 만든 매물·시세 스냅샷)
- * - 쓰기(매물 등록/수정/삭제·중개사 신청·유저·인증): 브라우저 localStorage
- * - 기존 코드가 `db.from(...).select()...` / `db.auth.*` 를 그대로 호출할 수 있도록
- *   Supabase 클라이언트 인터페이스의 사용 부분만 모방.
+ * [로컬 모드]  (기본 — env 없이 clone → npm run dev 만으로 전체 앱 동작)
+ *   - 읽기: public/data/*.json 번들
+ *   - 쓰기·인증: 브라우저 localStorage (mock)
+ *
+ * [하이브리드 모드]  (VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY 설정 시)
+ *   - 매물·시세·리포트 읽기: 번들 그대로 + Supabase 매물 오버레이(신규·수정분, id 충돌 시 Supabase 우선)
+ *   - 인증(가입·로그인·세션)과 쓰기(매물 등록·중개사 신청·회원 관리): 실제 Supabase
+ *   - Supabase 접속 실패(무료 티어 슬립 등): 읽기는 번들만으로 정상 동작, 쓰기는 오류 반환
  */
+
+const SUPA_URL = String(import.meta.env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
+const SUPA_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
+export const isHybrid = Boolean(SUPA_URL && SUPA_KEY);
+
+// ── 실제 Supabase 클라이언트 (하이브리드 전용, 동적 로드 — 로컬 모드 번들 불변) ──
+let _supaPromise = null;
+function supa() {
+  if (!isHybrid) return Promise.resolve(null);
+  if (!_supaPromise) {
+    _supaPromise = import('@supabase/supabase-js')
+      .then(({ createClient }) => createClient(SUPA_URL, SUPA_KEY))
+      .catch(() => null);
+  }
+  return _supaPromise;
+}
+if (isHybrid) supa(); // 앱 부팅과 병렬로 미리 로드
 
 // ───────────────────────── 번들 로더 (public/data/*.json) ─────────────────────────
 const _bundleCache = {};
@@ -23,7 +44,7 @@ async function bundle(name) {
   return _bundleCache[name];
 }
 
-// ───────────────────────── localStorage 헬퍼 ─────────────────────────
+// ───────────────────────── localStorage 헬퍼 (로컬 모드) ─────────────────────────
 const LS = (key, fallback) => {
   try {
     const v = JSON.parse(localStorage.getItem(key));
@@ -43,7 +64,7 @@ const K_SESSION = 'geupmae:session';    // { user, ... } | null
 
 const propsOverlay = () => LS(K_PROPS, { created: [], edits: {}, deleted: [] });
 
-// 데모 계정 시드 (최초 1회) — 로그인해서 중개사/운영 포털 체험용
+// 데모 계정 시드 (로컬 모드 최초 1회) — 로그인해서 중개사/운영 포털 체험용
 function seedUsers() {
   let users = LS(K_USERS, null);
   if (users) return users;
@@ -55,10 +76,39 @@ function seedUsers() {
   return users;
 }
 
-// ───────────────────────── 테이블 → 행 배열 ─────────────────────────
+// ───────────────────────── 하이브리드: Supabase 매물 오버레이 캐시 ─────────────────────────
+const REMOTE_PROPS_TTL = 60 * 1000;
+let _remoteProps = null; // { at, promise }
+function remotePropertiesRows() {
+  const now = Date.now();
+  if (_remoteProps && now - _remoteProps.at < REMOTE_PROPS_TTL) return _remoteProps.promise;
+  const promise = supa()
+    .then((c) => (c ? c.from('properties').select('*') : { data: null }))
+    .then(({ data }) => data || [])
+    .catch(() => []);
+  _remoteProps = { at: now, promise };
+  return promise;
+}
+function invalidateRemoteProperties() { _remoteProps = null; }
+
+// 번들 + Supabase 병합: id 충돌 시 Supabase 행이 이김 (수정분 반영), 신규 행은 앞에.
+async function hybridPropertiesRows() {
+  const [base, remote] = await Promise.all([bundle('properties'), remotePropertiesRows()]);
+  const baseRows = base || [];
+  if (!remote.length) return baseRows;
+  const remoteIds = new Set(remote.map((r) => r.id));
+  const bundleOnly = baseRows.filter((r) => !remoteIds.has(r.id));
+  const bundleIds = new Set(baseRows.map((r) => r.id));
+  const remoteNew = remote.filter((r) => !bundleIds.has(r.id));
+  const remoteKnown = remote.filter((r) => bundleIds.has(r.id));
+  return [...remoteNew, ...remoteKnown, ...bundleOnly];
+}
+
+// ───────────────────────── 테이블 → 행 배열 (읽기) ─────────────────────────
 async function tableRows(table) {
   switch (table) {
     case 'properties': {
+      if (isHybrid) return hybridPropertiesRows();
       const base = (await bundle('properties')) || [];
       const ov = propsOverlay();
       return [...ov.created, ...base]
@@ -74,13 +124,52 @@ async function tableRows(table) {
     }
     case 'agent_applications': return LS(K_APPS, []);
     case 'profiles': return seedUsers();
-    case 'price_trends': return []; // 로컬: 시계열 미번들 (신규 등록 매물은 빈 추이)
+    case 'price_trends': return []; // 시계열 미번들 (신규 등록 매물은 빈 추이)
     default: return [];
   }
 }
 
+// 하이브리드에서 통째로 Supabase 에 위임하는 테이블 (인증·운영 데이터)
+const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications']);
+
 // ───────────────────────── 쿼리 빌더 (thenable) ─────────────────────────
-function from(table) {
+const BUILDER_METHODS = [
+  'select', 'eq', 'in', 'gte', 'lte', 'ilike', 'order', 'limit',
+  'single', 'maybeSingle', 'insert', 'update', 'delete', 'upsert',
+];
+
+// 하이브리드: 호출 체인을 기록해 두었다가 실제 Supabase 빌더에 재생.
+function remoteFrom(table, { onMutate } = {}) {
+  const calls = [];
+  let hasMutation = false;
+  const builder = {
+    then(resolve, reject) {
+      return supa()
+        .then((c) => {
+          if (!c) return { data: null, error: { message: '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.' } };
+          let q = c.from(table);
+          for (const [m, args] of calls) q = q[m](...args);
+          return q;
+        })
+        .then((result) => {
+          if (hasMutation && !result?.error && onMutate) onMutate();
+          return result;
+        })
+        .then(resolve, reject);
+    },
+  };
+  for (const m of BUILDER_METHODS) {
+    builder[m] = (...args) => {
+      if (m === 'insert' || m === 'update' || m === 'delete' || m === 'upsert') hasMutation = true;
+      calls.push([m, args]);
+      return builder;
+    };
+  }
+  return builder;
+}
+
+// 로컬(및 하이브리드 번들 읽기): 미니 쿼리 엔진
+function localFrom(table) {
   const filters = [];
   let _order = null;
   let _limit = null;
@@ -174,7 +263,42 @@ function from(table) {
   return builder;
 }
 
-// ───────────────────────── Auth (mock) ─────────────────────────
+// 하이브리드 properties: 읽기는 로컬 엔진(번들+오버레이 병합) / 쓰기는 Supabase.
+// 첫 mutation 메서드 호출 시점에 원격 빌더로 전환하고 이전 체인을 재생한다.
+function hybridPropertiesFrom() {
+  const replay = [];
+  let target = null; // null = 아직 읽기 경로(로컬 엔진)
+  const local = localFrom('properties');
+
+  const builder = {
+    then(resolve, reject) {
+      return (target ?? local).then(resolve, reject);
+    },
+  };
+  for (const m of BUILDER_METHODS) {
+    builder[m] = (...args) => {
+      if (target) { target[m](...args); return builder; }
+      if (m === 'insert' || m === 'update' || m === 'delete' || m === 'upsert') {
+        target = remoteFrom('properties', { onMutate: invalidateRemoteProperties });
+        for (const [pm, pargs] of replay) target[pm](...pargs);
+        target[m](...args);
+        return builder;
+      }
+      replay.push([m, args]);
+      local[m](...args);
+      return builder;
+    };
+  }
+  return builder;
+}
+
+function from(table) {
+  if (isHybrid && REMOTE_TABLES.has(table)) return remoteFrom(table);
+  if (isHybrid && table === 'properties') return hybridPropertiesFrom();
+  return localFrom(table);
+}
+
+// ───────────────────────── Auth ─────────────────────────
 let _authCb = null;
 function roleFor(email) {
   const e = String(email || '').toLowerCase();
@@ -209,7 +333,60 @@ function makeSession(user) {
   return session;
 }
 
-const auth = {
+const CONNECT_FAIL = { message: '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.' };
+
+// 하이브리드: 실 Supabase auth 에 위임. 클라이언트 로드 실패 시 읽기성 호출은
+// 빈 세션, 쓰기성 호출은 오류를 돌려줘 앱이 읽기 전용으로 살아있게 한다.
+const hybridAuth = {
+  async getSession() {
+    const c = await supa();
+    return c ? c.auth.getSession() : { data: { session: null }, error: null };
+  },
+  onAuthStateChange(cb) {
+    let real = null;
+    let dead = false;
+    supa().then((c) => {
+      if (!c || dead) return;
+      const { data } = c.auth.onAuthStateChange(cb);
+      real = data.subscription;
+    });
+    return { data: { subscription: { unsubscribe() { dead = true; real?.unsubscribe(); } } } };
+  },
+  async signInWithPassword(creds) {
+    const c = await supa();
+    return c ? c.auth.signInWithPassword(creds) : { data: {}, error: CONNECT_FAIL };
+  },
+  async signUp(payload) {
+    const c = await supa();
+    return c ? c.auth.signUp(payload) : { data: {}, error: CONNECT_FAIL };
+  },
+  async verifyOtp(payload) {
+    const c = await supa();
+    return c ? c.auth.verifyOtp(payload) : { data: {}, error: CONNECT_FAIL };
+  },
+  async resend(payload) {
+    const c = await supa();
+    return c ? c.auth.resend(payload) : { error: CONNECT_FAIL };
+  },
+  async resetPasswordForEmail(email, opts) {
+    const c = await supa();
+    return c ? c.auth.resetPasswordForEmail(email, opts) : { error: CONNECT_FAIL };
+  },
+  async updateUser(attrs) {
+    const c = await supa();
+    return c ? c.auth.updateUser(attrs) : { data: { user: null }, error: CONNECT_FAIL };
+  },
+  async signInWithOAuth(payload) {
+    const c = await supa();
+    return c ? c.auth.signInWithOAuth(payload) : { error: CONNECT_FAIL };
+  },
+  async signOut() {
+    const c = await supa();
+    return c ? c.auth.signOut() : { error: null };
+  },
+};
+
+const localAuth = {
   async getSession() { return { data: { session: LS(K_SESSION, null) }, error: null }; },
   onAuthStateChange(cb) {
     _authCb = cb;
@@ -243,8 +420,31 @@ const auth = {
   },
 };
 
-// ───────────────────────── Storage (mock) ─────────────────────────
-const storage = {
+const auth = isHybrid ? hybridAuth : localAuth;
+
+// ───────────────────────── Storage ─────────────────────────
+const hybridStorage = {
+  from(bucketName) {
+    return {
+      async upload(path, file, opts) {
+        const c = await supa();
+        if (!c) return { data: null, error: CONNECT_FAIL };
+        return c.storage.from(bucketName).upload(path, file, opts);
+      },
+      // supabase-js 와 동일한 공개 URL 형식을 동기적으로 구성 (클라이언트 로드 불필요)
+      getPublicUrl(path) {
+        return { data: { publicUrl: `${SUPA_URL}/storage/v1/object/public/${bucketName}/${path}` } };
+      },
+      async createSignedUrl(path, expiresIn) {
+        const c = await supa();
+        if (!c) return { data: { signedUrl: '' }, error: CONNECT_FAIL };
+        return c.storage.from(bucketName).createSignedUrl(path, expiresIn);
+      },
+    };
+  },
+};
+
+const localStorageMock = {
   from() {
     return {
       async upload() { return { data: { path: '' }, error: null }; },
@@ -254,5 +454,7 @@ const storage = {
     };
   },
 };
+
+const storage = isHybrid ? hybridStorage : localStorageMock;
 
 export const db = { from, auth, storage };

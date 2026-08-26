@@ -70,6 +70,16 @@ dataClient.js
 - **Phase 2 (8-27 ~ 8-28): 쓰기 경로** — 중개사 신청 · 매물 등록/수정 RLS 검증(기준 3) · 보고서 반영.
 - **Phase 3 (이후)**: 매물 사진 storage, 주 1회 keep-alive ping (GitHub Actions), 배포처 결정 (Vercel Hobby 비상업 제약 → Cloudflare Pages 검토), AI 리포트 주기 재생성.
 
+## 6.5 Phase 1 검증 결과 (2026-08-26)
+
+- 인프라: cheongyak-platform 일시정지 → 새 프로젝트 `geupmae`(oormfipegcfbhvctikfl, ap-northeast-2) 생성. 마이그레이션 25개를 7개 배치로 재적용 (enum 값 추가는 별도 트랜잭션 분리). RLS 공백 2건 보완: 중개사 자기 매물 SELECT, admin/owner 전체 SELECT. 번들에만 있던 `price_table`·`unit_count` 컬럼 추가. `property-photos` 버킷 SQL 생성.
+- 데이터 적재: properties 395 · complex_prices 4,000 · market_snapshots 7 · property_reports 15 · ai_market_reports 1 — 전부 적재 확인.
+- 기준 2 (가입 흐름): 실 signUp → `handle_new_user` 트리거 → profiles 자동 생성(role=user) → 로그인 세션 발급 확인. 이메일 확인은 신규 프로젝트 기본값 ON.
+- 기준 3 (부분): user 권한 매물 INSERT → RLS 거부 확인. 익명 매물 SELECT 395건(전부 verified) 확인. agent/owner 플로우는 Phase 2.
+- 기준 6 (시크릿): `.env.local` gitignore 유지, 커밋 diff 에 키 부재.
+- 기준 1·4·5 (로컬 모드 회귀 · 정지 계정 · 잠든 백엔드): 코드 경로는 구현됨, 실측은 Phase 2 에서.
+- 테스트 계정 `guepmae+verify1@gmail.com` (role=user) 이 검증용으로 남아 있음.
+
 ## 7. 리스크와 한계
 
 - 무료 티어 일시정지: Phase 3 의 keep-alive 전까지는 7일 무활동 시 쓰기 경로가 잠들 수 있다. 읽기는 설계상 영향 없음.

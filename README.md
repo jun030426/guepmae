@@ -40,6 +40,12 @@
 > 백엔드 없이 누구나 `npm install` 한 번으로 전체 앱을 실행할 수 있도록 **로컬 데모 모드**로 전환했습니다.
 > 데이터 접근 인터페이스(`src/lib/dataClient.js`)를 동일하게 유지해, 서비스 코드 변경을 최소화하면서
 > 읽기는 번들 JSON, 쓰기(매물 등록·중개사 신청·인증)는 localStorage 로 동작합니다.
+>
+> 여기에 **하이브리드 모드**를 얹었습니다 — `.env.local` 에 `VITE_SUPABASE_URL` +
+> `VITE_SUPABASE_PUBLISHABLE_KEY` 를 설정하면 인증(가입·로그인·세션)과 쓰기(매물 등록·중개사
+> 신청·회원 관리)가 실제 Supabase(무료 티어)로 동작하고, 매물·시세·리포트 읽기는 여전히 번들이
+> 우선이라 백엔드가 잠들어도 사이트는 살아 있습니다. 초기 데이터는
+> `node scripts/load-bundles-to-supabase.mjs` 로 번들을 DB에 적재합니다.
 
 ---
 

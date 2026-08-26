@@ -129,10 +129,6 @@ function AgentLanding() {
             <h2>중개사 로그인</h2>
             <p className="agent-login-subtitle">승인된 중개사 계정으로 로그인해주세요</p>
 
-            {!isConfigured && (
-              <p className="form-status error">Supabase 환경변수가 없어 인증 기능을 사용할 수 없습니다.</p>
-            )}
-
             <form className="agent-login-form" onSubmit={handleLogin}>
               <label>
                 이메일

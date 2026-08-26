@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 const AuthContext = createContext(null);
 
@@ -12,11 +12,11 @@ function getRedirectPath(profile) {
 }
 
 async function fetchProfile(userId) {
-  if (!isSupabaseConfigured || !userId) {
+  if (!userId) {
     return null;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('profiles')
     .select('*')
     .eq('id', userId)
@@ -32,14 +32,14 @@ async function fetchProfile(userId) {
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [isLoading, setIsLoading] = useState(Boolean(isSupabaseConfigured));
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadProfile = async (userId) => {
     const nextProfile = await fetchProfile(userId);
     // 정지된 계정은 강제 로그아웃
     if (nextProfile?.suspended) {
       alert('계정이 정지되었습니다. 운영팀에 문의해주세요.');
-      await supabase.auth.signOut();
+      await db.auth.signOut();
       setSession(null);
       setProfile(null);
       return null;
@@ -49,14 +49,9 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setIsLoading(false);
-      return undefined;
-    }
-
     let active = true;
 
-    supabase.auth.getSession().then(async ({ data }) => {
+    db.auth.getSession().then(async ({ data }) => {
       if (!active) return;
 
       setSession(data.session);
@@ -75,7 +70,7 @@ export function AuthProvider({ children }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    } = db.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
 
       if (!nextSession?.user) {
@@ -99,11 +94,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signIn = async ({ email, password }) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
 
     if (error) {
       throw error;
@@ -121,13 +112,8 @@ export function AuthProvider({ children }) {
     phone,
     favoriteRegion,
   }) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
-    // Supabase 이메일 템플릿이 {{ .Token }} 으로 설정되면 사용자에겐 6자리 코드만 가고
-    // emailRedirectTo 는 무시됨. 그래도 호환성을 위해 지정만 해둠.
-    const { data, error } = await supabase.auth.signUp({
+    // 로컬 mock auth — 이메일/비밀번호로 즉시 세션 생성 (이메일 인증 단계 없음).
+    const { data, error } = await db.auth.signUp({
       email,
       password,
       options: {
@@ -157,11 +143,7 @@ export function AuthProvider({ children }) {
   // 회원가입 OTP 검증 — 사용자가 메일에서 받은 6자리 인증번호를 입력하면 호출.
   // 성공 시 자동 로그인 + 프로필 로드까지 완료.
   const verifySignupOtp = async ({ email, token }) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
-    const { data, error } = await supabase.auth.verifyOtp({
+    const { data, error } = await db.auth.verifyOtp({
       email,
       token,
       type: 'email',
@@ -179,11 +161,7 @@ export function AuthProvider({ children }) {
   };
 
   const resendVerification = async (email) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
-    const { error } = await supabase.auth.resend({
+    const { error } = await db.auth.resend({
       type: 'signup',
       email,
     });
@@ -193,14 +171,9 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // 비밀번호 재설정 1단계 — 입력한 이메일로 6자리 인증번호 발송.
-  // Supabase "Reset Password" 템플릿이 {{ .Token }} 이어야 코드가 옴 (링크 아님).
+  // 비밀번호 재설정 1단계 — 로컬 mock 에서는 항상 성공(실제 메일 발송 없음).
   const requestPasswordReset = async (email) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await db.auth.resetPasswordForEmail(email);
 
     if (error) {
       throw error;
@@ -209,11 +182,7 @@ export function AuthProvider({ children }) {
 
   // 비밀번호 재설정 2단계 — 메일로 받은 6자리 코드 검증. 성공하면 임시 복구 세션 생성.
   const verifyRecoveryOtp = async ({ email, token }) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
-    const { data, error } = await supabase.auth.verifyOtp({
+    const { data, error } = await db.auth.verifyOtp({
       email,
       token,
       type: 'recovery',
@@ -227,11 +196,7 @@ export function AuthProvider({ children }) {
 
   // 비밀번호 재설정 3단계 — 복구 세션 상태에서 새 비밀번호 저장.
   const updatePassword = async (newPassword) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
-    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+    const { data, error } = await db.auth.updateUser({ password: newPassword });
 
     if (error) throw error;
 
@@ -243,13 +208,8 @@ export function AuthProvider({ children }) {
     };
   };
 
-  // OAuth 로그인 — Google, Kakao 등 Supabase에서 활성화된 provider 사용
-  // 가입과 로그인이 동일한 함수 호출 (Supabase가 자동 분기). 첫 가입은 handle_new_user 트리거가 profile 생성
+  // OAuth 로그인 — 로컬 mock 에서는 비활성화(소셜 로그인 불가 에러 반환).
   const signInWithProvider = async (provider) => {
-    if (!isSupabaseConfigured) {
-      throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-    }
-
     const options = {
       // OAuth 콜백 후 사용자가 돌아올 URL — /login 도착 후 useEffect가 redirectPath로 자동 이동
       redirectTo: `${window.location.origin}/login`,
@@ -261,7 +221,7 @@ export function AuthProvider({ children }) {
       options.scopes = 'profile_nickname profile_image';
     }
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { error } = await db.auth.signInWithOAuth({
       provider,
       options,
     });
@@ -272,13 +232,7 @@ export function AuthProvider({ children }) {
   };
 
   const signOut = async () => {
-    if (!isSupabaseConfigured) {
-      setSession(null);
-      setProfile(null);
-      return;
-    }
-
-    const { error } = await supabase.auth.signOut();
+    const { error } = await db.auth.signOut();
 
     if (error) {
       throw error;
@@ -290,7 +244,7 @@ export function AuthProvider({ children }) {
 
   const value = useMemo(
     () => ({
-      isConfigured: isSupabaseConfigured,
+      isConfigured: true,
       isLoading,
       session,
       user: session?.user ?? null,

@@ -3,9 +3,7 @@ import {
   fetchProperties,
   fetchPropertyById,
 } from '../services/propertiesRepository.js';
-import { isSupabaseConfigured } from '../lib/supabaseClient.js';
-
-const initialSource = isSupabaseConfigured ? 'loading' : 'empty';
+const initialSource = 'loading';
 
 export function useProperties({ urgentOnly = false } = {}) {
   const [properties, setProperties] = useState([]);
@@ -13,32 +11,28 @@ export function useProperties({ urgentOnly = false } = {}) {
   const [error, setError] = useState(null);
 
   const refresh = useCallback(async () => {
-    if (!isSupabaseConfigured) return;
     try {
       const next = await fetchProperties();
       setProperties(next);
-      setSource('supabase');
+      setSource('local');
       setError(null);
     } catch (fetchError) {
-      console.warn('Supabase properties refresh failed.', fetchError);
+      console.warn('매물 새로고침 실패.', fetchError);
       setError(fetchError);
     }
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      return undefined;
-    }
     let active = true;
     fetchProperties()
       .then((nextProperties) => {
         if (!active) return;
         setProperties(nextProperties);
-        setSource('supabase');
+        setSource('local');
       })
       .catch((fetchError) => {
         if (!active) return;
-        console.warn('Supabase properties fetch failed.', fetchError);
+        console.warn('매물 로드 실패.', fetchError);
         setError(fetchError);
         setSource('error');
       });
@@ -69,11 +63,6 @@ export function useProperty(id) {
   useEffect(() => {
     setProperty(null);
 
-    if (!isSupabaseConfigured) {
-      setSource('empty');
-      return undefined;
-    }
-
     let active = true;
     setSource('loading');
 
@@ -81,11 +70,11 @@ export function useProperty(id) {
       .then((nextProperty) => {
         if (!active) return;
         setProperty(nextProperty);
-        setSource(nextProperty ? 'supabase' : 'empty');
+        setSource(nextProperty ? 'local' : 'empty');
       })
       .catch((fetchError) => {
         if (!active) return;
-        console.warn('Supabase property fetch failed.', fetchError);
+        console.warn('매물 상세 로드 실패.', fetchError);
         setError(fetchError);
         setProperty(null);
         setSource('error');

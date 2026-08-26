@@ -325,10 +325,6 @@ function Login() {
           <span>급매</span>
         </Link>
 
-        {!isConfigured && (
-          <p className="form-status error">Supabase 환경변수가 없어 인증 기능을 사용할 수 없습니다.</p>
-        )}
-
         {pendingVerificationEmail ? (
           <form className="verification-pending" onSubmit={handleVerifyOtp}>
             <div className="verification-pending-icon" aria-hidden="true">

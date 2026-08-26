@@ -402,8 +402,8 @@ function MapPage() {
   }, [totalPages]);
 
   // selectedId 가 "실제로 바뀐" 경우(주로 마커 클릭)에만 해당 매물이 있는 페이지로 자동 이동.
-  // ref로 직전 selectedId를 추적해서 filteredProperties만 바뀐 케이스(예: Supabase 비동기 로드)
-  // 에서는 발동하지 않도록 함. (예전엔 fallback→supabase 정렬 차이로 9페이지로 점프했음)
+  // ref로 직전 selectedId를 추적해서 filteredProperties만 바뀐 케이스(예: 비동기 로드)
+  // 에서는 발동하지 않도록 함. (예전엔 정렬 차이로 9페이지로 점프했음)
   const lastSelectedIdRef = useRef(null);
   useEffect(() => {
     if (selectedId === lastSelectedIdRef.current) return;

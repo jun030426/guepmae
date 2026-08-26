@@ -1,47 +1,28 @@
 /*
- * propertyReports.js — 매물 AI 리포트 조회/생성 클라이언트 wrapper.
+ * propertyReports.js — 매물 AI 리포트 조회 (로컬 모드).
  *
- * 1순위: Supabase property_reports 테이블에서 캐시 조회
- * 2순위: 캐시 없으면 /api/property-report?id=... 호출 → 서버에서 Gemini 생성 → 캐시 저장 → 반환
+ * 로컬 모드에는 백엔드(Gemini 생성)가 없으므로, public/data/property_reports.json 에
+ * 미리 생성해 번들한 대표 매물 리포트만 조회한다. 번들에 없으면 null(리포트 없음).
  */
 
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 export async function fetchPropertyReport(propertyId) {
-  if (!isSupabaseConfigured || !propertyId) return null;
+  if (!propertyId) return null;
 
-  // 1) Supabase 캐시 — 완성된(ready) 리포트만 사용. 'generating' 락 로우(임시 {})는 무시.
-  const { data: cached } = await supabase
+  // 번들된 리포트 캐시 — 완성된(ready) 리포트만 사용.
+  const { data: cached } = await db
     .from('property_reports')
     .select('*')
     .eq('property_id', propertyId)
     .maybeSingle();
   if (cached && (cached.status ?? 'ready') === 'ready') return cached;
 
-  // 2) 캐시 없으면 서버리스 함수 호출 → 생성 → 캐싱
-  const res = await fetch(`/api/property-report?id=${encodeURIComponent(propertyId)}`);
-  // 202 = 다른 요청이 생성 중 (중복 AI 호출 방지). 잠시 후 재조회 필요.
-  if (res.status === 202) {
-    return { generating: true };
-  }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || `리포트 생성 실패 (${res.status})`);
-  }
-  const data = await res.json();
-  if (data?.status === 'generating') return { generating: true };
-  return data;
+  // 로컬 모드: 실시간 생성 불가 → 리포트 없음.
+  return null;
 }
 
-export async function regeneratePropertyReport(propertyId) {
-  const res = await fetch('/api/property-report', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: propertyId, force: true }),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || `리포트 재생성 실패 (${res.status})`);
-  }
-  return res.json();
+export async function regeneratePropertyReport() {
+  // 로컬 데모 모드에는 AI 생성 백엔드가 없음.
+  throw new Error('로컬 데모 모드에서는 리포트를 실시간 생성할 수 없습니다. 미리 생성된 대표 매물 리포트만 제공됩니다.');
 }

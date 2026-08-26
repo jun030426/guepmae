@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProperties } from '../hooks/useProperties.js';
-import { supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 
@@ -32,7 +32,7 @@ function AgentMyProperties() {
       danger: true,
       onConfirm: async () => {
         setError('');
-        const { data, error: delError } = await supabase
+        const { data, error: delError } = await db
           .from('properties')
           .delete()
           .eq('id', property.id)

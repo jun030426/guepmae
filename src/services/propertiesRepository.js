@@ -1,4 +1,4 @@
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 function toNumber(value, fallback = 0) {
   const numericValue = Number(value);
@@ -63,11 +63,7 @@ function normalizeProperty(row) {
 }
 
 export async function fetchProperties() {
-  if (!isSupabaseConfigured) {
-    return [];
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('properties')
     .select('*')
     .order('discount_rate', { ascending: false });
@@ -80,11 +76,7 @@ export async function fetchProperties() {
 }
 
 export async function fetchPropertyById(id) {
-  if (!isSupabaseConfigured) {
-    return null;
-  }
-
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('properties')
     .select('*')
     .eq('id', id)

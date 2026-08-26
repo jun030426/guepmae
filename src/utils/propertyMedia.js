@@ -20,8 +20,8 @@ function getSeedFromProperty(property) {
 }
 
 function withImageParams(src, width, quality) {
-  // Supabase Storage URL 은 query 변환 안 하고 그대로 반환
-  if (src.includes('supabase')) return src;
+  // data URL(로컬 업로드 사진) 은 query 변환 안 하고 그대로 반환
+  if (src.startsWith('data:')) return src;
   const separator = src.includes('?') ? '&' : '?';
   return `${src}${separator}auto=format&fit=crop&w=${width}&q=${quality}`;
 }

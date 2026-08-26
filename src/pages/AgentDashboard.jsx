@@ -2,20 +2,16 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Plus, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 function AgentDashboard() {
   const { profile } = useAuth();
   const [stats, setStats] = useState({ total: 0, recentTitle: null, loading: true });
 
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setStats({ total: 0, recentTitle: null, loading: false });
-      return;
-    }
-    // 내가 등록한 매물은 properties 테이블에 agent.email 또는 별도 owner_id 필드로 구분해야 함.
+    // 내가 등록한 매물은 properties 의 agent.email 또는 별도 owner_id 필드로 구분해야 함.
     // 지금은 단순히 전체 properties 카운트만 표시 (MVP)
-    supabase
+    db
       .from('properties')
       .select('id, title, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })

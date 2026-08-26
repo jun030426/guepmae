@@ -50,7 +50,7 @@ function Footer() {
 
       <div className="footer-bottom">
         <span>© 2026 급매</span>
-        <span>Supabase · 국토부 실거래가 · Google Maps Platform</span>
+        <span>국토교통부 실거래가 · Google Maps Platform</span>
       </div>
     </footer>
   );

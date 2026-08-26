@@ -5,7 +5,7 @@ import PropertyFilter from '../components/PropertyFilter.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import { useProperties } from '../hooks/useProperties.js';
 
-// TODO: 실제 서비스에서는 사용자가 직접 등록한 매물과 Supabase 데이터를 사용해야 함.
+// 매물 데이터는 useProperties 훅을 통해 로컬 번들(public/data) + 등록 매물(localStorage)에서 가져옴.
 
 const initialFilters = {
   region: '전체',

@@ -1,13 +1,11 @@
 /*
  * reportData.js — /report + 홈 차트가 사용하는 시장 통계 서빙 레이어
  *
- * 데이터 소스: Supabase `market_snapshots` 테이블 (key/value).
+ * 데이터 소스: 로컬 시장 스냅샷 번들 (`market_snapshots`, key/value).
  * 첫 호출 시 모든 키를 한 번에 가져와 모듈 캐시에 보관 → 이후 호출은 메모리 hit.
- *
- * 갱신: scripts/build-market-snapshots-seed-sql.mjs 로 SQL 만들고 Supabase에 paste.
  */
 
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 let cache = null;
 let inflight = null;
@@ -26,15 +24,10 @@ async function loadAll() {
   if (cache) return cache;
   if (inflight) return inflight;
 
-  if (!isSupabaseConfigured) {
-    cache = EMPTY;
-    return cache;
-  }
-
   inflight = (async () => {
-    const { data, error } = await supabase.from('market_snapshots').select('key, data');
+    const { data, error } = await db.from('market_snapshots').select('key, data');
     if (error) {
-      console.warn('[reportData] Supabase fetch failed, using empty state.', error);
+      console.warn('[reportData] 시장 스냅샷 로드 실패, 빈 상태로 대체.', error);
       cache = EMPTY;
       return cache;
     }

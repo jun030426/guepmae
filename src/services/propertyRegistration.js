@@ -1,14 +1,13 @@
 /*
- * propertyRegistration.js — 중개사 매물 등록 + 사진 업로드 + AI 리포트 자동 생성.
+ * propertyRegistration.js — 중개사 매물 등록 + 사진 업로드.
  *
- * Flow:
- *   1) 사진 파일들이 있으면 Supabase Storage(property-photos) 에 업로드 → public URL 배열
- *   2) properties 테이블에 INSERT (media 컬럼에 URL 배열 저장)
- *   3) /api/property-report?id=newId 호출 → 서버에서 AI 리포트 생성
- *   4) 새 매물 id 반환
+ * 로컬 모드 Flow:
+ *   1) 사진 파일들을 브라우저에서 data URL 로 읽어 media 배열 구성
+ *   2) properties 에 INSERT (localStorage 오버레이에 저장)
+ *   3) 새 매물 id 반환
  */
 
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 function generatePropertyId() {
   const ts = Date.now().toString(36);
@@ -16,25 +15,25 @@ function generatePropertyId() {
   return `gm-${ts}${rand}`;
 }
 
+// 로컬 모드: 사진은 Storage 대신 브라우저에서 data URL 로 읽어 매물에 그대로 저장.
+// (localStorage 에 들어가므로 새로고침 후에도 보임)
+function readAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function uploadPropertyPhotos(files, propertyId) {
   const photos = [];
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i];
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-    const filePath = `${propertyId}/${Date.now()}-${i}-${safeName}`;
-    const { error } = await supabase.storage
-      .from('property-photos')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
-    if (error) throw new Error(`사진 업로드 실패 (${file.name}): ${error.message}`);
-
-    const { data: pub } = supabase.storage
-      .from('property-photos')
-      .getPublicUrl(filePath);
+    // eslint-disable-next-line no-await-in-loop
+    const src = await readAsDataURL(file);
     photos.push({
-      src: pub.publicUrl,
+      src,
       label: i === 0 ? '대표 사진' : `사진 ${i + 1}`,
       alt: `${propertyId} 사진 ${i + 1}`,
     });
@@ -42,25 +41,9 @@ export async function uploadPropertyPhotos(files, propertyId) {
   return photos;
 }
 
-// 좌표가 있으면 그걸로, 없으면 주소로 lookup → 좌표 + lifestyle 한 번에 받음
-async function fetchLifestyleAndCoords({ lat, lng, address }) {
-  try {
-    const params = lat && lng
-      ? `lat=${lat}&lng=${lng}`
-      : `address=${encodeURIComponent(address)}`;
-    const res = await fetch(`/api/lookup-lifestyle?${params}`);
-    if (!res.ok) return { lifestyle: null, coordinates: null, nearest: null, region: null };
-    const data = await res.json();
-    return {
-      lifestyle: data.lifestyle,
-      coordinates: data.coordinates,
-      nearest: data.nearest,
-      region: data.region,
-    };
-  } catch (err) {
-    console.warn('lifestyle lookup failed:', err);
-    return { lifestyle: null, coordinates: null, nearest: null, region: null };
-  }
+// 로컬 모드: lifestyle/좌표 자동 조회 백엔드(/api/lookup-lifestyle)가 없음 → 빈 값.
+async function fetchLifestyleAndCoords() {
+  return { lifestyle: null, coordinates: null, nearest: null, region: null };
 }
 
 // price_trends/complex_prices 테이블과 동일한 평형대 구간 (build-*.mjs 와 반드시 일치)
@@ -91,7 +74,7 @@ function periodLabel(start, end) {
 //  3순위: 구 + 평형대 최근 시세 (price_trends, 재생산 포함)              → 'region'
 // 중개사가 직접 입력하지 못하게 하여 할인율 조작을 차단.
 export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucket }) {
-  if (!isSupabaseConfigured || !gu) {
+  if (!gu) {
     return { price: null, source: null, basis: null };
   }
 
@@ -123,7 +106,7 @@ export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucke
   // 지역(구+평형대) 최근 시세 — 단지 표본이 얇을 때 fallback
   const regionBasis = async () => {
     if (!areaBucket || areaBucket === '미상') return null;
-    const { data: trend } = await supabase
+    const { data: trend } = await db
       .from('price_trends')
       .select('price, year_month')
       .eq('gu', gu)
@@ -151,7 +134,7 @@ export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucke
   let near = null;
   if (complexName && Number.isFinite(areaM2)) {
     // 1순위: 정확 전용면적 타입 + 표본 충분
-    ({ data: exact } = await supabase
+    ({ data: exact } = await db
       .from('complex_prices')
       .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
       .eq('complex', complexName)
@@ -161,7 +144,7 @@ export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucke
     if (enough(exact)) return fromComplex(exact, false);
 
     // 2순위: 근접 면적(±2㎡) 중 표본 최다 + 표본 충분
-    ({ data: near } = await supabase
+    ({ data: near } = await db
       .from('complex_prices')
       .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
       .eq('complex', complexName)
@@ -189,7 +172,7 @@ export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucke
 // 실제 거래(estimated=false) + 재생산 추정(estimated=true) 구분 플래그 포함.
 async function fetchPriceHistory({ gu, areaBucket }) {
   if (!gu || !areaBucket || areaBucket === '미상') return [];
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('price_trends')
     .select('year_month, price, is_estimated')
     .eq('gu', gu)
@@ -210,7 +193,7 @@ async function fetchPriceHistory({ gu, areaBucket }) {
 // 중개사 본인의 승인된 가입 신청서에서 사무소명 조회 (등록 폼에서 입력받지 않고 자동 채움)
 async function fetchAgentOfficeName(email) {
   if (!email) return '';
-  const { data } = await supabase
+  const { data } = await db
     .from('agent_applications')
     .select('office_name')
     .eq('contact_email', email)
@@ -222,10 +205,6 @@ async function fetchAgentOfficeName(email) {
 }
 
 export async function registerProperty(form, agentProfile) {
-  if (!isSupabaseConfigured) {
-    throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-  }
-
   const id = generatePropertyId();
   const now = new Date().toISOString().slice(0, 10);
 
@@ -317,34 +296,20 @@ export async function registerProperty(form, agentProfile) {
     media,
   };
 
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('properties')
     .insert(row)
     .select('id')
     .single();
   if (error) throw error;
 
-  // 3) AI 리포트 백그라운드 생성 (실패해도 등록 자체는 성공)
-  triggerReportGeneration(data.id).catch((err) => {
-    console.warn('AI 리포트 생성 실패 (등록은 완료됨):', err);
-  });
-
+  // 로컬 모드: AI 리포트 실시간 생성 백엔드가 없으므로 등록 즉시 완료.
   return { id: data.id };
 }
 
-async function triggerReportGeneration(propertyId) {
-  const res = await fetch(`/api/property-report?id=${encodeURIComponent(propertyId)}`);
-  if (!res.ok) throw new Error(`AI report failed: ${res.status}`);
-  return res.json();
-}
-
 // 운영팀 승인 토글 — properties.verified true/false 변경
-// .select() 로 실제로 업데이트된 row 가져와서 RLS silent 차단 (0 rows) 도 에러로 처리
 export async function setPropertyVerified(propertyId, verified) {
-  if (!isSupabaseConfigured) {
-    throw new Error('Supabase 환경변수가 설정되지 않았습니다.');
-  }
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('properties')
     .update({ verified, last_verified_at: new Date().toISOString().slice(0, 10) })
     .eq('id', propertyId)

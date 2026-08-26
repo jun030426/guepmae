@@ -288,6 +288,9 @@ rows = [build_row(it) for it in sorted(kept, key=lambda x: -x["disc"])]
 # id 중복(동일 단지·면적·가격·주소) 제거 — 첫 건 유지
 seen = set(); rows = [r for r in rows if not (r["id"] in seen or seen.add(r["id"]))]
 json.dump(_gc, open(GCACHE, "w", encoding="utf-8"), ensure_ascii=False)
+# 로컬 번들용 매물 JSON (백엔드 없이 동작하는 로컬 모드용 스냅샷)
+_pub = os.path.join(ROOT, "public", "data"); os.makedirs(_pub, exist_ok=True)
+json.dump(rows, open(os.path.join(_pub, "properties.json"), "w", encoding="utf-8"), ensure_ascii=False)
 
 # ---------- SQL 파일(항상) ----------
 def Sv(v): return "null" if v is None or v == "" else "'" + esc(v) + "'"

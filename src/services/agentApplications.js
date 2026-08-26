@@ -1,4 +1,4 @@
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 function sanitizeFileName(fileName) {
   return fileName
@@ -13,7 +13,7 @@ async function uploadAgentDocument(file, label) {
   const safeFileName = sanitizeFileName(file.name) || `${label}-document`;
   const documentPath = `pending/${crypto.randomUUID()}-${safeFileName}`;
 
-  const { error } = await supabase.storage
+  const { error } = await db.storage
     .from('agent-application-documents')
     .upload(documentPath, file, {
       cacheControl: '3600',
@@ -34,10 +34,6 @@ async function uploadAgentDocument(file, label) {
 }
 
 export async function createAgentApplication(form) {
-  if (!isSupabaseConfigured) {
-    return { source: 'local' };
-  }
-
   const documentPaths = [];
 
   if (form.businessDocument) {
@@ -59,20 +55,19 @@ export async function createAgentApplication(form) {
     document_paths: documentPaths,
   };
 
-  const { error } = await supabase.from('agent_applications').insert(payload);
+  const { error } = await db.from('agent_applications').insert(payload);
 
   if (error) {
     throw error;
   }
 
-  return { source: 'supabase' };
+  return { source: 'local' };
 }
 
 // ----- 운영 관리에서 사용 -----
 
 export async function fetchAgentApplications() {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('agent_applications')
     .select('*')
     .order('created_at', { ascending: false });
@@ -85,17 +80,15 @@ export async function fetchAgentApplications() {
  * 매칭되는 profile 이 없으면 application 만 approved 처리 (사용자가 가입 후 자동 권한 부여는 추후 트리거).
  */
 export async function approveAgentApplication(application, reviewerNote = null) {
-  if (!isSupabaseConfigured) throw new Error('Supabase 환경변수 없음');
-
   // 1) 신청서 상태 업데이트
-  const { error: appError } = await supabase
+  const { error: appError } = await db
     .from('agent_applications')
     .update({ status: 'approved', reviewer_note: reviewerNote })
     .eq('id', application.id);
   if (appError) throw appError;
 
   // 2) profile 찾아서 role 변경
-  const { data: profile } = await supabase
+  const { data: profile } = await db
     .from('profiles')
     .select('id, role')
     .eq('email', application.contact_email)
@@ -115,7 +108,7 @@ export async function approveAgentApplication(application, reviewerNote = null) 
     };
   }
 
-  const { error: roleError } = await supabase
+  const { error: roleError } = await db
     .from('profiles')
     .update({ role: 'agent', updated_at: new Date().toISOString() })
     .eq('id', profile.id);
@@ -125,8 +118,7 @@ export async function approveAgentApplication(application, reviewerNote = null) 
 }
 
 export async function rejectAgentApplication(applicationId, reviewerNote = null) {
-  if (!isSupabaseConfigured) throw new Error('Supabase 환경변수 없음');
-  const { error } = await supabase
+  const { error } = await db
     .from('agent_applications')
     .update({ status: 'rejected', reviewer_note: reviewerNote })
     .eq('id', applicationId);
@@ -135,8 +127,8 @@ export async function rejectAgentApplication(applicationId, reviewerNote = null)
 
 // 로그인한 사용자의 자기 신청서 조회 (이메일 매칭)
 export async function fetchMyApplication(email) {
-  if (!isSupabaseConfigured || !email) return null;
-  const { data, error } = await supabase
+  if (!email) return null;
+  const { data, error } = await db
     .from('agent_applications')
     .select('id, office_name, status, reviewer_note, created_at, updated_at')
     .eq('contact_email', email)
@@ -152,7 +144,7 @@ export async function fetchMyApplication(email) {
 
 // 첨부 문서 임시 서명 URL 생성 (private bucket)
 export async function getApplicationDocumentUrl(documentPath, expiresInSec = 600) {
-  const { data, error } = await supabase.storage
+  const { data, error } = await db.storage
     .from('agent-application-documents')
     .createSignedUrl(documentPath, expiresInSec);
   if (error) throw error;

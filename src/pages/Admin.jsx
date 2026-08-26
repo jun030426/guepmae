@@ -22,7 +22,7 @@ import {
   rejectAgentApplication,
 } from '../services/agentApplications.js';
 import { formatPrice } from '../utils/priceUtils.js';
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 const APPLICATION_STATUS_LABEL = {
   pending: '대기 중',
@@ -347,7 +347,7 @@ function Admin() {
         setUpdating(id);
         setError('');
         try {
-          const { data, error: delError } = await supabase
+          const { data, error: delError } = await db
             .from('properties')
             .delete()
             .eq('id', id)

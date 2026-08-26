@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
-import { supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 import { uploadPropertyPhotos } from '../services/propertyRegistration.js';
 import { formatPrice } from '../utils/priceUtils.js';
 
@@ -72,7 +72,7 @@ function AgentEditProperty() {
     }
     media = media.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
 
-    const { data, error: updateError } = await supabase
+    const { data, error: updateError } = await db
       .from('properties')
       .update({
         title: form.title,
@@ -101,13 +101,8 @@ function AgentEditProperty() {
       return;
     }
 
-    // 데이터가 바뀌었으니 AI 리포트 캐시 무효화 → 다음 조회 때 새 데이터로 재생성.
-    // navigate 전에 await: 상세 페이지 GET 이 삭제보다 먼저 도달해 옛 리포트를 보는 레이스 방지.
-    await fetch('/api/property-report', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, invalidate: true }),
-    }).catch(() => {});
+    // 로컬 모드: AI 리포트는 사전 생성해 번들(public/data/property_reports.json)하므로
+    // 무효화할 서버 캐시가 없다. 수정 내용은 다음 번들 재생성 때 반영된다.
 
     navigate(`/properties/${id}`, { replace: true });
   };

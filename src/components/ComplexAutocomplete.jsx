@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 // 단지명 자동완성 — complex_prices 에서 실제 단지를 검색해 선택하게 함.
 // 선택 시 onSelect({ complex, gu, sigungu }) 로 구/시군구까지 함께 전달 (기준가 매칭용).
@@ -22,7 +22,7 @@ function ComplexAutocomplete({ value, onChange, onSelect, name, placeholder, req
     }
     let active = true;
     const timer = setTimeout(async () => {
-      const { data } = await supabase
+      const { data } = await db
         .from('complex_prices')
         .select('complex, sigungu, gu, built_year')
         .ilike('complex', `%${q}%`)

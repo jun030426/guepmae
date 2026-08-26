@@ -7,7 +7,7 @@
  * RLS 가 실제 권한 검증을 하지만, UX 차원에서 클라이언트도 사전 검증.
  */
 
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 export const ROLES = ['user', 'agent', 'admin', 'owner'];
 export const ROLE_LABEL = {
@@ -61,8 +61,7 @@ export function allowedNewRoles(actor, target) {
 }
 
 export async function fetchAllProfiles() {
-  if (!isSupabaseConfigured) return [];
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('profiles')
     .select('id, email, full_name, phone, role, favorite_region, suspended, created_at')
     .order('created_at', { ascending: false });
@@ -74,7 +73,7 @@ export async function setUserRole(userId, newRole) {
   if (!ROLES.includes(newRole) || newRole === 'owner') {
     throw new Error('잘못된 역할: ' + newRole);
   }
-  const { error } = await supabase
+  const { error } = await db
     .from('profiles')
     .update({ role: newRole, updated_at: new Date().toISOString() })
     .eq('id', userId);
@@ -82,7 +81,7 @@ export async function setUserRole(userId, newRole) {
 }
 
 export async function setUserSuspended(userId, suspended) {
-  const { error } = await supabase
+  const { error } = await db
     .from('profiles')
     .update({ suspended, updated_at: new Date().toISOString() })
     .eq('id', userId);

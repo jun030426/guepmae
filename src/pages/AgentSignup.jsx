@@ -108,7 +108,7 @@ function AgentSignup() {
     setError('');
     setIsSubmitting(true);
     try {
-      // 1) 로그인 안 된 경우만 — Supabase Auth signUp
+      // 1) 로그인 안 된 경우만 — Auth signUp
       if (!isLoggedInUser) {
         const result = await signUp({
           email: form.email,

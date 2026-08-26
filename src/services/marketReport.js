@@ -1,16 +1,13 @@
 /*
- * marketReport — ai_market_reports 테이블에서 최신 AI 시장 분석 1건 가져오기.
+ * marketReport — ai_market_reports 번들에서 최신 AI 시장 분석 1건 가져오기.
  *
- * Supabase 직접 select (RLS allows anon read). /api/market-report 라우트는
- * 생성/캐싱용이고, 페이지 read는 DB 직조회가 더 단순 (cold start 없음).
+ * 로컬 모드: public/data/ai_market_reports.json 번들을 직조회 (미리 생성해 둔 리포트).
  */
 
-import { isSupabaseConfigured, supabase } from '../lib/supabaseClient.js';
+import { db } from '../lib/dataClient.js';
 
 export async function fetchMarketReport() {
-  if (!isSupabaseConfigured) return null;
-
-  const { data, error } = await supabase
+  const { data, error } = await db
     .from('ai_market_reports')
     .select('data_as_of, report_data, model, generated_at, status')
     .eq('status', 'ready')

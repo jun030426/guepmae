@@ -138,3 +138,19 @@ npm run build                          기존 Vite 빌드 (변경 없음)
 - **백엔드**: Supabase 무료 티어로 부활시킨다. `geupmae-platform` 프로젝트가 살아 있고
   `subscriptions`·`payments`·`leads`·`partner_applications` 스키마가 이미 설계돼 있다(데이터 0건).
   무료 티어는 7일 미사용 시 일시정지되는 점을 운영에서 감안한다.
+
+## 9. 검증 결과 (2026-08-26)
+
+배포 URL(https://guepmae.vercel.app) 기준, §5의 6개 기준 전부 통과.
+
+1. ✅ `curl /properties/gm-1b04c45e43` — JS 미실행 raw HTML에 매물명·"2억 2,200만 원" 포함.
+   슬래시 없는 URL도 정적 파일이 우선 서빙됨 → §4.5의 vercel.json 교체는 불필요했음(rewrite는 파일 미존재 시에만 적용됨을 실측 확인).
+2. ✅ 매물 3건 title 모두 상이 (39.2% / 38.6% / 37.9% 저렴).
+3. ✅ sitemap.xml 200 응답, `<url>` 400개.
+4. ✅ robots.txt 200 응답.
+5. ✅ 배포 HTML의 JSON-LD 파싱 검증 — `@type: RealEstateListing`, price 222000000, addressLocality 정상.
+   (Google Rich Results Test 웹 UI 확인은 사용자 브라우저 항목으로 남김.)
+6. ✅ SPA 회귀 없음 — 정적 페이지로 진입 시 React가 크롤러용 article을 정상 교체(하이드레이션 충돌 없음),
+   홈·매물·지도·리포트 클라이언트 라우팅 정상, 콘솔 오류 0건.
+
+테스트: `node --test scripts/generate-static-pages.test.mjs` — 12 pass / 0 fail.

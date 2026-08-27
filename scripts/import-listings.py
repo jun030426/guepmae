@@ -3,6 +3,7 @@
 #
 # 사용:
 #   python scripts/import-listings.py "<엑셀1>" "<엑셀2>" ...          # 미리보기(dry-run)
+#   python scripts/import-listings.py "<엑셀들...>" --emit-bundle   # public/data/properties.json 까지 갱신
 #   python scripts/import-listings.py "<엑셀들...>" --apply             # Supabase 실제 등록(지역별 교체)
 #   (인자 없으면 Downloads 의 강원_*_아파트매매_20260624.xlsx 자동 수집)
 #
@@ -20,6 +21,7 @@ GCACHE = os.path.join(ROOT, "scripts", "output", "_geocache.json")
 MIN_SAMPLE, MIN_DISC, MAX_DISC, TODAY = 3, 5.0, 40.0, "2026-06-24"
 
 APPLY = "--apply" in sys.argv
+EMIT_BUNDLE = "--emit-bundle" in sys.argv or APPLY
 FILES = [a for a in sys.argv[1:] if not a.startswith("--")]
 if not FILES:
     FILES = sorted(glob.glob(os.path.join(os.path.expanduser("~"), "Downloads", "*_아파트매매_*.xlsx")))
@@ -288,9 +290,14 @@ rows = [build_row(it) for it in sorted(kept, key=lambda x: -x["disc"])]
 # id 중복(동일 단지·면적·가격·주소) 제거 — 첫 건 유지
 seen = set(); rows = [r for r in rows if not (r["id"] in seen or seen.add(r["id"]))]
 json.dump(_gc, open(GCACHE, "w", encoding="utf-8"), ensure_ascii=False)
-# 로컬 번들용 매물 JSON (백엔드 없이 동작하는 로컬 모드용 스냅샷)
-_pub = os.path.join(ROOT, "public", "data"); os.makedirs(_pub, exist_ok=True)
-json.dump(rows, open(os.path.join(_pub, "properties.json"), "w", encoding="utf-8"), ensure_ascii=False)
+# 로컬 번들용 매물 JSON — --emit-bundle 또는 --apply 일 때만.
+# git 추적 대상 파일이므로 dry-run 은 절대 건드리지 않는다.
+if EMIT_BUNDLE:
+    _pub = os.path.join(ROOT, "public", "data"); os.makedirs(_pub, exist_ok=True)
+    json.dump(rows, open(os.path.join(_pub, "properties.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    print(f"번들 기록: public/data/properties.json ({len(rows)}건)")
+else:
+    print("번들 미기록(dry-run). --emit-bundle 로 public/data/properties.json 갱신.")
 
 # ---------- SQL 파일(항상) ----------
 def Sv(v): return "null" if v is None or v == "" else "'" + esc(v) + "'"

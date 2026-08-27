@@ -12,7 +12,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'csv-parse/sync';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -72,4 +72,5 @@ function main() {
   console.log(`[bundles] market_snapshots.json: ${months.length}개월 (~${months[months.length - 1] ?? '?'}), lastUpdated ${snapshots.metadata.lastUpdated ?? '?'}`);
 }
 
-if (process.argv[1]?.endsWith('build-public-bundles.mjs')) main();
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) main();

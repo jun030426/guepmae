@@ -28,11 +28,19 @@ export function normalizeComplex(name) {
   return String(name ?? '').replace(/\s+|아파트/g, '').trim();
 }
 
+// import-listings.py:norm2 와 같은 규칙 — 괄호 내용을 먼저 지운 뒤 normalizeComplex
+export function normalizeComplex2(name) {
+  return normalizeComplex(String(name ?? '').replace(/\(.*?\)/g, ''));
+}
+
+// import-listings.py 의 `cp[gu][norm(complex)] = {"orig", "n2", "rows": [...]}` 와 같은 모양.
+// index: Map<gu, Map<normalizedComplexKey, {orig, n2, rows}>>
 export function buildComplexIndex(csvText) {
   const records = parse(csvText, { columns: true, skip_empty_lines: true, bom: true });
   const index = new Map();
   for (const rec of records) {
-    const key = `${String(rec.gu ?? '').trim()}|${normalizeComplex(rec.complex)}`;
+    const gu = String(rec.gu ?? '').trim();
+    const key = normalizeComplex(rec.complex);
     const row = {
       complex: rec.complex,
       area_m2: Number(rec.area_m2),
@@ -41,10 +49,35 @@ export function buildComplexIndex(csvText) {
       earliest_year_month: rec.earliest_year_month,
       latest_year_month: rec.latest_year_month,
     };
-    if (!index.has(key)) index.set(key, []);
-    index.get(key).push(row);
+    if (!index.has(gu)) index.set(gu, new Map());
+    const g = index.get(gu);
+    if (!g.has(key)) {
+      g.set(key, { orig: rec.complex, n2: normalizeComplex2(rec.complex), rows: [] });
+    }
+    g.get(key).rows.push(row);
   }
   return index;
+}
+
+// import-listings.py:resolve_complex 와 동일한 3단계 매칭.
+// 1) norm 완전일치  2) norm2 일치(후보 1개일 때만)  3) norm2 부분포함(후보 1개일 때만)
+// 두 후보 이상이면 모호하므로 null — 이 가드가 없으면 엉뚱한 단지에 조용히 매칭된다.
+export function resolveComplex(name, gu, index) {
+  const g = index.get(String(gu ?? '').trim());
+  if (!g) return null;
+
+  const n = normalizeComplex(name);
+  const n2 = normalizeComplex2(name);
+
+  if (g.has(n)) return g.get(n).rows;
+
+  const cand = [...g.values()].filter((v) => v.n2 === n2 && n2.length >= 3);
+  if (cand.length === 1) return cand[0].rows;
+
+  const sub = [...g.entries()].filter(
+    ([key, v]) => key.length >= 3 && n2.length >= 3 && (n2.includes(key) || key.includes(n2))
+  );
+  return sub.length === 1 ? sub[0][1].rows : null;
 }
 
 function pickBaseline(rows, areaM2) {
@@ -60,8 +93,7 @@ function pickBaseline(rows, areaM2) {
 export function recomputeBasis(property, index, today) {
   // 매물 title 은 "<단지명> 전용NN㎡ ..." 형태라 " 전용" 앞이 단지명이다
   const complexName = String(property.title ?? '').split(' 전용')[0];
-  const key = `${String(property.region ?? '').trim()}|${normalizeComplex(complexName)}`;
-  const rows = index.get(key);
+  const rows = resolveComplex(complexName, property.region, index);
   if (!rows) return null;
 
   const areaM2 = Number(property.area);

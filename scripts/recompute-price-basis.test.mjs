@@ -83,6 +83,35 @@ test('recomputeBasis returns null above MAX_DISC', () => {
   assert.equal(recomputeBasis(prop({ price: 180000000 }), INDEX, TODAY), null);
 });
 
+// ---- MIN_DISC/MAX_DISC 경계값: import-listings.py 는 `if disc < MIN_DISC: continue` /
+// `if disc > MAX_DISC: continue` 로 양쪽 경계를 포함(inclusive)한다. 실제 배포 데이터에
+// 정확히 5% 할인인 매물이 있어, 경계 자체가 회귀 없이 유지되는지 고정해 둔다.
+// 중앙값 400,000,000 기준 가격을 역산해 계산된 discount_rate 가 정확히 경계에 떨어지게 한다.
+
+test('recomputeBasis keeps a discount of exactly MIN_DISC (5.0)', () => {
+  // (400,000,000 - 380,000,000) / 400,000,000 * 100 = 5.0
+  const out = recomputeBasis(prop({ price: 380000000 }), INDEX, TODAY);
+  assert.ok(out);
+  assert.equal(out.discount_rate, 5.0);
+});
+
+test('recomputeBasis keeps a discount of exactly MAX_DISC (40.0)', () => {
+  // (400,000,000 - 240,000,000) / 400,000,000 * 100 = 40.0
+  const out = recomputeBasis(prop({ price: 240000000 }), INDEX, TODAY);
+  assert.ok(out);
+  assert.equal(out.discount_rate, 40.0);
+});
+
+test('recomputeBasis returns null just below MIN_DISC (4.9)', () => {
+  // (400,000,000 - 380,400,000) / 400,000,000 * 100 = 4.9
+  assert.equal(recomputeBasis(prop({ price: 380400000 }), INDEX, TODAY), null);
+});
+
+test('recomputeBasis returns null just above MAX_DISC (40.1)', () => {
+  // (400,000,000 - 239,600,000) / 400,000,000 * 100 = 40.1
+  assert.equal(recomputeBasis(prop({ price: 239600000 }), INDEX, TODAY), null);
+});
+
 test('recomputeBasis returns null when the sample is too thin', () => {
   // 59㎡ 행은 sample_size 2 < MIN_SAMPLE(3)
   assert.equal(recomputeBasis(prop({ area: 59, price: 200000000 }), INDEX, TODAY), null);

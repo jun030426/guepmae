@@ -32,50 +32,96 @@ class MonthsSince(unittest.TestCase):
 
 
 class MergeRows(unittest.TestCase):
-    """월 단위 교체 병합: fresh 는 months 구간을 완전히 재수집한 결과이므로
-    그 구간은 통째로 교체하고, 나머지 월의 기존 행은 그대로 둔다.
+    """(시군구, 계약년월) 단위 완료 추적 병합: done 에 있는 (구, 월) 쌍만
+    기존 행을 버리고 fresh 로 교체한다. done 에 없는 쌍은 기존 행을 그대로
+    두고 fresh 쪽 부분 수집분은 버린다 — 부분 데이터로 완전한 이력을
+    덮어쓰면 중복이 생기거나 행이 사라지기 때문이다.
     행 단위 dedup 은 쓰지 않는다 — CSV 에 동(棟) 컬럼이 없어 같은 단지·면적·
     계약일·층·금액의 서로 다른 거래를 구분할 수 없기 때문이다."""
 
-    def test_fetched_month_replaces_existing_rows(self):
-        existing = [row(ym="202605", day="15"), row(ym="202605", day="16")]
-        fresh = [row(ym="202605", day="20")]
-        merged = ft.merge_rows(existing, fresh, ["202605"])
+    GANGNAM = "서울특별시 강남구"
+    SEOCHO = "서울특별시 서초구"
+
+    def test_completed_pair_replaces_existing_rows(self):
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="15"),
+                    row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="16")]
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="20")]
+        merged = ft.merge_rows(existing, fresh, {(self.GANGNAM, "202605")})
         self.assertEqual(len(merged), 1)
         self.assertEqual(merged, fresh)
 
-    def test_months_outside_fetched_range_survive(self):
-        existing = [row(ym="202604", day="10"), row(ym="202605", day="15")]
-        fresh = [row(ym="202605", day="20")]
-        merged = ft.merge_rows(existing, fresh, ["202605"])
+    def test_incomplete_pair_keeps_existing_and_discards_partial_fresh(self):
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="15")]
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="99")]
+        # 강남구 자체는 done 에 다른 월로 등장해 알려진 구지만, 202605 는 수집 도중
+        # 끊겨 done 에 없다 — district_of 의 '판단 불가' 분기가 아니라 진짜
+        # 미완료 (구, 월) 분기를 검증한다.
+        done = {(self.GANGNAM, "202606")}
+        merged = ft.merge_rows(existing, fresh, done)
+        self.assertEqual(merged, existing)  # 기존 유지
+        self.assertNotIn(fresh[0], merged)  # 부분 수집분 폐기
+
+    def test_second_district_same_month_unaffected_by_first(self):
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="1"),
+                    row(sigungu=f"{self.SEOCHO} 서초동", ym="202606", day="2")]
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="9")]
+        # 강남구만 완료, 서초구는 실패(done 에 없음)
+        merged = ft.merge_rows(existing, fresh, {(self.GANGNAM, "202606")})
+        self.assertIn(existing[1], merged)          # 서초구 기존 행 보존
+        self.assertNotIn(existing[0], merged)       # 강남구 기존 행 교체됨
+        self.assertIn(fresh[0], merged)
+
+    def test_month_outside_done_survives_untouched(self):
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202604", day="10"),
+                    row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="15")]
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="20")]
+        merged = ft.merge_rows(existing, fresh, {(self.GANGNAM, "202605")})
         self.assertIn(existing[0], merged)
+
+    def test_empty_done_preserves_existing_and_adds_nothing(self):
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="15"),
+                    row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="16")]
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="99")]
+        merged = ft.merge_rows(existing, fresh, set())
+        self.assertEqual(merged, existing)
+
+    def test_ordering_kept_existing_first_then_fresh(self):
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202604", day="10"),
+                    row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="15")]
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="20")]
+        merged = ft.merge_rows(existing, fresh, {(self.GANGNAM, "202605")})
+        self.assertEqual(merged, [existing[0]] + fresh)
 
     def test_identical_looking_distinct_transactions_both_kept(self):
         # CSV 가 기록하는 모든 필드(시군구/단지명/전용면적/계약년월/일/층/거래금액)가
         # 같아도, 동(棟)이 달라 실제로는 별개인 거래 — 둘 다 살아남아야 한다.
         existing = []
-        fresh = [row(ym="202606"), row(ym="202606")]
-        merged = ft.merge_rows(existing, fresh, ["202606"])
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606"),
+                 row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606")]
+        merged = ft.merge_rows(existing, fresh, {(self.GANGNAM, "202606")})
         self.assertEqual(len(merged), 2)
 
-    def test_month_with_no_fresh_rows_is_not_replaced(self):
-        # 신규 수집분에 해당 월이 하나도 없으면 수집 실패일 수 있으므로
-        # 기존 행을 지우지 않는다.
-        existing = [row(ym="202605", day="15"), row(ym="202606", day="16")]
-        fresh = [row(ym="202606", day="20")]
-        merged = ft.merge_rows(existing, fresh, ["202605", "202606"])
+
+class DistrictOf(unittest.TestCase):
+    def test_resolves_three_token_sigungu(self):
+        bases = {"경기도 성남시 분당구"}
+        self.assertEqual(ft.district_of("경기도 성남시 분당구 정자동", bases), "경기도 성남시 분당구")
+
+    def test_resolves_two_token_sigungu(self):
+        bases = {"서울특별시 강남구"}
+        self.assertEqual(ft.district_of("서울특별시 강남구 역삼동", bases), "서울특별시 강남구")
+
+    def test_unknown_prefix_returns_none(self):
+        bases = {"서울특별시 강남구"}
+        self.assertIsNone(ft.district_of("부산광역시 해운대구 우동", bases))
+
+
+class MergeRowsUnresolvedDistrict(unittest.TestCase):
+    def test_row_with_unresolvable_district_is_never_deleted(self):
+        # bases 에 없는(판단 불가) 시군구를 가진 기존 행은 done 이 무엇이든 삭제되지 않는다.
+        existing = [row(sigungu="부산광역시 해운대구 우동", ym="202606", day="1")]
+        merged = ft.merge_rows(existing, [], {("서울특별시 강남구", "202606")})
         self.assertIn(existing[0], merged)
-
-    def test_empty_fresh_preserves_everything(self):
-        existing = [row(ym="202606", day="15"), row(ym="202606", day="16")]
-        merged = ft.merge_rows(existing, [], ["202606"])
-        self.assertEqual(merged, existing)
-
-    def test_ordering_kept_existing_first_then_fresh(self):
-        existing = [row(ym="202604", day="10"), row(ym="202605", day="15")]
-        fresh = [row(ym="202605", day="20")]
-        merged = ft.merge_rows(existing, fresh, ["202605"])
-        self.assertEqual(merged, [existing[0]] + fresh)
 
 
 class ReadExisting(unittest.TestCase):

@@ -5,6 +5,12 @@ import {
   buildComplexIndex,
   resolveComplex,
   recomputeBasis,
+  median,
+  areaSummary,
+  recentTrades,
+  realHistory,
+  buildTradesIndex,
+  makeTradeKey,
 } from './recompute-price-basis.mjs';
 
 const CSV = [
@@ -101,28 +107,32 @@ test('recomputeBasis marks an exact area match as not approximate', () => {
 // ---- resolveComplex: import-listings.py 의 3단계 매칭 규칙 ----
 
 test('resolveComplex: exact normalized match wins (whitespace and 아파트 suffix stripped)', () => {
-  const rows = resolveComplex(' 삼천리1  아파트 ', '강원특별자치도 원주시', INDEX2);
-  assert.ok(rows);
-  assert.equal(rows[0].median_price, 300000000);
+  const entry = resolveComplex(' 삼천리1  아파트 ', '강원특별자치도 원주시', INDEX2);
+  assert.ok(entry);
+  assert.equal(entry.rows[0].median_price, 300000000);
+  assert.equal(entry.orig, '삼천리1');
 });
 
 test('resolveComplex tier 2: norm2 match finds a parenthesized CSV name', () => {
   // CSV complex 는 "한신더휴(1차)" — 매물 제목엔 괄호가 없다
-  const rows = resolveComplex('한신더휴', '강원특별자치도 원주시', INDEX2);
-  assert.ok(rows);
-  assert.equal(rows[0].median_price, 410000000);
+  const entry = resolveComplex('한신더휴', '강원특별자치도 원주시', INDEX2);
+  assert.ok(entry);
+  assert.equal(entry.rows[0].median_price, 410000000);
+  assert.equal(entry.orig, '한신더휴(1차)');
 });
 
 test('resolveComplex tier 3: substring containment, listing name longer than CSV complex', () => {
-  const rows = resolveComplex('두산위브&수자인부평더퍼스트', '인천광역시 부평구', INDEX2);
-  assert.ok(rows);
-  assert.equal(rows[0].median_price, 350000000);
+  const entry = resolveComplex('두산위브&수자인부평더퍼스트', '인천광역시 부평구', INDEX2);
+  assert.ok(entry);
+  assert.equal(entry.rows[0].median_price, 350000000);
+  assert.equal(entry.orig, '두산위브');
 });
 
 test('resolveComplex tier 3: substring containment, CSV complex longer than listing name', () => {
-  const rows = resolveComplex('서초리시온', '강원특별자치도 원주시', INDEX2);
-  assert.ok(rows);
-  assert.equal(rows[0].median_price, 900000000);
+  const entry = resolveComplex('서초리시온', '강원특별자치도 원주시', INDEX2);
+  assert.ok(entry);
+  assert.equal(entry.rows[0].median_price, 900000000);
+  assert.equal(entry.orig, '대림서초리시온');
 });
 
 test('resolveComplex refuses an ambiguous fragment matching two complexes', () => {
@@ -153,4 +163,187 @@ test('recomputeBasis end-to-end: succeeds for a listing that only resolves via t
   assert.ok(out);
   assert.equal(out.actual_transaction_price, 350000000);
   assert.equal(out.discount_rate, 14.3);
+});
+
+// ---- 증거 필드(표A/표B/시세추이/urgent_score/recent_transaction_date) ----
+// import-listings.py 의 area_summary / recent_trades / real_history / _median 포팅 검증.
+
+const trade = (a, ym, d, fl, p) => ({ a, ym, d, fl, p });
+
+test('areaSummary: rows carry the full shape, sorted by area ascending, isMine only for my area', () => {
+  const trades = [
+    trade(59, '2026-01', '5', '3', 200000000),
+    trade(59, '2026-03', '10', '5', 210000000),
+    trade(84, '2025-12', '20', '7', 400000000),
+    trade(84, '2026-02', '1', '9', 420000000),
+    trade(84, '2026-02', '15', '2', 415000000),
+  ];
+  const out = areaSummary(trades, 84);
+  assert.equal(out.length, 2);
+  // 면적 오름차순
+  assert.deepEqual(out.map((r) => r.areaM2), [59, 84]);
+
+  const other = out[0];
+  assert.equal(other.areaM2, 59);
+  assert.equal(other.count, 2);
+  assert.equal(other.recentPrice, 210000000);
+  assert.equal(other.recentMonth, '2026-03');
+  assert.equal(other.minPrice, 200000000);
+  assert.equal(other.maxPrice, 210000000);
+  assert.equal(other.isMine, false);
+
+  const mine = out[1];
+  assert.equal(mine.areaM2, 84);
+  assert.equal(mine.count, 3);
+  // (ym, day) 오름차순 정렬 후 마지막 = 가장 최근: 2026-02 안에서 day '1' < '15' (문자열 비교)
+  assert.equal(mine.recentPrice, 415000000);
+  assert.equal(mine.recentMonth, '2026-02');
+  assert.equal(mine.minPrice, 400000000);
+  assert.equal(mine.maxPrice, 420000000);
+  assert.equal(mine.isMine, true);
+});
+
+test('recentTrades: only the listing area, newest first, capped at 30', () => {
+  const mixed = [
+    trade(59, '2026-07', '1', '1', 999),
+    trade(84, '2025-12', '20', '7', 400000000),
+    trade(84, '2026-02', '1', '9', 420000000),
+    trade(84, '2026-02', '15', '2', 415000000),
+  ];
+  const out = recentTrades(mixed, 84, 30);
+  assert.equal(out.length, 3);
+  assert.ok(out.every((r) => r.areaM2 === 84));
+  assert.deepEqual(out.map((r) => `${r.yearMonth}-${r.day}`), ['2026-02-15', '2026-02-1', '2025-12-20']);
+
+  // cap: 35건 중 최신 30건만
+  const many = [];
+  for (let i = 0; i < 35; i += 1) {
+    const year = 2020 + Math.floor(i / 12);
+    const month = String((i % 12) + 1).padStart(2, '0');
+    many.push(trade(84, `${year}-${month}`, '1', '1', i));
+  }
+  const capped = recentTrades(many, 84, 30);
+  assert.equal(capped.length, 30);
+  assert.equal(capped[0].price, 34); // 가장 최신(마지막으로 생성한 항목)이 맨 앞
+});
+
+test('realHistory: one entry per month, integer median, ascending month order, ym[2:] 포맷', () => {
+  const trades = [
+    trade(59, '2026-05', '1', '1', 100),
+    trade(59, '2026-05', '2', '2', 300),
+    trade(59, '2026-06', '10', '3', 500),
+    trade(59, '2026-07', '4', '1', 200),
+    trade(59, '2026-07', '15', '2', 220),
+    trade(59, '2026-07', '9', '3', 210),
+    trade(84, '2026-07', '1', '1', 999999), // 다른 평형 — 제외되어야 함
+  ];
+  const out = realHistory(trades, 59);
+  assert.deepEqual(out, [
+    { month: '26.05', yearMonth: '2026-05', price: 200, count: 2 },
+    { month: '26.06', yearMonth: '2026-06', price: 500, count: 1 },
+    { month: '26.07', yearMonth: '2026-07', price: 210, count: 3 },
+  ]);
+});
+
+test('median: even-count floors rather than averaging to a fraction', () => {
+  assert.equal(median([1, 2, 3, 4]), 2); // floor((2+3)/2) = floor(2.5) = 2
+  assert.equal(median([100000000, 300000001]), 200000000); // floor(400000001/2) = 200000000
+});
+
+test('median: odd-count picks the middle element', () => {
+  assert.equal(median([5, 1, 9]), 5);
+});
+
+test('urgent_score matches min(99, round(50 + disc*3)), including the 99 cap', () => {
+  // 20% 할인 → 50+60=110 → 99 로 캡
+  assert.equal(recomputeBasis(prop(), INDEX, TODAY).urgent_score, 99);
+  // 5% 할인(MIN_DISC 경계) → 50+15=65, 캡 아래
+  assert.equal(recomputeBasis(prop({ price: 380000000 }), INDEX, TODAY).urgent_score, 65);
+});
+
+test('recent_transaction_date equals price_basis.periodEnd + "-01"', () => {
+  const out = recomputeBasis(prop(), INDEX, TODAY);
+  assert.equal(out.recent_transaction_date, `${out.price_basis.periodEnd}-01`);
+  assert.equal(out.recent_transaction_date, '2026-07-01');
+});
+
+test('recomputeBasis: no trades for the resolved complex yields empty evidence arrays, not a throw', () => {
+  const out = recomputeBasis(prop(), INDEX, TODAY); // tradesIndex 인자 생략 → 기본 빈 Map
+  assert.deepEqual(out.price_history, []);
+  assert.deepEqual(out.price_table.areaSummary, []);
+  assert.deepEqual(out.price_table.recentTrades, []);
+});
+
+// ---- consistency invariant: 이번 결함의 재발 방지 테스트 ----
+// price_basis.sampleSize(중앙값 산정 근거 건수)와 표A(areaSummary) 의 내 평형 count 는
+// 반드시 같아야 한다 — 다르면 화면 위에서 주장과 증거가 어긋난다(이번 결함의 정의 그 자체).
+
+const EVIDENCE_CSV = [
+  'complex,sigungu,gu,area_m2,area_bucket,median_price,sample_size,earliest_year_month,latest_year_month,built_year',
+  '증거아파트,강원특별자치도 원주시 무실동,강원특별자치도 원주시,59,60㎡ 이하,300000000,3,2026-05,2026-07,2010',
+].join('\n');
+const EVIDENCE_INDEX = buildComplexIndex(EVIDENCE_CSV);
+
+const EVIDENCE_TRADES_CSV = [
+  'complex,gu,area_m2,year_month,day,floor,price',
+  '증거아파트,강원특별자치도 원주시,59,2026-05,3,4,280000000',
+  '증거아파트,강원특별자치도 원주시,59,2026-06,10,5,290000000',
+  '증거아파트,강원특별자치도 원주시,59,2026-07,1,6,300000000',
+].join('\n');
+
+const evidenceProp = {
+  id: 'gm-evidence', region: '강원특별자치도 원주시', title: '증거아파트 전용59㎡',
+  price: 270000000, area: 59, price_basis: {},
+};
+
+test('consistency invariant: areaSummary isMine count equals price_basis.sampleSize', () => {
+  const needed = new Set([makeTradeKey('강원특별자치도 원주시', '증거아파트')]);
+  const tradesIndex = buildTradesIndex(EVIDENCE_TRADES_CSV, needed);
+  const out = recomputeBasis(evidenceProp, EVIDENCE_INDEX, TODAY, tradesIndex);
+  assert.ok(out);
+  const mine = out.price_table.areaSummary.find((r) => r.isMine);
+  assert.ok(mine);
+  assert.equal(mine.count, out.price_basis.sampleSize);
+  assert.equal(mine.count, 3);
+});
+
+// ---- confidence: import-listings.py:build_row 와 동일하게 >= 5 에서 high ----
+
+const CONFIDENCE_CSV = [
+  'complex,sigungu,gu,area_m2,area_bucket,median_price,sample_size,earliest_year_month,latest_year_month,built_year',
+  '확신아파트,강원특별자치도 원주시 무실동,강원특별자치도 원주시,59,60㎡ 이하,300000000,5,2023-01,2026-07,2010',
+  '확신아파트,강원특별자치도 원주시 무실동,강원특별자치도 원주시,84,60–85㎡,400000000,4,2023-01,2026-07,2010',
+].join('\n');
+const CONFIDENCE_INDEX = buildComplexIndex(CONFIDENCE_CSV);
+
+test('confidence is high at sample_size === 5 and medium at 4', () => {
+  const high = recomputeBasis(
+    { id: 'gm-c1', region: '강원특별자치도 원주시', title: '확신아파트 전용59㎡', price: 270000000, area: 59, price_basis: {} },
+    CONFIDENCE_INDEX, TODAY,
+  );
+  assert.equal(high.price_basis.confidence, 'high');
+
+  const medium = recomputeBasis(
+    { id: 'gm-c2', region: '강원특별자치도 원주시', title: '확신아파트 전용84㎡', price: 360000000, area: 84, price_basis: {} },
+    CONFIDENCE_INDEX, TODAY,
+  );
+  assert.equal(medium.price_basis.confidence, 'medium');
+});
+
+// ---- buildTradesIndex: complex_trades.csv 의 콤마 포함 단지명("대동1,2차")을 깨지 않고 파싱 ----
+
+test('buildTradesIndex parses quoted complex names containing commas, and filters by needed pairs', () => {
+  const csv = [
+    'complex,gu,area_m2,year_month,day,floor,price',
+    '"대동1,2차",강원특별자치도 동해시,73,2023-07,25,12,117000000',
+    '무관한단지,강원특별자치도 동해시,59,2023-07,1,1,50000000',
+  ].join('\n');
+  const key = makeTradeKey('강원특별자치도 동해시', '대동1,2차');
+  const idx = buildTradesIndex(csv, new Set([key]));
+  assert.equal(idx.size, 1);
+  const rows = idx.get(key);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].a, 73);
+  assert.equal(rows[0].p, 117000000);
+  assert.equal(rows[0].ym, '2023-07');
 });

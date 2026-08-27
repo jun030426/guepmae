@@ -36,7 +36,8 @@ class DryRunIsolation(unittest.TestCase):
             xlsx = os.path.join(td, "fixture.xlsx")
             make_fixture_excel(xlsx)
             proc = subprocess.run([sys.executable, SCRIPT, xlsx],
-                                  capture_output=True, text=True, cwd=ROOT)
+                                  capture_output=True, text=True,
+                                  encoding="utf-8", errors="replace", cwd=ROOT)
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertEqual(before, sha256(BUNDLE),
                          "dry-run 이 public/data/properties.json 을 변경했습니다")
@@ -49,9 +50,11 @@ class DryRunIsolation(unittest.TestCase):
             make_fixture_excel(xlsx)
             try:
                 proc = subprocess.run([sys.executable, SCRIPT, xlsx, "--emit-bundle"],
-                                      capture_output=True, text=True, cwd=ROOT)
+                                      capture_output=True, text=True,
+                                      encoding="utf-8", errors="replace", cwd=ROOT)
                 self.assertEqual(proc.returncode, 0, proc.stderr)
-                rows = json.load(io.open(BUNDLE, encoding="utf-8"))
+                with io.open(BUNDLE, encoding="utf-8") as f:
+                    rows = json.load(f)
                 self.assertIsInstance(rows, list)
                 self.assertGreaterEqual(len(rows), 1)
             finally:

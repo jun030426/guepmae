@@ -7,6 +7,7 @@
 #   python scripts/fetch-trades.py --resume               # 이미 받은 시도(api_*.csv) 건너뛰고 이어받기
 #   python scripts/fetch-trades.py 서울특별시 경기도        # 특정 시도만
 #   python scripts/fetch-trades.py --months 13            # 기간 조정(기본 36)
+#   python scripts/fetch-trades.py --since 2026-06         # 증분: 2026-06~지난달만 받아 기존 CSV 에 병합
 #
 # .env.local 의 MOLIT_API_KEY(디코딩 키) 필요. 시군구코드: scripts/_sigungu_codes.json
 # 출력 컬럼: 시군구, 단지명, 거래금액(만원), 계약년월, 해제사유발생일, 전용면적(㎡), 건축년도, 층, 일
@@ -24,7 +25,10 @@ BASE = "https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcApt
 
 def load_env():
     e = {}
-    for line in open(os.path.join(ROOT, ".env.local"), encoding="utf-8"):
+    p = os.path.join(ROOT, ".env.local")
+    if not os.path.exists(p):
+        return e
+    for line in open(p, encoding="utf-8"):
         if "=" in line and not line.strip().startswith("#"):
             k, v = line.split("=", 1); e[k.strip()] = v.strip()
     return e
@@ -38,6 +42,45 @@ def recent_months(n):
         m -= 1
         if m == 0: m = 12; y -= 1
     out.reverse(); return out
+
+def months_since(since_ym, today=None):
+    """since_ym('YYYY-MM') 부터 지난달까지의 'YYYYMM' 목록.
+    오늘이 속한 달은 공개 지연(계약일 +2주) 때문에 제외한다."""
+    if today is None: today = datetime.date.today()
+    y, m = int(since_ym[:4]), int(since_ym[5:7])
+    end_y, end_m = (today.year, today.month - 1) if today.month > 1 else (today.year - 1, 12)
+    out = []
+    while (y, m) <= (end_y, end_m):
+        out.append(f"{y}{m:02d}")
+        m += 1
+        if m == 13: m = 1; y += 1
+    return out
+
+
+# HEADER 인덱스: 0 시군구, 1 단지명, 2 거래금액, 3 계약년월, 5 전용면적, 7 층, 8 일
+DEDUP_IDX = (0, 1, 5, 3, 8, 7, 2)
+
+def dedup_key(row):
+    """(시군구, 단지명, 전용면적, 계약년월, 일, 층, 거래금액)"""
+    return tuple(str(row[i]).strip() for i in DEDUP_IDX)
+
+
+def merge_rows(existing, fresh):
+    """기존 행 순서를 유지하고 신규 행을 뒤에 붙인다.
+    키가 겹치면 신규 값을 채택한다 — 해제사유발생일은 키에 없어 나중에 채워질 수 있다."""
+    merged = {}
+    for r in existing: merged[dedup_key(r)] = r
+    for r in fresh: merged[dedup_key(r)] = r
+    return list(merged.values())
+
+
+def read_existing_rows(sido):
+    """api_<sido>.csv 를 헤더 제외하고 읽는다. 파일이 없으면 None."""
+    path = os.path.join(DATA, f"api_{sido}.csv")
+    if not os.path.exists(path): return None
+    with open(path, encoding="cp949", errors="replace", newline="") as f:
+        rows = list(csv.reader(f))
+    return [r for r in rows[1:] if len(r) == len(HEADER)]
 
 def prevent_sleep(on=True):
     # Windows: 장시간 백그라운드 실행 중 시스템 절전 진입 방지(노트북 뚜껑 닫음은 막지 못함).
@@ -92,7 +135,7 @@ def backup_old_manual(sido):
             os.replace(os.path.join(DATA, f), os.path.join(BACKUP, f))
             print(f"    옛 수동 CSV 백업: {f}")
 
-def fetch_sido(sido, codes_for_sido, months, calls):
+def fetch_sido(sido, codes_for_sido, months, calls, merge=False):
     rows = []; cancelled = 0
     for lawd in codes_for_sido:
         base = CODES[lawd]; rc = 0
@@ -115,10 +158,20 @@ def fetch_sido(sido, codes_for_sido, months, calls):
                 if total is None or page * 1000 >= total or not items: break
                 page += 1; time.sleep(0.05)
             time.sleep(0.04)
+    if merge:
+        existing = read_existing_rows(sido)
+        if existing is None:
+            raise SystemExit(
+                f"❌ {sido}: api_{sido}.csv 가 없어 증분 병합 불가. "
+                f"먼저 전량 수집하세요 — python scripts/fetch-trades.py {sido} --months 38")
+        before = len(rows)
+        rows = merge_rows(existing, rows)
+        print(f"    병합: 기존 {len(existing)}건 + 신규 {before}건 → {len(rows)}건")
     out_path = os.path.join(DATA, f"api_{sido}.csv")
     with open(out_path, "w", encoding="cp949", errors="replace", newline="") as f:
         w = csv.writer(f); w.writerow(HEADER); w.writerows(rows)
-    backup_old_manual(sido)
+    if not merge:
+        backup_old_manual(sido)
     print(f"  ✅ {sido}: {len(rows)}건 (취소 {cancelled}) → api_{sido}.csv")
     return len(rows)
 
@@ -133,17 +186,22 @@ if __name__ == "__main__":
     argv = sys.argv[1:]
     if "--probe" in argv: probe(); sys.exit(0)
     months_n = 36
+    since = None
+    if "--since" in argv: since = argv[argv.index("--since") + 1]
     if "--months" in argv: months_n = int(argv[argv.index("--months") + 1])
     resume = "--resume" in argv
-    sido_args = [a for a in argv if not a.startswith("--") and not a.isdigit()]
+    sido_args = [a for a in argv if not a.startswith("--") and not a.isdigit()
+                 and a != since]
 
     # 시도별 그룹
     by_sido = {}
     for code, name in CODES.items():
         by_sido.setdefault(name.split()[0], []).append(code)
     targets = sido_args if sido_args else sorted(by_sido)
-    months = recent_months(months_n)
-    print(f"대상 시도 {len(targets)}개 | 기간 {months[0]}~{months[-1]} ({months_n}개월) | 총 시군구 {sum(len(by_sido[s]) for s in targets if s in by_sido)}")
+    months = months_since(since) if since else recent_months(months_n)
+    if not months:
+        print("수집할 월이 없습니다. --since 값을 확인하세요."); sys.exit(1)
+    print(f"대상 시도 {len(targets)}개 | 기간 {months[0]}~{months[-1]} ({len(months)}개월) | 총 시군구 {sum(len(by_sido[s]) for s in targets if s in by_sido)}")
 
     calls = [0]; total_rows = 0
     prevent_sleep(True)
@@ -152,7 +210,7 @@ if __name__ == "__main__":
             if sido not in by_sido: print(f"  ? '{sido}' 코드없음 건너뜀", flush=True); continue
             if resume and os.path.exists(os.path.join(DATA, f"api_{sido}.csv")):
                 print(f"  ⏭ {sido} 이미 있음(--resume) 건너뜀", flush=True); continue
-            total_rows += fetch_sido(sido, by_sido[sido], months, calls)
+            total_rows += fetch_sido(sido, by_sido[sido], months, calls, merge=bool(since))
             print(f"     누적 API 호출 {calls[0]}회", flush=True)
     except LimitError as e:
         print(f"\n⛔ 일일 한도 도달({e}). 받은 시도까지 저장됨. `--resume` 으로 이어받으세요. (호출 {calls[0]}회)", flush=True)

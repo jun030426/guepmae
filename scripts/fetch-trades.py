@@ -57,21 +57,19 @@ def months_since(since_ym, today=None):
     return out
 
 
-# HEADER 인덱스: 0 시군구, 1 단지명, 2 거래금액, 3 계약년월, 5 전용면적, 7 층, 8 일
-DEDUP_IDX = (0, 1, 5, 3, 8, 7, 2)
+def merge_rows(existing, fresh, months):
+    """fresh 는 months 구간을 완전히 재수집한 결과다.
+    그 구간은 통째로 교체하고, 나머지 월의 기존 행은 그대로 둔다.
 
-def dedup_key(row):
-    """(시군구, 단지명, 전용면적, 계약년월, 일, 층, 거래금액)"""
-    return tuple(str(row[i]).strip() for i in DEDUP_IDX)
+    행 단위 중복 제거는 쓰지 않는다 — CSV 에 동(棟) 컬럼이 없어서
+    같은 단지·면적·계약일·층·금액의 서로 다른 거래가 구분되지 않는다.
+    실측 충돌률 대전 4.33% / 광주 3.78% (전부 실제 별개 거래).
 
-
-def merge_rows(existing, fresh):
-    """기존 행 순서를 유지하고 신규 행을 뒤에 붙인다.
-    키가 겹치면 신규 값을 채택한다 — 해제사유발생일은 키에 없어 나중에 채워질 수 있다."""
-    merged = {}
-    for r in existing: merged[dedup_key(r)] = r
-    for r in fresh: merged[dedup_key(r)] = r
-    return list(merged.values())
+    fresh 가 한 건도 없는 월은 수집 실패일 수 있으므로 교체하지 않는다.
+    """
+    fetched = {m for m in months if any(r[3] == m for r in fresh)}
+    kept = [r for r in existing if r[3] not in fetched]
+    return kept + fresh
 
 
 def read_existing_rows(sido):
@@ -165,7 +163,7 @@ def fetch_sido(sido, codes_for_sido, months, calls, merge=False):
                 f"❌ {sido}: api_{sido}.csv 가 없어 증분 병합 불가. "
                 f"먼저 전량 수집하세요 — python scripts/fetch-trades.py {sido} --months 38")
         before = len(rows)
-        rows = merge_rows(existing, rows)
+        rows = merge_rows(existing, rows, months)
         print(f"    병합: 기존 {len(existing)}건 + 신규 {before}건 → {len(rows)}건")
     out_path = os.path.join(DATA, f"api_{sido}.csv")
     with open(out_path, "w", encoding="cp949", errors="replace", newline="") as f:

@@ -32,29 +32,50 @@ class MonthsSince(unittest.TestCase):
 
 
 class MergeRows(unittest.TestCase):
-    def test_identical_rows_deduped(self):
-        self.assertEqual(len(ft.merge_rows([row()], [row()])), 1)
+    """월 단위 교체 병합: fresh 는 months 구간을 완전히 재수집한 결과이므로
+    그 구간은 통째로 교체하고, 나머지 월의 기존 행은 그대로 둔다.
+    행 단위 dedup 은 쓰지 않는다 — CSV 에 동(棟) 컬럼이 없어 같은 단지·면적·
+    계약일·층·금액의 서로 다른 거래를 구분할 수 없기 때문이다."""
 
-    def test_fresh_row_appended(self):
-        merged = ft.merge_rows([row(ym="202605")], [row(ym="202606")])
-        self.assertEqual(len(merged), 2)
-        self.assertEqual(merged[0][3], "202605")  # 기존 순서 유지
-
-    def test_fresh_wins_on_key_collision(self):
-        # 해제사유발생일은 dedup 키에 없으므로, 나중에 취소된 거래는 신규 값이 이겨야 한다
-        merged = ft.merge_rows([row(cdeal="")], [row(cdeal="26.07.20")])
+    def test_fetched_month_replaces_existing_rows(self):
+        existing = [row(ym="202605", day="15"), row(ym="202605", day="16")]
+        fresh = [row(ym="202605", day="20")]
+        merged = ft.merge_rows(existing, fresh, ["202605"])
         self.assertEqual(len(merged), 1)
-        self.assertEqual(merged[0][4], "26.07.20")
+        self.assertEqual(merged, fresh)
 
-    def test_different_floor_is_distinct(self):
-        self.assertEqual(len(ft.merge_rows([row(floor="7")], [row(floor="8")])), 2)
+    def test_months_outside_fetched_range_survive(self):
+        existing = [row(ym="202604", day="10"), row(ym="202605", day="15")]
+        fresh = [row(ym="202605", day="20")]
+        merged = ft.merge_rows(existing, fresh, ["202605"])
+        self.assertIn(existing[0], merged)
 
-    def test_different_amount_is_distinct(self):
-        self.assertEqual(len(ft.merge_rows([row(amount="150000")],
-                                           [row(amount="151000")])), 2)
+    def test_identical_looking_distinct_transactions_both_kept(self):
+        # CSV 가 기록하는 모든 필드(시군구/단지명/전용면적/계약년월/일/층/거래금액)가
+        # 같아도, 동(棟)이 달라 실제로는 별개인 거래 — 둘 다 살아남아야 한다.
+        existing = []
+        fresh = [row(ym="202606"), row(ym="202606")]
+        merged = ft.merge_rows(existing, fresh, ["202606"])
+        self.assertEqual(len(merged), 2)
 
-    def test_empty_existing(self):
-        self.assertEqual(len(ft.merge_rows([], [row(), row(day="16")])), 2)
+    def test_month_with_no_fresh_rows_is_not_replaced(self):
+        # 신규 수집분에 해당 월이 하나도 없으면 수집 실패일 수 있으므로
+        # 기존 행을 지우지 않는다.
+        existing = [row(ym="202605", day="15"), row(ym="202606", day="16")]
+        fresh = [row(ym="202606", day="20")]
+        merged = ft.merge_rows(existing, fresh, ["202605", "202606"])
+        self.assertIn(existing[0], merged)
+
+    def test_empty_fresh_preserves_everything(self):
+        existing = [row(ym="202606", day="15"), row(ym="202606", day="16")]
+        merged = ft.merge_rows(existing, [], ["202606"])
+        self.assertEqual(merged, existing)
+
+    def test_ordering_kept_existing_first_then_fresh(self):
+        existing = [row(ym="202604", day="10"), row(ym="202605", day="15")]
+        fresh = [row(ym="202605", day="20")]
+        merged = ft.merge_rows(existing, fresh, ["202605"])
+        self.assertEqual(merged, [existing[0]] + fresh)
 
 
 class ReadExisting(unittest.TestCase):

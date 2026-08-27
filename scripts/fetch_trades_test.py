@@ -1,5 +1,5 @@
 # scripts/fetch_trades_test.py — 증분 병합 순수 함수 검증
-import csv, datetime, importlib.util, os, tempfile, unittest
+import csv, datetime, http.client, importlib.util, os, tempfile, unittest, urllib.error
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 spec = importlib.util.spec_from_file_location(
@@ -157,6 +157,111 @@ class FetchSidoMergePath(unittest.TestCase):
         with self.assertRaises(SystemExit):
             ft.fetch_sido(FAKE_SIDO, [], ["202606"], [0], merge=True)
         self.assertFalse(os.path.exists(self._csv_path()))
+
+
+class _FakeResponse:
+    """urlopen 이 돌려주는 컨텍스트 매니저를 흉내낸다."""
+
+    def __init__(self, body):
+        self._body = body
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return False
+
+    def read(self):
+        return self._body
+
+
+class FetchPageRetry(unittest.TestCase):
+    """fetch_page 의 지수 백오프 재시도 검증.
+
+    ft.urllib.request.urlopen 은 미리 큐에 넣어둔 예외/응답을 순서대로
+    소비하는 가짜로, ft.time.sleep 은 실제로 잠들지 않고 대기 시간만
+    기록하는 가짜로 바꿔치운다 — 어떤 테스트도 네트워크를 타거나 잠들지 않는다."""
+
+    def setUp(self):
+        self._orig_urlopen = ft.urllib.request.urlopen
+        self._orig_sleep = ft.time.sleep
+        self._urlopen_effects = []
+        self._urlopen_calls = 0
+        self._sleeps = []
+
+        def fake_urlopen(url, timeout=None):
+            self._urlopen_calls += 1
+            effect = self._urlopen_effects.pop(0)
+            if isinstance(effect, BaseException):
+                raise effect
+            return _FakeResponse(effect)
+
+        def fake_sleep(seconds):
+            self._sleeps.append(seconds)
+
+        ft.urllib.request.urlopen = fake_urlopen
+        ft.time.sleep = fake_sleep
+
+    def tearDown(self):
+        ft.urllib.request.urlopen = self._orig_urlopen
+        ft.time.sleep = self._orig_sleep
+
+    def test_success_on_first_attempt(self):
+        self._urlopen_effects = [b"<xml>ok</xml>"]
+        result = ft.fetch_page("11680", "202606", 1)
+        self.assertEqual(result, "<xml>ok</xml>")
+        self.assertEqual(self._urlopen_calls, 1)
+        self.assertEqual(self._sleeps, [])
+
+    def test_transient_failure_then_success(self):
+        self._urlopen_effects = [urllib.error.URLError("boom"), b"<xml>ok</xml>"]
+        result = ft.fetch_page("11680", "202606", 1)
+        self.assertEqual(result, "<xml>ok</xml>")
+        self.assertEqual(self._urlopen_calls, 2)
+        self.assertEqual(len(self._sleeps), 1)
+
+    def test_remote_disconnected_is_transient(self):
+        # 실제 운영에서 관측된 두 오류 중 하나: RemoteDisconnected 도 재시도 대상이어야 한다.
+        self._urlopen_effects = [
+            http.client.RemoteDisconnected("Remote end closed connection without response"),
+            b"<xml>ok</xml>",
+        ]
+        result = ft.fetch_page("11680", "202606", 1)
+        self.assertEqual(result, "<xml>ok</xml>")
+        self.assertEqual(self._urlopen_calls, 2)
+        self.assertEqual(len(self._sleeps), 1)
+
+    def test_exhausting_attempts_reraises(self):
+        self._urlopen_effects = [urllib.error.URLError("boom1"), urllib.error.URLError("boom2")]
+        with self.assertRaises(urllib.error.URLError):
+            ft.fetch_page("11680", "202606", 1, attempts=2)
+        self.assertEqual(self._urlopen_calls, 2)
+
+    def test_http_error_not_retried(self):
+        # 429(일일 한도)를 비롯한 HTTPError 는 즉시 올려보내야 한다 —
+        # 호출부의 LimitError 처리가 이 동작에 의존한다.
+        # HTTPError(fp=None) 은 내부에 닫히지 않은 BytesIO 를 들고 있어 GC 시
+        # ResourceWarning 을 낼 수 있으므로 명시적으로 닫아 pristine 출력을 유지한다.
+        http_err = urllib.error.HTTPError("http://x", 429, "Too Many Requests", {}, None)
+        self._urlopen_effects = [http_err]
+        try:
+            with self.assertRaises(urllib.error.HTTPError):
+                ft.fetch_page("11680", "202606", 1)
+        finally:
+            http_err.close()
+        self.assertEqual(self._urlopen_calls, 1)
+        self.assertEqual(self._sleeps, [])
+
+    def test_backoff_is_exponential(self):
+        self._urlopen_effects = [
+            urllib.error.URLError("boom1"),
+            urllib.error.URLError("boom2"),
+            urllib.error.URLError("boom3"),
+            b"<xml>ok</xml>",
+        ]
+        result = ft.fetch_page("11680", "202606", 1, attempts=4)
+        self.assertEqual(result, "<xml>ok</xml>")
+        self.assertEqual(self._sleeps, [2, 4, 8])
 
 
 if __name__ == "__main__":

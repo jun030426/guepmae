@@ -13,6 +13,7 @@
 # 출력 컬럼: 시군구, 단지명, 거래금액(만원), 계약년월, 해제사유발생일, 전용면적(㎡), 건축년도, 층, 일
 # 인코딩 CP949 (빌드 스크립트가 cp949 디코딩). 일 한도(10,000) 초과 시 멈춤 → --resume 으로 다음날 이어받기.
 import os, sys, csv, time, json, datetime, urllib.request, urllib.parse, urllib.error
+import http.client
 import xml.etree.ElementTree as ET
 try: sys.stdout.reconfigure(encoding="utf-8")
 except Exception: pass
@@ -99,10 +100,26 @@ def cv(item, *names):
 
 class LimitError(Exception): pass
 
-def fetch_page(lawd, ymd, page, rows=1000):
+def fetch_page(lawd, ymd, page, rows=1000, attempts=4):
+    """일시적 네트워크 오류(연결 끊김·타임아웃)는 지수 백오프로 재시도한다.
+
+    HTTPError 는 재시도하지 않고 그대로 올려보낸다 — 호출부가 429(일일 한도)와
+    그 밖의 상태코드를 구분해 처리하기 때문이다.
+    """
     qs = urllib.parse.urlencode({"serviceKey": KEY, "LAWD_CD": lawd, "DEAL_YMD": ymd, "pageNo": page, "numOfRows": rows})
-    with urllib.request.urlopen(BASE + "?" + qs, timeout=40) as r:
-        return r.read().decode("utf-8", "replace")
+    url = BASE + "?" + qs
+    for attempt in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(url, timeout=40) as r:
+                return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError:
+            raise
+        except (urllib.error.URLError, http.client.HTTPException, OSError) as e:
+            if attempt == attempts:
+                raise
+            wait = 2 ** attempt
+            print(f"    ! 네트워크 오류({type(e).__name__}) {attempt}/{attempts} — {wait}초 후 재시도", flush=True)
+            time.sleep(wait)
 
 def parse_items(xml_text):
     root = ET.fromstring(xml_text)

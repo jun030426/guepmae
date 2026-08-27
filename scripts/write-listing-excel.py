@@ -11,7 +11,7 @@
 #   사진 — 문자열 배열. 사진1, 사진2 … 열로 펼쳐진다.
 #
 # 중개사 개인정보 열은 금지한다.
-import json, sys
+import json, re, sys
 from openpyxl import Workbook
 
 REQUIRED = ["단지명", "구/시군구", "전용면적(㎡)", "호가(원)"]
@@ -21,16 +21,20 @@ FIELD_ORDER = ["제목", "층", "방수", "욕실수", "준공연도", "향", "�
                "관리비(원)", "주차", "입주가능일", "거주상태", "세대수",
                "매물설명", "도로명주소", "주소"]
 
-BANNED = ["중개사무소명", "중개사 전화번호", "중개사 등록번호",
-          "중개사명", "연락처", "전화번호", "등록번호"]
+# 중개사 개인정보 열 차단. 정확 일치가 아니라 부분 문자열로 판정한다 —
+# 수집기가 "중개사무소 전화", "담당자 연락처" 같은 변형 라벨을 보낼 수 있다.
+# 허용 열(REQUIRED + FIELD_ORDER + 사진N) 중 어느 것도 아래 조각을 포함하지 않는다.
+BANNED_PARTS = ["중개", "전화", "연락처", "휴대", "등록번호", "담당자"]
 
 
 def _assert_no_private_columns(rows):
     for row in rows:
         for key in row:
-            if key in BANNED:
-                raise ValueError(
-                    f"중개사 개인정보 열은 수집·저장하지 않습니다: {key!r}")
+            flat = re.sub(r"\s+", "", str(key))
+            for part in BANNED_PARTS:
+                if part in flat:
+                    raise ValueError(
+                        f"중개사 개인정보 열은 수집·저장하지 않습니다: {key!r}")
 
 
 def _is_complete(row):

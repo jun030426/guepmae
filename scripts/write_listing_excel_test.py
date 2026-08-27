@@ -67,6 +67,25 @@ class PrivacyGuardTest(unittest.TestCase):
             with self.assertRaises(ValueError, msg=banned):
                 wle.build_workbook([{**FULL, banned: "x"}])
 
+    def test_variant_labels_are_rejected(self):
+        variants = ("중개사무소 전화", "담당자 연락처", "휴대폰번호",
+                    "중개업소명", "중개사  등록번호")
+        for variant in variants:
+            with self.assertRaises(ValueError, msg=variant):
+                wle.build_workbook([{**FULL, variant: "x"}])
+
+    def test_no_false_positives_on_legitimate_columns(self):
+        row = dict(FULL)
+        for field in wle.FIELD_ORDER:
+            row[field] = "값"
+        row["사진"] = ["u1", "u2"]
+        wb = wle.build_workbook([row])
+        header = [c.value for c in wb["매물입력"][1]]
+        for field in wle.FIELD_ORDER:
+            self.assertIn(field, header)
+        for key in wle.REQUIRED:
+            self.assertIn(key, header)
+
 
 class RoundTripTest(unittest.TestCase):
     def test_saved_file_reopens_with_expected_shape(self):

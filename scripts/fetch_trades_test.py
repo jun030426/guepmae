@@ -1,5 +1,5 @@
 # scripts/fetch_trades_test.py — 증분 병합 순수 함수 검증
-import datetime, importlib.util, os, unittest
+import csv, datetime, importlib.util, os, tempfile, unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 spec = importlib.util.spec_from_file_location(
@@ -67,6 +67,75 @@ class ReadExisting(unittest.TestCase):
         self.assertGreater(len(rows), 0)
         self.assertNotEqual(rows[0][0], "시군구")
         self.assertEqual(len(rows[0]), 9)
+
+
+HEADER_9 = ["시군구", "단지명", "거래금액(만원)", "계약년월",
+            "해제사유발생일", "전용면적(㎡)", "건축년도", "층", "일"]
+
+# 실제 시도명과 절대 충돌하지 않는 가짜 시도명
+FAKE_SIDO = "테스트도"
+
+
+class FetchSidoMergePath(unittest.TestCase):
+    """fetch_sido 의 write/merge 경로 회귀 테스트.
+
+    codes_for_sido 를 빈 리스트로 넘기면 API 호출이 전혀 일어나지 않고
+    rows=[] 로 fetch_sido 의 나머지 로직(merge → write)만 실행된다.
+    이는 정확히 회귀 시나리오다: "신규 수집분이 0건이어도 merge=True 면
+    기존 이력이 그대로 보존되어야 한다."
+    DATA 를 모듈 전역에서 임시 디렉터리로 바꿔치기해 실제
+    scripts/data 는 절대 건드리지 않는다.
+    """
+
+    def setUp(self):
+        self._orig_data = ft.DATA
+        self._tmpdir = tempfile.TemporaryDirectory()
+        ft.DATA = self._tmpdir.name
+
+    def tearDown(self):
+        ft.DATA = self._orig_data
+        self._tmpdir.cleanup()
+
+    def _csv_path(self):
+        return os.path.join(ft.DATA, f"api_{FAKE_SIDO}.csv")
+
+    def _write_existing_csv(self, rows):
+        with open(self._csv_path(), "w", encoding="cp949", errors="replace", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(HEADER_9)
+            w.writerows(rows)
+
+    def _read_data_rows(self):
+        with open(self._csv_path(), encoding="cp949", errors="replace", newline="") as f:
+            all_rows = list(csv.reader(f))
+        return all_rows[1:]
+
+    def test_merge_preserves_existing_rows_when_nothing_new(self):
+        existing = [row(day="15"), row(day="16"), row(day="17")]
+        self._write_existing_csv(existing)
+
+        result_count = ft.fetch_sido(FAKE_SIDO, [], ["202606"], [0], merge=True)
+
+        data_rows = self._read_data_rows()
+        self.assertEqual(len(data_rows), 3)
+        self.assertEqual(data_rows, existing)
+        self.assertEqual(result_count, 3)
+
+    def test_non_merge_overwrites_existing_rows(self):
+        existing = [row(day="15"), row(day="16"), row(day="17")]
+        self._write_existing_csv(existing)
+
+        result_count = ft.fetch_sido(FAKE_SIDO, [], ["202606"], [0], merge=False)
+
+        data_rows = self._read_data_rows()
+        self.assertEqual(len(data_rows), 0)
+        self.assertEqual(result_count, 0)
+
+    def test_merge_without_existing_file_raises(self):
+        self.assertFalse(os.path.exists(self._csv_path()))
+        with self.assertRaises(SystemExit):
+            ft.fetch_sido(FAKE_SIDO, [], ["202606"], [0], merge=True)
+        self.assertFalse(os.path.exists(self._csv_path()))
 
 
 if __name__ == "__main__":

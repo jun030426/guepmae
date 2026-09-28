@@ -1,0 +1,22 @@
+# 무료 티어 Supabase 는 7일간 API 요청이 없으면 일시정지된다.
+# 주 2회(월·목) 가벼운 REST 조회로 깨어있게 유지한다.
+# apikey 는 publishable(공개용) 키 — 클라이언트 번들에도 들어가는 값이라 커밋해도 안전.
+name: keep-supabase-awake
+
+on:
+  schedule:
+    - cron: '0 3 * * 1,4' # 월·목 03:00 UTC (한국 12:00)
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST
+        run: |
+          curl -sf --max-time 30 \
+            "https://oormfipegcfbhvctikfl.supabase.co/rest/v1/properties?select=id&limit=1" \
+            -H "apikey: sb_publishable_1Nuv4A_TPwk3COIiUPiZ_A_uUjy2GCw" \
+            -H "Authorization: Bearer sb_publishable_1Nuv4A_TPwk3COIiUPiZ_A_uUjy2GCw" \
+            -o /dev/null
+          echo "Supabase ping OK"

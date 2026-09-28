@@ -3,6 +3,10 @@ import { CheckCircle2, AlertTriangle, Printer, Sparkles } from 'lucide-react';
 import { fetchPropertyReport, regeneratePropertyReport } from '../services/propertyReports.js';
 import { formatPrice } from '../utils/priceUtils.js';
 
+// document.write 로 들어가는 사용자 입력(매물 타이틀) 이스케이프
+const escapeHtml = (value) =>
+  String(value).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
 function GradePill({ grade, score }) {
   return (
     <div className="report-grade-pill">
@@ -36,7 +40,7 @@ function PropertyReportPanel({ property }) {
       .join('');
     win.document.write(
       `<!doctype html><html lang="ko"><head><meta charset="utf-8">`
-      + `<title>${property.title} — AI 매물 리포트</title>${cssLinks}${inlineStyles}`
+      + `<title>${escapeHtml(property.title)} — AI 매물 리포트</title>${cssLinks}${inlineStyles}`
       + `<style>body{margin:0;padding:24px;background:#fff;}.report-print-button{display:none!important;}</style>`
       // 스타일 로드 후 인쇄, 인쇄/취소(afterprint) 시 새 창 자동 닫기
       + `<script>window.onafterprint=function(){window.close();};`
@@ -192,7 +196,11 @@ function PropertyReportPanel({ property }) {
           </div>
           <div className="highlight">
             <span>할인 금액</span>
-            <strong>{formatPrice(Math.max(0, property.actualTransactionPrice - property.price))} 저렴</strong>
+            <strong>
+              {property.actualTransactionPrice - property.price > 0
+                ? `${formatPrice(property.actualTransactionPrice - property.price)} 저렴`
+                : '기준가 이상 (할인 없음)'}
+            </strong>
           </div>
         </div>
         <div className="report-text-block">

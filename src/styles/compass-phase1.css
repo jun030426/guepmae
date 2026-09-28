@@ -100,7 +100,9 @@ body {
   bottom: 0;
   height: 1px;
   background: currentColor;
-  transition: left 0.22s ease, right 0.22s ease, height 0.22s ease;
+  /* height 는 애니메이션하지 않는다 — 높이를 매 프레임 다시 재게 만든다.
+   * 폭만 가운데에서 펴지고, 두께는 1px로 고정. */
+  transition: left 0.22s ease, right 0.22s ease;
 }
 
 .nav-link:hover::after,
@@ -208,7 +210,7 @@ body {
 
 .footer-menu {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--space-3);
 }
 
@@ -269,7 +271,7 @@ body {
 
 .section-title h2 {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: var(--fw-heading);
   font-size: var(--fs-h2);
   letter-spacing: var(--ls-tight);
   line-height: var(--lh-tight);
@@ -330,7 +332,7 @@ body {
   color: var(--color-text);
   padding: 4px 8px;
   border-radius: 0;
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 500;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -351,15 +353,50 @@ body {
 }
 
 .property-card-body {
-  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-tight);
+  padding: var(--pad-card);
   background: transparent;
+}
+
+/* 카드 안 간격의 주인은 이 블록 하나다.
+ * global.css에 같은 클래스가 2~3중으로 중복 정의돼 마진이 더해지고 있었으므로
+ * (예: .property-metrics { margin-top: 14px }) 먼저 전부 0으로 지운 뒤 다시 세운다. */
+.property-card-body > * {
+  margin: 0;
+}
+
+.property-card-body > .property-title-link h3 {
+  margin: 0;
+}
+
+.property-card-body > .price-stack {
+  padding: 0;
+}
+
+/* 한 덩어리 안 — 가장 좁게 (8 - 2 = 6) */
+.property-card-body > .property-location,
+.property-card-body > .price-evidence {
+  margin-top: calc(var(--gap-inline) - var(--gap-tight));
+}
+
+.property-card-body > .price-conflict-chip {
+  margin-top: calc(var(--gap-group) - var(--gap-tight));
+}
+
+/* 카드는 네 묶음으로 읽힌다 — 식별 / 판정 / 가격 / 행동.
+ * 묶음이 바뀌는 첫 요소에만 여백을 더해 (8 + 12 = 20) 리듬의 마디를 만든다. */
+.property-card-body > .discount-headline,
+.property-card-body > .price-stack,
+.property-card-body > .property-card-actions {
+  margin-top: calc(var(--gap-section) - var(--gap-tight));
 }
 
 .property-card-topline {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
-  margin-bottom: var(--space-1);
+  gap: var(--gap-tight);
 }
 
 .property-title-link {
@@ -369,27 +406,29 @@ body {
 
 .property-card-body h3 {
   font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: 20px;
+  font-weight: var(--fw-heading);
+  font-size: var(--type-heading);
   letter-spacing: var(--ls-tight);
-  line-height: var(--lh-snug);
+  line-height: var(--lh-heading);
   margin: 4px 0;
   color: var(--color-text);
+  word-break: keep-all;
 }
 
 .property-location {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
+  gap: var(--gap-inline);
+  margin: calc(var(--gap-inline) - var(--gap-tight)) 0 0;
+  font-size: var(--type-label);
+  line-height: var(--lh-label);
   color: var(--color-text-muted);
-  margin: 0 0 var(--space-2);
 }
 
 .price-stack {
   display: flex;
-  gap: var(--space-3);
-  margin: var(--space-1) 0 var(--space-2);
+  gap: var(--s-6);
+  margin: 0;
 }
 
 .price-stack > div {
@@ -398,15 +437,14 @@ body {
 }
 
 .price-stack span {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: var(--ls-wide);
+  font-size: var(--type-micro);
+  line-height: var(--lh-label);
   color: var(--color-text-subtle);
 }
 
 .price-stack strong {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 700; /* 토큰 규칙: 숫자는 700 */
   font-size: 22px;
   color: var(--color-text);
   letter-spacing: var(--ls-tight);
@@ -422,8 +460,8 @@ body {
 
 .property-metrics {
   display: flex;
-  gap: var(--space-3);
-  padding-top: var(--space-2);
+  gap: var(--s-6);
+  padding-top: var(--gap-group);
   border-top: 1px solid var(--color-border);
   font-size: 12px;
   color: var(--color-text-muted);
@@ -436,7 +474,7 @@ body {
 }
 
 .property-metrics span {
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-subtle);
   letter-spacing: 0.02em;
 }
@@ -457,8 +495,7 @@ body {
 
 .property-card-actions {
   display: flex;
-  gap: var(--space-1);
-  margin-top: var(--space-2);
+  gap: var(--gap-tight);
 }
 
 .property-card-actions .outline-button,
@@ -480,26 +517,27 @@ body {
   gap: 6px;
 }
 
+/* 카드 액션은 네이비 — 초록은 카드 안에서 할인 수치 전용 */
 .property-card-actions .outline-button {
   background: transparent;
-  border: 1px solid var(--color-accent);
-  color: var(--color-accent);
+  border: 1px solid var(--text-strong-soft);
+  color: var(--text-strong-soft);
 }
 
 .property-card-actions .outline-button:hover {
-  background: var(--color-accent);
+  background: var(--text-strong-soft);
   color: #ffffff;
 }
 
 .property-card-actions .contact-button {
-  background: var(--color-accent);
-  border: 1px solid var(--color-accent);
+  background: var(--text-strong-soft);
+  border: 1px solid var(--text-strong-soft);
   color: #ffffff;
 }
 
 .property-card-actions .contact-button:hover {
-  background: #157a4a;
-  border-color: #157a4a;
+  background: var(--navy-deep);
+  border-color: var(--navy-deep);
   color: #ffffff;
 }
 
@@ -508,13 +546,13 @@ body {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--color-accent);
+  background: var(--save-700); /* 흰 글자 대비 5.4:1 (AA) */
   color: #ffffff;
   border: none;
 }
@@ -547,7 +585,7 @@ body {
   align-items: center;
   gap: 3px;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 500;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
@@ -739,7 +777,7 @@ body {
 }
 
 .map-list-card-discount {
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   color: var(--color-text-muted);
   letter-spacing: var(--ls-wide);
@@ -866,7 +904,7 @@ body {
 
 .report-source-meta span {
   display: block;
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-subtle);
   margin-top: 2px;
 }
@@ -895,7 +933,7 @@ body {
 
 .report-insight-label {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--ls-wide);
@@ -904,7 +942,7 @@ body {
 
 .report-insight strong {
   font-family: var(--font-serif);
-  font-size: 28px;
+  font-size: var(--type-data-lg);
   font-weight: 500;
   letter-spacing: var(--ls-tight);
   color: var(--color-text);
@@ -973,7 +1011,7 @@ body {
 }
 
 .chart-title-row span {
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-subtle);
   text-transform: uppercase;
   letter-spacing: var(--ls-wide);
@@ -1025,7 +1063,7 @@ body {
 
 .region-tooltip-row em {
   font-style: normal;
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-muted);
   margin-left: auto;
 }
@@ -1131,8 +1169,8 @@ body {
 .headline-card-head {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding-bottom: 8px;
+  gap: var(--gap-inline);
+  padding-bottom: var(--gap-tight);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -1162,12 +1200,12 @@ body {
 .headline-card-main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--s-1);
 }
 
 .headline-card-value {
   font-family: var(--font-serif);
-  font-size: 24px;
+  font-size: var(--type-data-lg);
   font-weight: 500;
   line-height: 1.15;
   letter-spacing: var(--ls-tight);
@@ -1176,7 +1214,7 @@ body {
 
 .headline-card-value-sub {
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: var(--type-body);
   font-weight: 500;
   color: var(--color-text-muted);
   letter-spacing: var(--ls-tight);
@@ -1200,7 +1238,7 @@ body {
 
 .headline-card-meta {
   margin: 0;
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-muted);
   line-height: 1.55;
 }
@@ -1247,29 +1285,30 @@ body {
   margin-top: 7px;
 }
 
+/* 색 의미 규칙: 초록 = 할인(아낀 돈), 네이비 = 프리미엄(중립·신중) */
 .market-category-premium .market-category-dot {
-  background: var(--primary);
+  background: var(--text-strong-soft);
 }
 
 .market-category-discount .market-category-dot {
-  background: var(--text-strong-soft);
+  background: var(--primary);
 }
 
 .market-category-header h2 {
   margin: 0 0 4px;
   font-family: var(--font-serif);
-  font-size: 17px;
+  font-size: var(--type-subheading);
   font-weight: 500;
   color: var(--color-text);
 }
 
 .market-category-premium .market-category-header h2 strong {
-  color: var(--primary);
+  color: var(--text-strong-soft);
   font-weight: 600;
 }
 
 .market-category-discount .market-category-header h2 strong {
-  color: var(--text-strong-soft);
+  color: var(--primary-strong);
   font-weight: 600;
 }
 
@@ -1288,7 +1327,7 @@ body {
 
 .market-category-list li {
   border-bottom: 1px solid var(--color-border);
-  font-size: 13.5px;
+  font-size: var(--type-label);
 }
 
 .market-category-list li:last-child {
@@ -1331,21 +1370,21 @@ body {
 
 .market-category-values strong {
   font-family: var(--font-serif);
-  font-size: 15px;
+  font-size: var(--type-body);
   font-weight: 500;
 }
 
 .market-category-premium .market-category-values strong {
-  color: var(--primary);
+  color: var(--text-strong-soft);
 }
 
 .market-category-discount .market-category-values strong {
-  color: var(--text-strong-soft);
+  color: var(--primary-strong);
 }
 
 .market-category-values em {
   font-style: normal;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--color-text-muted);
 }
 
@@ -1375,7 +1414,7 @@ body {
 }
 
 .chart-note-list li {
-  font-size: 12.5px;
+  font-size: var(--type-micro);
   line-height: 1.55;
   color: var(--color-text);
 }
@@ -1423,6 +1462,9 @@ body {
 /* 실거래 표 (PriceReport — 표 A 평형별 요약 / 표 B 실거래 내역) */
 .trade-block {
   margin-top: var(--space-4, 16px);
+  /* 표는 min-width 620px 를 갖는다 — 좁은 화면에서 페이지를 밀어내지 않도록
+   * 표 자신이 스크롤한다 (.report-table-wrap 과 같은 처리). */
+  overflow-x: auto;
 }
 .trade-block h4 {
   margin: 0 0 var(--space-2, 8px);
@@ -1440,7 +1482,7 @@ body {
 }
 .trade-scroll {
   max-height: 320px;
-  overflow-y: auto;
+  overflow: auto;
   border: 1px solid var(--color-border, #e2e8f0);
   border-radius: var(--radius-sm, 10px);
 }
@@ -1478,7 +1520,7 @@ body {
   margin-left: 6px;
   padding: 1px 7px;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 700;
   background: var(--color-success, #0c8a5a);
   color: #fff;
@@ -1505,7 +1547,7 @@ body {
 .report-table th {
   text-align: left;
   padding: var(--space-2) var(--space-2);
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
@@ -1531,7 +1573,7 @@ body {
 .report-table td strong {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 15px;
+  font-size: var(--type-body);
   letter-spacing: var(--ls-tight);
 }
 
@@ -1677,7 +1719,7 @@ body {
 .verification-pending h1 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 28px;
+  font-size: var(--type-heading-lg);
   letter-spacing: var(--ls-tight);
   color: var(--color-text);
   margin: 0;
@@ -1788,7 +1830,7 @@ body {
 .password-reset-flow h1 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 28px;
+  font-size: var(--type-heading-lg);
   letter-spacing: var(--ls-tight);
   color: var(--color-text);
   margin: 0 0 var(--space-1);
@@ -1862,7 +1904,7 @@ body {
 
 .report-header-left h2 {
   font-family: var(--font-serif);
-  font-size: 28px;
+  font-size: var(--type-heading-lg);
   font-weight: 500;
   margin: 0 0 var(--space-1);
 }
@@ -1903,7 +1945,7 @@ body {
 
 .report-grade-pill span,
 .report-pill span {
-  font-size: 10px;
+  font-size: var(--type-micro);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--color-text-muted);
@@ -1935,7 +1977,7 @@ body {
 .report-section h3 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 20px;
+  font-size: var(--type-subheading);
   margin: 0 0 var(--space-2);
   color: var(--color-text);
 }
@@ -2030,7 +2072,7 @@ body {
 }
 
 .report-price-grid span {
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-muted);
   letter-spacing: 0.02em;
 }
@@ -2055,10 +2097,10 @@ body {
 }
 
 .report-claim-check {
-  border-left: 3px solid var(--color-accent, #1f2937);
+  /* 강조는 3px 컬러 띠가 아니라 여백과 배경으로 — 왼쪽만 각지던 모서리도 사방을 맞춘다 */
   background: var(--color-bg-soft);
-  padding: var(--space-2) var(--space-3);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: var(--s-5) var(--s-6);
+  border-radius: var(--radius-sm);
 }
 
 .report-photo-note {
@@ -2095,14 +2137,14 @@ body {
 }
 
 .report-target-buyer span {
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-muted);
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .report-target-buyer strong {
-  font-size: 15px;
+  font-size: var(--type-body);
   font-weight: 600;
 }
 
@@ -2123,7 +2165,7 @@ body {
 }
 
 .report-footer small {
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-subtle);
 }
 
@@ -2251,12 +2293,14 @@ body {
 .admin-revoke-button {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
+  justify-content: center;
+  gap: var(--s-1);
+  min-height: var(--control-h-compact);
+  padding: var(--gap-inline) var(--s-3);
   border-radius: 4px;
   border: 1px solid;
   background: var(--color-bg);
-  font-size: 12px;
+  font-size: var(--type-micro);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -2292,7 +2336,7 @@ body {
 }
 
 .admin-role-select {
-  padding: 6px 10px;
+  padding: 6px 8px;
   border-radius: 4px;
   border: 1px solid var(--color-border);
   background: var(--color-bg);
@@ -2321,7 +2365,7 @@ body {
 }
 
 .admin-no-permission {
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-subtle);
   font-style: italic;
 }
@@ -2334,7 +2378,7 @@ body {
   border-radius: 4px;
   background: #fdecea;
   color: #c9453b;
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
 }
 
@@ -2344,7 +2388,7 @@ body {
   border-radius: 4px;
   background: #ecf6f0;
   color: #157a4a;
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
 }
 
@@ -2355,7 +2399,7 @@ body {
   border-radius: 4px;
   background: var(--text-strong-soft);
   color: var(--color-bg);
-  font-size: 10px;
+  font-size: var(--type-micro);
   font-weight: 700;
 }
 
@@ -2507,7 +2551,7 @@ tr.is-suspended {
 
 .admin-modal-header h2 {
   font-family: var(--font-serif);
-  font-size: 20px;
+  font-size: var(--type-subheading);
   font-weight: 500;
   margin: 0;
 }
@@ -2537,7 +2581,7 @@ tr.is-suspended {
 
 .admin-modal-table th,
 .admin-modal-table td {
-  padding: 10px 0;
+  padding: 8px 0;
   text-align: left;
   font-size: 14px;
   vertical-align: top;
@@ -2642,7 +2686,7 @@ tr.is-suspended {
 
 .agent-badge {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -2714,7 +2758,7 @@ tr.is-suspended {
 .agent-feature h3 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 20px;
+  font-size: var(--type-subheading);
   margin: 0 0 var(--space-1);
 }
 
@@ -2778,13 +2822,13 @@ tr.is-suspended {
 .application-status-row {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: var(--space-2);
   font-size: 12px;
 }
 
 .application-status-badge {
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 4px;
   font-weight: 600;
 }
@@ -2818,12 +2862,12 @@ tr.is-suspended {
 .agent-signup-done h1 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 28px;
+  font-size: var(--type-heading-lg);
   margin: 0 0 var(--space-2);
 }
 
 .agent-signup-done-lead {
-  font-size: 15px;
+  font-size: var(--type-body);
   color: var(--color-text-muted);
   line-height: 1.6;
   max-width: 480px;
@@ -2856,7 +2900,7 @@ tr.is-suspended {
 .agent-signup-done-actions .outline-dark-button {
   min-width: 180px;
   height: 44px;
-  padding: 0 22px;
+  padding: 0 20px;
   font-size: 14px;
   display: inline-flex;
   align-items: center;
@@ -2894,7 +2938,7 @@ tr.is-suspended {
 }
 
 .agent-login-form input {
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-bg);
@@ -2954,7 +2998,7 @@ tr.is-suspended {
 .agent-landing-cta h2 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 28px;
+  font-size: var(--type-heading-lg);
   margin: 0 0 var(--space-3);
 }
 
@@ -2992,7 +3036,7 @@ tr.is-suspended {
 .agent-dashboard-header h1 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 32px;
+  font-size: var(--type-display);
   margin: var(--space-1) 0 var(--space-1);
 }
 
@@ -3032,7 +3076,7 @@ tr.is-suspended {
 .agent-stat-card strong {
   display: block;
   font-family: var(--font-serif);
-  font-size: 24px;
+  font-size: var(--type-data-lg);
   font-weight: 500;
   color: var(--color-text);
 }
@@ -3094,7 +3138,7 @@ tr.is-suspended {
 .agent-action-tile h3 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 20px;
+  font-size: var(--type-subheading);
   margin: 0 0 6px;
 }
 
@@ -3125,7 +3169,7 @@ tr.is-suspended {
 .agent-register-hero h1 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 32px;
+  font-size: var(--type-display);
   margin: var(--space-1) 0;
 }
 
@@ -3161,7 +3205,7 @@ tr.is-suspended {
   font-weight: 400;
   color: var(--color-text-muted);
   margin-left: 6px;
-  font-size: 11px;
+  font-size: var(--type-micro);
 }
 
 .register-section label {
@@ -3179,7 +3223,7 @@ tr.is-suspended {
 .register-section input,
 .register-section select,
 .register-section textarea {
-  padding: 10px 12px;
+  padding: 8px 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   background: var(--color-bg);
@@ -3238,7 +3282,8 @@ tr.is-suspended {
   border-radius: 4px;
 }
 
-.complex-suggestions li:hover {
+.complex-suggestions li:hover,
+.complex-suggestions li.is-active {
   background: var(--color-bg-soft);
 }
 
@@ -3280,7 +3325,7 @@ tr.is-suspended {
 }
 
 .ref-tag {
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 999px;
@@ -3324,7 +3369,7 @@ tr.is-suspended {
 
 /* 내 등록 매물 — 상태 배지 + 행 액션 */
 .status-badge {
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   padding: 3px 8px;
   border-radius: 999px;
@@ -3409,9 +3454,9 @@ tr.is-suspended {
   position: absolute;
   left: 6px;
   top: 6px;
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.72);
   color: #fff;
@@ -3595,7 +3640,7 @@ tr.is-suspended {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-weight: 600;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
@@ -3651,21 +3696,22 @@ tr.is-suspended {
 .ai-market-insight {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: var(--space-3);
+  gap: var(--gap-tight);
+  /* 강조는 3px 컬러 띠가 아니라 여백으로 — 안쪽을 넉넉히 들여 블록을 구분한다.
+   * 블록의 정체는 이미 안쪽 라벨(.ai-market-insight-source)이 말하고 있다. */
+  padding: var(--s-6) var(--s-8);
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-left: 3px solid var(--primary);
 }
 
 .ai-market-insight-source {
   display: inline-block;
   width: fit-content;
-  font-size: 10.5px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
-  color: var(--primary);
+  color: var(--primary-strong);
 }
 
 .ai-market-insight h3 {
@@ -3693,7 +3739,7 @@ tr.is-suspended {
 }
 
 .ai-market-insight-numbers span {
-  font-size: 11.5px;
+  font-size: var(--type-micro);
   padding: 3px 9px;
   background: var(--surface);
   border: 1px solid var(--color-border);
@@ -3706,7 +3752,7 @@ tr.is-suspended {
   margin: 0;
   padding-top: var(--space-3);
   border-top: 1px dashed var(--color-border);
-  font-size: 11.5px;
+  font-size: var(--type-micro);
   line-height: 1.55;
   color: var(--color-text-muted);
 }
@@ -3753,7 +3799,7 @@ tr.is-suspended {
   align-items: center;
   gap: 4px;
   font-family: var(--font-sans);
-  font-size: 10px;
+  font-size: var(--type-micro);
   font-weight: 600;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
@@ -3806,7 +3852,7 @@ tr.is-suspended {
 
 .ai-teaser-eyebrow {
   font-family: var(--font-sans);
-  font-size: 10px;
+  font-size: var(--type-micro);
   font-weight: 600;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
@@ -3821,7 +3867,7 @@ tr.is-suspended {
 
 .ai-teaser-chips span {
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: rgba(255, 255, 255, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.15);
   padding: 3px 8px;
@@ -3845,7 +3891,7 @@ tr.is-suspended {
   padding-top: var(--space-2);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: rgba(255, 255, 255, 0.45);
   letter-spacing: 0.02em;
 }
@@ -3870,7 +3916,7 @@ tr.is-suspended {
 .ai-teaser-meta strong {
   display: block;
   font-family: var(--font-sans);
-  font-size: 10px;
+  font-size: var(--type-micro);
   font-weight: 600;
   letter-spacing: var(--ls-wide);
   text-transform: uppercase;
@@ -3902,7 +3948,7 @@ tr.is-suspended {
 
 .recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
   color: var(--color-text-muted) !important;
-  font-size: 11px;
+  font-size: var(--type-micro);
   text-transform: uppercase;
   letter-spacing: var(--ls-wide);
 }
@@ -3965,8 +4011,8 @@ tr.is-suspended {
 }
 
 .map-view-toggle button.active {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--text-strong-soft);
+  border-color: var(--text-strong-soft);
   color: #ffffff;
 }
 
@@ -4077,13 +4123,13 @@ tr.is-suspended {
 .map-info-window strong {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 15px;
+  font-size: var(--type-body);
   color: var(--color-text);
   letter-spacing: var(--ls-tight);
 }
 
 .map-info-window span {
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-muted);
 }
 
@@ -4097,7 +4143,7 @@ tr.is-suspended {
 }
 
 .map-info-window em {
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-style: normal;
   color: var(--color-text-muted);
   letter-spacing: 0.02em;
@@ -4152,7 +4198,7 @@ tr.is-suspended {
   border-radius: 999px;
   background: var(--color-bg);
   color: var(--color-text);
-  font-size: 12.5px;
+  font-size: var(--type-micro);
   font-weight: 600;
   font-family: inherit;
   border: 1px solid var(--color-border-strong, #d9dee7);
@@ -4220,7 +4266,7 @@ tr.is-suspended {
 }
 
 .map-filter-room-label {
-  font-size: 12.5px;
+  font-size: var(--type-micro);
   font-weight: 600;
   color: var(--color-text);
   letter-spacing: 0.02em;
@@ -4285,7 +4331,7 @@ tr.is-suspended {
   padding: 0;
   background: transparent;
   border: 0;
-  font-size: 11.5px;
+  font-size: var(--type-micro);
   font-weight: 500;
   color: var(--color-text);
   margin-bottom: 4px;
@@ -4391,7 +4437,7 @@ tr.is-suspended {
 .dual-range-label-tick {
   position: absolute;
   top: 0;
-  font-size: 11px;
+  font-size: var(--type-micro);
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -4454,7 +4500,7 @@ tr.is-suspended {
   border: 1px solid var(--color-border-strong, #d9dee7);
   background: var(--color-bg);
   color: var(--color-text);
-  font-size: 12.5px;
+  font-size: var(--type-micro);
   font-weight: 500;
   font-family: inherit;
   cursor: pointer;
@@ -4471,7 +4517,7 @@ tr.is-suspended {
   border: 0;
   background: var(--text-strong-soft);
   color: var(--color-bg);
-  font-size: 12.5px;
+  font-size: var(--type-micro);
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
@@ -4519,13 +4565,13 @@ tr.is-suspended {
 .viewer-report-placeholder h3 {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 28px;
+  font-size: var(--type-heading-lg);
   color: var(--color-text);
   margin: 0;
 }
 
 .viewer-report-placeholder > p {
-  font-size: 15px;
+  font-size: var(--type-body);
   line-height: var(--lh-normal);
   color: var(--color-text-muted);
   max-width: 520px;
@@ -4585,3 +4631,352 @@ tr.is-suspended {
   color: #ffffff !important;
 }
 
+
+/* =====================================================================
+ * 매물 상세 — 등록 직후 확인 배너 (?just_registered=1)
+ * 중개사의 첫 성공 순간: 등록 완료 + AI 리포트 자동 생성 안내.
+ * URL 파라미터 기반이라 닫거나 재방문하면 다시 뜨지 않는다.
+ * ===================================================================== */
+.just-registered-banner {
+  background: var(--primary-subtle);
+  border-bottom: 1px solid var(--save-100);
+}
+
+.just-registered-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.just-registered-inner > svg {
+  flex-shrink: 0;
+  color: var(--save-700);
+}
+
+.just-registered-copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.just-registered-copy strong {
+  font-size: var(--type-body-sm);
+  font-weight: 700;
+  color: var(--save-800);
+}
+
+.just-registered-copy span {
+  font-size: 13px;
+  color: var(--save-700);
+}
+
+.just-registered-link {
+  flex-shrink: 0;
+  font-size: var(--type-label);
+  font-weight: 700;
+  color: var(--save-800);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.just-registered-link:hover {
+  color: var(--save-700);
+}
+
+.just-registered-dismiss {
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--save-700);
+  cursor: pointer;
+}
+
+.just-registered-dismiss:hover {
+  background: var(--save-100);
+}
+
+@media (max-width: 720px) {
+  .just-registered-inner {
+    flex-wrap: wrap;
+  }
+
+  .just-registered-copy {
+    flex-basis: calc(100% - 80px);
+  }
+
+  .just-registered-link {
+    margin-left: 32px;
+  }
+}
+
+/* =====================================================================
+ * 중개사 대시보드 — 첫 사용(등록 0건) 안내 패널
+ * ===================================================================== */
+.agent-first-run {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  padding: var(--space-5) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.agent-first-run h2 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 26px;
+  margin: 0 0 var(--space-1);
+  color: var(--color-text);
+}
+
+.agent-first-run-lead {
+  margin: 0 0 var(--space-4);
+  font-size: var(--type-body-sm);
+  color: var(--color-text-muted);
+  max-width: 56ch;
+}
+
+.agent-first-run-steps {
+  list-style: none;
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+}
+
+.agent-first-run-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--text-strong-soft);
+  color: var(--color-bg);
+  margin-bottom: var(--space-2);
+}
+
+.agent-first-run-step h3 {
+  margin: 0 0 6px;
+  font-size: var(--type-body);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.agent-first-run-step p {
+  margin: 0;
+  font-size: var(--type-label);
+  line-height: 1.6;
+  color: var(--color-text-muted);
+}
+
+.agent-first-run-cta {
+  display: inline-flex;
+}
+
+@media (max-width: 880px) {
+  .agent-first-run {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .agent-first-run-steps {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+/* =====================================================================
+ * 중개사 — 내 매물 빈 상태
+ * ===================================================================== */
+.agent-empty-state {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  padding: var(--space-6) var(--space-3);
+  text-align: center;
+}
+
+.agent-empty-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary-subtle);
+  color: var(--save-700);
+  margin-bottom: var(--space-2);
+}
+
+.agent-empty-state h3 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--type-subheading);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.agent-empty-state p {
+  margin: 0 auto var(--space-3);
+  max-width: 46ch;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text-muted);
+}
+
+/* 지도 — 빈 결과에서 바로 회복 */
+.map-empty-reset {
+  margin-top: 12px;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+/* 폼 필드 보조 설명 — 반복되던 인라인 스타일을 클래스로 통일 */
+.field-hint {
+  display: block;
+  font-size: var(--type-micro);
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* 리포트 테이블 빈 상태 (로딩·무데이터·실패 공용) */
+.report-table-empty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: var(--space-4) var(--space-2);
+}
+
+/* 모바일 헤더 — global.css의 1120px 숨김 규칙이 이 파일의 무조건 display:flex에
+ * 캐스케이드로 눌려 데스크톱 nav와 햄버거가 동시에 뜨던 회귀의 복원 */
+@media (max-width: 1120px) {
+  .desktop-nav,
+  .header-actions {
+    display: none;
+  }
+}
+
+/* ------------------- 카드 할인율 헤드라인 (핵심 숫자 승격) ------------------- */
+/* 할인율은 이 제품의 존재 이유 — 카드에서 가격보다 먼저, 가장 크게 읽힌다 */
+.discount-headline {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-inline);
+  margin: 0;
+  color: var(--primary-strong);
+}
+
+.discount-headline svg {
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.discount-headline strong {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: var(--ls-tight);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.discount-headline span {
+  font-size: var(--type-micro);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* 가격 숫자는 표처럼 정렬 — tabular */
+.price-stack strong,
+.property-metrics strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* 중개사 연락처 미등록 매물 — 죽은 버튼 대신 정직한 안내 */
+.contact-empty-note {
+  margin: 22px 0 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface-warm);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* 표본이 적은 통계 행에 붙는 주의 표기 — 제품의 불확실성 라벨링 규칙과 동일한 어휘 */
+.sample-caution {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  color: var(--warning-strong, #8a6116);
+  white-space: nowrap;
+}
+
+/* 카드의 산출 근거 한 줄 — 할인율 주장 바로 아래에 표본과 기간을 붙인다 */
+.price-evidence {
+  margin: calc(var(--gap-inline) - var(--gap-tight)) 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 설명문 금액과 매도가가 어긋나는 매물 주의 표기 */
+.price-conflict-chip {
+  margin: calc(var(--gap-group) - var(--gap-tight)) 0 0;
+  padding: 5px 9px;
+  border: 1px solid #e8dcc0;
+  border-radius: var(--radius-md);
+  background: #fdf8ec;
+  color: #8a6116;
+  font-size: var(--type-micro);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.price-conflict-note {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin: 16px 0 0;
+  padding: 13px 15px;
+  border: 1px solid #e8dcc0;
+  border-radius: var(--radius-control);
+  background: #fdf8ec;
+  color: #7a5613;
+  font-size: var(--type-label);
+  line-height: 1.6;
+}
+
+.price-conflict-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* 그리드·플렉스 아이템의 기본 min-width:auto 는 안쪽 콘텐츠(표·차트)가
+ * 컨테이너를 밀어내게 만든다. 상세 페이지 섹션은 줄어들 수 있어야 한다. */
+.compass-detail .detail-section,
+.compass-detail .detail-content-stack > * {
+  min-width: 0;
+}
+
+/* 헤드라인 카드는 두 묶음으로 읽힌다 — [라벨 + 수치] / [해설 + 출처].
+ * 균일한 6px 반복 대신 해설 앞에서만 벌려 마디를 만든다. */
+.headline-card > .headline-card-sub {
+  margin-top: calc(var(--gap-group) - var(--gap-inline));
+}
+
+/* 모션 최소화 설정에서는 밑줄이 즉시 나타난다 */
+@media (prefers-reduced-motion: reduce) {
+  .nav-link::after,
+  .login-link::after,
+  .agent-signup-button::after,
+  .text-arrow-link::after {
+    transition: none;
+  }
+}

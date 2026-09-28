@@ -84,7 +84,7 @@ function makeTabConfig() {
       formatValue: (v) => `${v?.toLocaleString() ?? '?'}건`,
       colorFor: () => TEXT_STRONG_SOFT,
       topNote: (top) =>
-        `${formatRegionName(top.region)}이 거래 최다 — ${top.transactionVolume?.toLocaleString()}건`,
+        `거래 최다: ${formatRegionName(top.region)} — ${top.transactionVolume?.toLocaleString()}건`,
     },
     urgent: {
       label: '급매비율',
@@ -201,7 +201,7 @@ function RegionRadar({ rows }) {
             width={108}
             tickFormatter={formatRegionName}
             interval={0}
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 12 }}
           />
           <Tooltip
             cursor={{ fill: 'rgba(15,15,15,0.04)' }}

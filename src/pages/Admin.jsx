@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, FileText, Lock, ShieldCheck, Users, X, XCircle } from 'lucide-react';
+import { Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, FileText, Lock, Users, X, XCircle } from 'lucide-react';
+import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -43,11 +44,22 @@ function AgentApplicationModal({ application, onClose, onApprove, onReject, isUp
   const [docUrls, setDocUrls] = useState({});
 
   useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
     const docs = application.document_paths ?? [];
     docs.forEach((doc) => {
       getApplicationDocumentUrl(doc.path).then((url) => {
         setDocUrls((prev) => ({ ...prev, [doc.path]: url }));
-      }).catch(() => {});
+      }).catch(() => {
+        // null = 실패 표시 (undefined 는 로딩 중)
+        setDocUrls((prev) => ({ ...prev, [doc.path]: null }));
+      });
     });
   }, [application]);
 
@@ -65,9 +77,15 @@ function AgentApplicationModal({ application, onClose, onApprove, onReject, isUp
 
   return (
     <div className="admin-modal-backdrop" onClick={onClose}>
-      <div className="admin-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+      <div
+        className="admin-modal"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="agent-application-modal-title"
+      >
         <header className="admin-modal-header">
-          <h2>중개사 가입 신청 상세</h2>
+          <h2 id="agent-application-modal-title">중개사 가입 신청 상세</h2>
           <button type="button" className="admin-modal-close" onClick={onClose} aria-label="닫기">
             <X size={20} />
           </button>
@@ -91,12 +109,14 @@ function AgentApplicationModal({ application, onClose, onApprove, onReject, isUp
               <ul>
                 {application.document_paths.map((doc) => (
                   <li key={doc.path}>
-                    <strong>{doc.label === 'business-registration' ? '사업자등록증' : doc.label === 'broker-license' ? '공인중개사 자격증' : doc.label}</strong>
+                    <strong>{doc.label === 'business-registration' ? '사업자등록증' : doc.label === 'broker-license' ? '중개등록증' : doc.label}</strong>
                     {' — '}
                     {docUrls[doc.path] ? (
                       <a href={docUrls[doc.path]} target="_blank" rel="noopener noreferrer">
                         {doc.originalName} 보기
                       </a>
+                    ) : docUrls[doc.path] === null ? (
+                      <span>문서를 불러오지 못했습니다.</span>
                     ) : (
                       <span>로딩 중...</span>
                     )}
@@ -144,47 +164,8 @@ function AgentApplicationModal({ application, onClose, onApprove, onReject, isUp
   );
 }
 
-// 중앙 확인 모달 — 네이티브 confirm() 대체
-function ConfirmDialog({ title, message, confirmLabel = '확인', danger = false, onConfirm, onClose }) {
-  const [busy, setBusy] = useState(false);
-
-  const run = async () => {
-    setBusy(true);
-    try {
-      await onConfirm();
-    } finally {
-      onClose();
-    }
-  };
-
-  return (
-    <div className="confirm-backdrop" onClick={busy ? undefined : onClose}>
-      <div className="confirm-box" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <div className={danger ? 'confirm-icon danger' : 'confirm-icon'} aria-hidden="true">
-          {danger ? <AlertTriangle size={22} /> : <CheckCircle2 size={22} />}
-        </div>
-        <h3 className="confirm-title">{title}</h3>
-        {message && <p className="confirm-message">{message}</p>}
-        <div className="confirm-actions">
-          <button type="button" className="confirm-cancel" onClick={onClose} disabled={busy}>
-            취소
-          </button>
-          <button
-            type="button"
-            className={danger ? 'confirm-ok danger' : 'confirm-ok'}
-            onClick={run}
-            disabled={busy}
-          >
-            {busy ? '처리 중...' : confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function Admin() {
-  const { properties, refresh: refreshProperties } = useProperties();
+  const { properties, isLoading: propertiesLoading, refresh: refreshProperties } = useProperties();
   const { profile: currentActor } = useAuth();
   const [updating, setUpdating] = useState(null);
   const [error, setError] = useState('');
@@ -223,27 +204,35 @@ function Admin() {
       confirmLabel: '승인',
       onConfirm: async () => {
         setUpdating(app.id);
+        setError('');
         try {
           const result = await approveAgentApplication(app);
           alert(result.message);
           setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, status: 'approved' } : a)));
-          // 프로필 목록도 갱신
-          const fresh = await fetchAllProfiles();
-          setProfiles(fresh);
           setActiveApp(null);
         } catch (err) {
           setError(`승인 실패: ${err.message}`);
+          return;
         } finally {
           setUpdating(null);
+        }
+        // 승인은 성공한 상태 — 프로필 목록 갱신 실패를 승인 실패로 오인시키지 않는다
+        try {
+          const fresh = await fetchAllProfiles();
+          setProfiles(fresh);
+        } catch (err) {
+          setError(`승인은 완료되었지만 사용자 목록 갱신에 실패했습니다: ${err.message}`);
         }
       },
     });
   };
 
   const handleRejectApplication = async (app) => {
-    const note = prompt('거부 사유 (선택 — 신청자에게 안내):') ?? null;
+    const note = prompt('거부 사유 (선택 — 신청자에게 안내):');
+    if (note === null) return; // prompt 취소 = 거부 작업 자체를 취소
     if (!confirm(`${app.office_name} 신청을 거부하시겠습니까?`)) return;
     setUpdating(app.id);
+    setError('');
     try {
       await rejectAgentApplication(app.id, note);
       setApplications((prev) => prev.map((a) => (a.id === app.id ? { ...a, status: 'rejected', reviewer_note: note } : a)));
@@ -274,6 +263,7 @@ function Admin() {
       confirmLabel: '변경',
       onConfirm: async () => {
         setUpdating(target.id);
+        setError('');
         try {
           await setUserRole(target.id, newRole);
           setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, role: newRole } : p)));
@@ -299,6 +289,7 @@ function Admin() {
       danger: !target.suspended,
       onConfirm: async () => {
         setUpdating(target.id);
+        setError('');
         try {
           await setUserSuspended(target.id, !target.suspended);
           setProfiles((prev) => prev.map((p) => (p.id === target.id ? { ...p, suspended: !target.suspended } : p)));
@@ -371,6 +362,7 @@ function Admin() {
       <section className="page-hero compact-hero">
         <div className="container">
           <SectionTitle
+            as="h1"
             eyebrow="관리자"
             title="급매 운영 대시보드"
             description="매물 승인, 신고 처리, 검증 로그를 한 화면에서 관리합니다."
@@ -491,7 +483,9 @@ function Admin() {
             <h2>매물 승인 대기 ({pendingProperties.length})</h2>
             <span>중개사가 등록한 새 매물 — 승인하면 일반 사이트에 "검증 완료" 라벨로 노출됨</span>
           </div>
-          {pendingProperties.length === 0 ? (
+          {propertiesLoading ? (
+            <p className="admin-empty">매물 목록을 불러오는 중...</p>
+          ) : pendingProperties.length === 0 ? (
             <p className="admin-empty">승인 대기 중인 매물이 없습니다.</p>
           ) : (
             <div className="table-wrap admin-scroll-table">
@@ -510,7 +504,7 @@ function Admin() {
                   {pendingProperties.map((property) => (
                     <tr key={property.id}>
                       <td>
-                        <Link to={`/properties/${property.id}`} className="admin-link" target="_blank">
+                        <Link to={`/properties/${property.id}`} className="admin-link" target="_blank" rel="noreferrer">
                           {property.title}
                           <ExternalLink size={12} />
                         </Link>
@@ -554,6 +548,11 @@ function Admin() {
             <h2>검증 완료 매물 ({verifiedCount}건)</h2>
             <span>현재 사이트에 노출 중인 매물</span>
           </div>
+          {propertiesLoading ? (
+            <p className="admin-empty">매물 목록을 불러오는 중...</p>
+          ) : verifiedProperties.length === 0 ? (
+            <p className="admin-empty">검증 완료된 매물이 아직 없습니다. 승인 대기 목록에서 승인하면 여기에 표시됩니다.</p>
+          ) : (
           <div className="table-wrap admin-scroll-table">
             <table>
               <thead>
@@ -570,7 +569,7 @@ function Admin() {
                 {verifiedProperties.map((property) => (
                   <tr key={property.id}>
                     <td>
-                      <Link to={`/properties/${property.id}`} className="admin-link" target="_blank">
+                      <Link to={`/properties/${property.id}`} className="admin-link" target="_blank" rel="noreferrer">
                         {property.title}
                         <ExternalLink size={12} />
                       </Link>
@@ -612,6 +611,7 @@ function Admin() {
               </tbody>
             </table>
           </div>
+          )}
         </div>
       </section>
 

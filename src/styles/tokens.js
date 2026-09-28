@@ -39,7 +39,7 @@ export const BORDER_STRONG = '#1a2233';
 export const TEXT_STRONG = '#1a2233';
 export const TEXT_STRONG_SOFT = '#1f2a40'; // fill on L1 — 밝은 면 위 네이비 채움
 export const TEXT_SECONDARY = '#4f5d75';
-export const TEXT_MUTED = '#8a93a6';
+export const TEXT_MUTED = '#667085';
 
 // === Status (상승=빨강, 하락=파랑) ===
 export const PRICE_UP = '#c9453b';

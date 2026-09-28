@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useEffect, useMemo } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard.jsx';
 import PropertyFilter from '../components/PropertyFilter.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import { useProperties } from '../hooks/useProperties.js';
+import { getPaginationItems } from '../utils/pagination.js';
+import { getSavedIds } from '../utils/savedProperties.js';
 
 // 매물 데이터는 useProperties 훅을 통해 로컬 번들(public/data) + 등록 매물(localStorage)에서 가져옴.
 
@@ -34,28 +36,64 @@ function matchesAreaRange(area, range) {
 }
 
 function Properties() {
-  const { properties: urgentProperties } = useProperties({ urgentOnly: true });
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const keyword = searchParams.get('keyword')?.toLowerCase() ?? '';
-  const urlRegion = searchParams.get('region');
+  const { properties: urgentProperties, isLoading } = useProperties({ urgentOnly: true });
+  // 필터·정렬·페이지·검색어를 전부 URL에 둔다 — 뒤로가기로 되돌릴 수 있고 링크로 공유된다.
+  // 기본값은 URL에 쓰지 않아 주소가 조건을 바꾼 만큼만 길어진다.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const keyword = (searchParams.get('keyword') ?? '').toLowerCase();
 
-  // URL ?region= 값이 있으면 초기 필터에 반영 (차트에서 navigate 진입 시)
-  const [filters, setFilters] = useState(() => ({
-    ...initialFilters,
-    region: urlRegion ?? initialFilters.region,
-  }));
-  const [sort, setSort] = useState('discount-desc');
-  const [currentPage, setCurrentPage] = useState(1);
+  const filters = useMemo(() => ({
+    region: searchParams.get('region') ?? initialFilters.region,
+    priceRange: searchParams.get('price') ?? initialFilters.priceRange,
+    areaRange: searchParams.get('area') ?? initialFilters.areaRange,
+    discountRate: searchParams.get('discount') ?? initialFilters.discountRate,
+    verifiedOnly: searchParams.get('verified') === '1',
+  }), [searchParams]);
+  const sort = searchParams.get('sort') ?? 'discount-desc';
+  const currentPage = Math.max(1, Number(searchParams.get('page')) || 1);
+  // 저장한 매물 보기 — 헤더에서 /properties?saved=1 로 진입
+  const savedOnly = searchParams.get('saved') === '1';
+  const savedIds = useMemo(() => (savedOnly ? getSavedIds() : []), [savedOnly]);
 
-  // URL의 region 이 바뀌면 filter 도 갱신 (페이지 안에서 차트→매물 navigate 추적)
-  useEffect(() => {
-    if (urlRegion) {
-      setFilters((prev) =>
-        prev.region === urlRegion ? prev : { ...prev, region: urlRegion },
-      );
-    }
-  }, [urlRegion]);
+  // 값이 기본값이면 파라미터를 지워 URL을 짧게 유지
+  const writeParams = (patch, { keepPage = false } = {}) => {
+    const next = new URLSearchParams(searchParams);
+    Object.entries(patch).forEach(([key, value]) => {
+      if (value === null || value === undefined || value === '') next.delete(key);
+      else next.set(key, String(value));
+    });
+    if (!keepPage) next.delete('page');
+    setSearchParams(next);
+  };
+
+  const handleFilterChange = (next) => {
+    writeParams({
+      region: next.region === initialFilters.region ? null : next.region,
+      price: next.priceRange === initialFilters.priceRange ? null : next.priceRange,
+      area: next.areaRange === initialFilters.areaRange ? null : next.areaRange,
+      discount: next.discountRate === initialFilters.discountRate ? null : next.discountRate,
+      verified: next.verifiedOnly ? '1' : null,
+    });
+  };
+
+  const handleSortChange = (next) => writeParams({ sort: next === 'discount-desc' ? null : next });
+  const setCurrentPage = (page) => writeParams({ page: page === 1 ? null : page }, { keepPage: true });
+  // 초기화해도 '저장한 매물' 보기 자체는 유지한다 (조건만 지운다)
+  const resetFilters = () => {
+    const next = new URLSearchParams();
+    if (searchParams.get('saved') === '1') next.set('saved', '1');
+    setSearchParams(next);
+  };
+
+  // 기본값과 다른 조건이 하나라도 걸려 있으면 초기화 버튼을 띄운다
+  const hasActiveFilters =
+    Boolean(keyword) ||
+    sort !== 'discount-desc' ||
+    filters.region !== initialFilters.region ||
+    filters.priceRange !== initialFilters.priceRange ||
+    filters.areaRange !== initialFilters.areaRange ||
+    filters.discountRate !== initialFilters.discountRate ||
+    filters.verifiedOnly;
 
   const filteredProperties = useMemo(() => {
     const result = urgentProperties
@@ -63,6 +101,7 @@ function Properties() {
         const keywordTarget = `${property.title} ${property.address} ${property.region}`.toLowerCase();
 
         return (
+          (!savedOnly || savedIds.includes(property.id)) &&
           (!keyword || keywordTarget.includes(keyword)) &&
           (filters.region === '전체' || property.region.includes(filters.region)) &&
           matchesPriceRange(property.price, filters.priceRange) &&
@@ -79,11 +118,7 @@ function Properties() {
       });
 
     return result;
-  }, [urgentProperties, filters, keyword, sort]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [filters, keyword, sort]);
+  }, [urgentProperties, filters, keyword, sort, savedOnly, savedIds]);
 
   // 페이지 이동 시 최상단으로 스크롤 — 사용자가 새 페이지를 한눈에 볼 수 있게
   useEffect(() => {
@@ -96,7 +131,7 @@ function Properties() {
     const startIndex = (activePage - 1) * ITEMS_PER_PAGE;
     return filteredProperties.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [activePage, filteredProperties]);
-  const pageNumbers = Array.from({ length: totalPages }, (_, index) => index + 1);
+  const pageItems = useMemo(() => getPaginationItems(activePage, totalPages), [activePage, totalPages]);
   const visibleStart = filteredProperties.length === 0 ? 0 : (activePage - 1) * ITEMS_PER_PAGE + 1;
   const visibleEnd = Math.min(activePage * ITEMS_PER_PAGE, filteredProperties.length);
 
@@ -105,9 +140,13 @@ function Properties() {
       <section className="page-hero compact-hero">
         <div className="container">
           <SectionTitle
-            eyebrow="급매 매물 목록"
-            title="검증된 급매 매물"
-            description="실거래가 대비 5% 이상 저렴한 매물만 선별했습니다."
+            as="h1"
+            title={savedOnly ? '저장한 매물' : '검증된 급매 매물'}
+            description={
+              savedOnly
+                ? '이 브라우저에 저장한 매물입니다. 상세 페이지의 저장 버튼으로 추가·해제할 수 있습니다.'
+                : '실거래가 대비 5% 이상 저렴한 매물만 선별했습니다.'
+            }
           />
         </div>
       </section>
@@ -115,9 +154,9 @@ function Properties() {
       <section className="container listing-layout">
         <PropertyFilter
           filters={filters}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           sort={sort}
-          onSortChange={setSort}
+          onSortChange={handleSortChange}
         />
 
         <div className="listing-content">
@@ -129,6 +168,11 @@ function Properties() {
               )}
               {keyword && <span> 검색어: {keyword}</span>}
             </p>
+            {hasActiveFilters && (
+              <button type="button" className="outline-button listing-reset" onClick={resetFilters}>
+                조건 초기화
+              </button>
+            )}
           </div>
 
           {filteredProperties.length > 0 ? (
@@ -144,30 +188,36 @@ function Properties() {
                   <button
                     type="button"
                     className="pagination-control"
-                    onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                    onClick={() => setCurrentPage(Math.max(1, activePage - 1))}
                     disabled={activePage === 1}
                   >
                     이전
                   </button>
 
                   <div className="pagination-pages">
-                    {pageNumbers.map((pageNumber) => (
-                      <button
-                        type="button"
-                        key={pageNumber}
-                        className={`pagination-page ${pageNumber === activePage ? 'active' : ''}`}
-                        onClick={() => setCurrentPage(pageNumber)}
-                        aria-current={pageNumber === activePage ? 'page' : undefined}
-                      >
-                        {pageNumber}
-                      </button>
-                    ))}
+                    {pageItems.map((item) =>
+                      typeof item === 'number' ? (
+                        <button
+                          type="button"
+                          key={item}
+                          className={`pagination-page ${item === activePage ? 'active' : ''}`}
+                          onClick={() => setCurrentPage(item)}
+                          aria-current={item === activePage ? 'page' : undefined}
+                        >
+                          {item}
+                        </button>
+                      ) : (
+                        <span key={item} className="pagination-ellipsis" aria-hidden="true">
+                          …
+                        </span>
+                      ),
+                    )}
                   </div>
 
                   <button
                     type="button"
                     className="pagination-control"
-                    onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                    onClick={() => setCurrentPage(Math.min(totalPages, activePage + 1))}
                     disabled={activePage === totalPages}
                   >
                     다음
@@ -175,14 +225,34 @@ function Properties() {
                 </nav>
               )}
             </>
+          ) : isLoading ? (
+            <div className="empty-state">
+              <h3>급매를 불러오는 중...</h3>
+            </div>
           ) : (
             <div className="empty-state">
               <h3>
-                {filters.region !== '전체'
-                  ? `${filters.region}에 등록된 급매가 없습니다.`
-                  : '조건에 맞는 급매가 없습니다.'}
+                {savedOnly
+                  ? '저장한 매물이 없습니다.'
+                  : filters.region !== '전체'
+                    ? `${filters.region}에 등록된 급매가 없습니다.`
+                    : '조건에 맞는 급매가 없습니다.'}
               </h3>
-              <p>지역 또는 할인율 조건을 조금 넓혀 다시 확인해보세요.</p>
+              <p>
+                {savedOnly
+                  ? '매물 상세 페이지의 저장 버튼을 누르면 여기에 모입니다. 저장 정보는 이 브라우저에만 보관됩니다.'
+                  : '기준 실거래가 대비 5% 이상 저렴한 매물만 노출하기 때문에, 조건이 좁으면 결과가 없을 수 있습니다. 지역 또는 할인율 조건을 넓혀 다시 확인해보세요.'}
+              </p>
+              <div className="empty-state-actions">
+                <button type="button" className="outline-button" onClick={resetFilters}>
+                  필터 초기화
+                </button>
+                {keyword && (
+                  <Link to="/properties" className="outline-button">
+                    검색어 지우기
+                  </Link>
+                )}
+              </div>
             </div>
           )}
         </div>

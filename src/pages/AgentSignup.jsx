@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, FileUp, MailCheck, Search, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { createAgentApplication } from '../services/agentApplications.js';
@@ -22,7 +22,6 @@ const initialForm = {
 };
 
 function AgentSignup() {
-  const navigate = useNavigate();
   const { isAuthenticated, profile, signUp, verifySignupOtp, resendVerification, isConfigured } = useAuth();
 
   // 이미 로그인 상태면 password 필드 숨김 + email 자동
@@ -42,6 +41,7 @@ function AgentSignup() {
   const [step, setStep] = useState('form');
   const [otpInput, setOtpInput] = useState('');
   const [isResending, setIsResending] = useState(false);
+  const [resendDone, setResendDone] = useState(false);
 
   const canSubmit = useMemo(() => {
     const accountOk = isLoggedInUser
@@ -107,6 +107,9 @@ function AgentSignup() {
     event.preventDefault();
     setError('');
     setIsSubmitting(true);
+    // 계정 생성 후 신청서 저장이 실패하면, 같은 이메일로 재가입이 막히는 막다른 길이 된다 —
+    // 실패 안내에서 "로그인 후 재신청" 경로를 정확히 알려주기 위해 단계를 추적.
+    let accountCreated = false;
     try {
       // 1) 로그인 안 된 경우만 — Auth signUp
       if (!isLoggedInUser) {
@@ -117,6 +120,7 @@ function AgentSignup() {
           phone: form.representativePhone,
           favoriteRegion: '',
         });
+        accountCreated = true;
         // 이메일 인증 필요한 경우만 OTP 단계로
         if (result.needsEmailConfirmation) {
           // 인증 전에 application 미리 insert (anon RLS 허용)
@@ -131,7 +135,11 @@ function AgentSignup() {
       setStep('done');
     } catch (submitError) {
       console.error('Failed to register agent application:', submitError);
-      setError(submitError.message || '신청서를 저장하지 못했습니다. 입력값과 첨부파일을 확인해주세요.');
+      setError(
+        accountCreated
+          ? '계정은 생성되었지만 신청서 저장에 실패했습니다. 로그인한 뒤 이 페이지에서 다시 신청해주세요.'
+          : submitError.message || '신청서를 저장하지 못했습니다. 입력값과 첨부파일을 확인해주세요.',
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -157,9 +165,11 @@ function AgentSignup() {
 
   const handleResend = async () => {
     setError('');
+    setResendDone(false);
     setIsResending(true);
     try {
       await resendVerification(form.email);
+      setResendDone(true);
     } catch (err) {
       setError(err.message || '재전송 실패');
     } finally {
@@ -187,7 +197,7 @@ function AgentSignup() {
             <li>승인 대기 중에는 일반 회원으로 사이트를 이용하실 수 있습니다</li>
           </ul>
           <div className="agent-signup-done-actions">
-            <Link to="/agent" className="primary-link-button">급매 PRO 으로 이동</Link>
+            <Link to="/agent" className="primary-link-button">급매 PRO로 이동</Link>
             <Link to="/" className="outline-dark-button">메인 사이트 둘러보기</Link>
           </div>
         </section>
@@ -219,12 +229,16 @@ function AgentSignup() {
               autoComplete="one-time-code"
               autoFocus
               className="otp-input"
+              aria-label="6자리 인증번호"
               placeholder="000000"
               value={otpInput}
               onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ''))}
             />
 
             {error && <p className="form-status error">{error}</p>}
+            {resendDone && !error && (
+              <p className="form-status">인증 메일을 다시 보냈습니다. 받은편지함을 확인해주세요.</p>
+            )}
 
             <div className="verification-pending-actions">
               <button
@@ -255,7 +269,7 @@ function AgentSignup() {
       <section className="agent-signup-card">
         <Link to="/agent" className="agent-back-link">
           <ArrowLeft size={16} />
-          급매 PRO 으로 돌아가기
+          급매 PRO로 돌아가기
         </Link>
 
         <div className="agent-signup-heading">
@@ -276,35 +290,44 @@ function AgentSignup() {
                 <p>가입에 사용할 이메일과 비밀번호를 입력해주세요.</p>
               </div>
               <div className="agent-section-controls">
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={updateForm}
-                  placeholder="이메일"
-                  autoComplete="email"
-                  required
-                />
-                <input
-                  type="password"
-                  name="password"
-                  value={form.password}
-                  onChange={updateForm}
-                  placeholder="비밀번호 (6자 이상)"
-                  autoComplete="new-password"
-                  minLength={6}
-                  required
-                />
-                <input
-                  type="password"
-                  name="passwordConfirm"
-                  value={form.passwordConfirm}
-                  onChange={updateForm}
-                  placeholder="비밀번호 확인"
-                  autoComplete="new-password"
-                  minLength={6}
-                  required
-                />
+                <label className="agent-field">
+                  <span>이메일</span>
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={updateForm}
+                    placeholder="name@example.com"
+                    autoComplete="email"
+                    required
+                  />
+                </label>
+                <label className="agent-field">
+                  <span>비밀번호</span>
+                  <input
+                    type="password"
+                    name="password"
+                    value={form.password}
+                    onChange={updateForm}
+                    placeholder="6자 이상"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                  />
+                </label>
+                <label className="agent-field">
+                  <span>비밀번호 확인</span>
+                  <input
+                    type="password"
+                    name="passwordConfirm"
+                    value={form.passwordConfirm}
+                    onChange={updateForm}
+                    placeholder="비밀번호 재입력"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                  />
+                </label>
               </div>
             </section>
           )}
@@ -316,7 +339,7 @@ function AgentSignup() {
                 <p>로그인된 계정으로 신청합니다.</p>
               </div>
               <div className="agent-section-controls">
-                <input value={form.email} disabled />
+                <input value={form.email} disabled aria-label="로그인된 계정 이메일" />
               </div>
             </section>
           )}
@@ -328,9 +351,18 @@ function AgentSignup() {
               {officeChecked && <span className="verification-chip">조회 완료</span>}
             </div>
             <div className="agent-section-controls">
-              <input name="officeName" value={form.officeName} onChange={updateForm} placeholder="중개사무소명" required />
-              <input name="officeRegistrationNumber" value={form.officeRegistrationNumber} onChange={updateForm} placeholder="등록번호" required />
-              <input name="officeAddress" value={form.officeAddress} onChange={updateForm} placeholder="사무소 주소" />
+              <label className="agent-field">
+                <span>중개사무소명</span>
+                <input name="officeName" value={form.officeName} onChange={updateForm} placeholder="예: 급매공인중개사사무소" required />
+              </label>
+              <label className="agent-field">
+                <span>등록번호</span>
+                <input name="officeRegistrationNumber" value={form.officeRegistrationNumber} onChange={updateForm} placeholder="예: 11110-2026-00001" required />
+              </label>
+              <label className="agent-field">
+                <span>사무소 주소 <small>(선택)</small></span>
+                <input name="officeAddress" value={form.officeAddress} onChange={updateForm} placeholder="예: 서울특별시 마포구 ..." />
+              </label>
               <button type="button" className="agent-outline-button" onClick={handleOfficeLookup}>
                 <Search size={16} /> 조회하기
               </button>
@@ -344,16 +376,22 @@ function AgentSignup() {
               {representativeVerified && <span className="verification-chip">인증 완료</span>}
             </div>
             <div className="agent-section-controls">
-              <input name="representativeName" value={form.representativeName} onChange={updateForm} placeholder="대표자명" required />
-              <input
-                name="representativePhone"
-                value={form.representativePhone}
-                onChange={updateForm}
-                placeholder="대표자 연락처 (예: 010-1234-5678)"
-                inputMode="numeric"
-                maxLength={PHONE_MAX_LENGTH}
-                required
-              />
+              <label className="agent-field">
+                <span>대표자명</span>
+                <input name="representativeName" value={form.representativeName} onChange={updateForm} placeholder="예: 홍길동" required />
+              </label>
+              <label className="agent-field">
+                <span>대표자 연락처</span>
+                <input
+                  name="representativePhone"
+                  value={form.representativePhone}
+                  onChange={updateForm}
+                  placeholder="예: 010-1234-5678"
+                  inputMode="numeric"
+                  maxLength={PHONE_MAX_LENGTH}
+                  required
+                />
+              </label>
               <button type="button" className="agent-outline-button" onClick={handleRepresentativeVerify} disabled={!officeChecked}>
                 <ShieldCheck size={16} /> 인증하기
               </button>
@@ -385,14 +423,17 @@ function AgentSignup() {
               <p>이메일 외 연락 가능한 번호가 있다면 입력해주세요.</p>
             </div>
             <div className="agent-section-controls">
-              <input
-                name="contactPhone"
-                value={form.contactPhone}
-                onChange={updateForm}
-                placeholder="추가 연락처 (예: 02-1234-5678)"
-                inputMode="numeric"
-                maxLength={PHONE_MAX_LENGTH}
-              />
+              <label className="agent-field">
+                <span>추가 연락처</span>
+                <input
+                  name="contactPhone"
+                  value={form.contactPhone}
+                  onChange={updateForm}
+                  placeholder="예: 02-1234-5678"
+                  inputMode="numeric"
+                  maxLength={PHONE_MAX_LENGTH}
+                />
+              </label>
             </div>
           </section>
 

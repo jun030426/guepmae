@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowRight, CheckCircle2, Mail, MailCheck } from 'lucide-react';
+import { ArrowRight, Mail, MailCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
@@ -467,6 +467,7 @@ function Login() {
                 <label className="compact-label">
                   <input
                     type="password"
+                    aria-label="새 비밀번호 확인"
                     value={newPasswordConfirm}
                     onChange={(event) => setNewPasswordConfirm(event.target.value)}
                     placeholder="새 비밀번호 확인"
@@ -539,7 +540,7 @@ function Login() {
               </button>
             </div>
 
-            <Link to="/agent-signup" className="agent-entry-link">
+            <Link to="/agent/signup" className="agent-entry-link">
               중개사 가입
               <ArrowRight size={15} />
             </Link>
@@ -582,6 +583,7 @@ function Login() {
               <input
                 type="password"
                 name="passwordConfirm"
+                aria-label="비밀번호 확인"
                 value={signupForm.passwordConfirm}
                 onChange={updateSignupForm}
                 placeholder="비밀번호 확인"

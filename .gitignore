@@ -34,3 +34,9 @@ scripts/_foreground.ps1
 
 # 지원사업 보고서 초안 (개인 문서)
 지원사업_*.md
+
+.vercel
+.env*
+
+# impeccable 플러그인 작업 캐시
+.impeccable/

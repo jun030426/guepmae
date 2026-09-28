@@ -482,9 +482,10 @@ function TourFallbackPreview({ property, photos, note }) {
         <span>{property.address}</span>
         <em>{note}</em>
       </div>
-      <button type="button" className="street-expand-button" aria-label="확대">
+      {/* 데모용 목업 프리뷰의 장식 컨트롤 — 동작하지 않으므로 버튼 시맨틱을 주지 않는다 */}
+      <div className="street-expand-button" aria-hidden="true">
         <Expand size={20} />
-      </button>
+      </div>
       <div className="street-arrows" aria-hidden="true">
         <span>&lt;</span>
         <span>&gt;</span>
@@ -572,7 +573,9 @@ function PropertyMediaViewer({ property, photos, initialMode, onClose }) {
               key={item.id}
               className={mode === item.id ? 'active' : ''}
               onClick={() => setMode(item.id)}
+              role="tab"
               aria-selected={mode === item.id}
+              aria-controls="viewer-media-panel"
             >
               {item.label}
             </button>
@@ -584,7 +587,7 @@ function PropertyMediaViewer({ property, photos, initialMode, onClose }) {
         </button>
       </header>
 
-      <main className="viewer-body">
+      <main className="viewer-body" id="viewer-media-panel" role="tabpanel">
         {mode === 'photos' && <PropertyPhotoGrid photos={photos} property={property} />}
         {mode === 'map' && <PropertyMapPanel property={property} />}
         {mode === 'tour' && <PropertyTourPanel property={property} photos={photos} />}

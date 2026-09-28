@@ -662,9 +662,10 @@ function NaverMap({ properties, selectedId, onSelect }) {
 function MapLegend({ note }) {
   return (
     <div className="map-legend">
-      <span><i className="legend-dot red" />10% 이상</span>
-      <span><i className="legend-dot orange" />7~10%</span>
-      <span><i className="legend-dot yellow" />5~7%</span>
+      {/* 배지 체계와 동일한 축: 5%+ = 급매, 10%+ = 초급매. 마커는 할인이 깊을수록 진한 초록. */}
+      <span><i className="legend-dot red" />초급매 10%+</span>
+      <span><i className="legend-dot orange" />급매 7~10%</span>
+      <span><i className="legend-dot yellow" />급매 5~7%</span>
       <span className="legend-note">
         <MapPin size={14} />
         {note}

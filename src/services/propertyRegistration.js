@@ -205,6 +205,12 @@ async function fetchAgentOfficeName(email) {
 }
 
 export async function registerProperty(form, agentProfile) {
+  // 연락처 없는 매물은 상세 페이지에서 문의 경로가 사라진다 — 등록 단계에서 막는다.
+  const contactPhone = (form.contactPhone || agentProfile?.phone || '').trim();
+  if (!contactPhone) {
+    throw new Error('매수자 문의 연락처를 입력해주세요. 연락처 없이는 매물을 등록할 수 없습니다.');
+  }
+
   const id = generatePropertyId();
   const now = new Date().toISOString().slice(0, 10);
 
@@ -287,7 +293,8 @@ export async function registerProperty(form, agentProfile) {
     agent: {
       name: agentProfile?.full_name || '담당자',
       office: officeName,
-      phone: agentProfile?.phone || '',
+      // 연락처 없는 매물은 매수자에게 막다른 길이 된다 — 폼에서 입력받은 값을 우선 사용
+      phone: contactPhone,
       email: agentProfile?.email || '',
       verified: true,
     },

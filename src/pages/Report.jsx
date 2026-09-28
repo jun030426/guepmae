@@ -27,10 +27,11 @@ import {
   fetchMonthlyTrend,
   fetchRegionalSnapshots,
   fetchTopUrgentComplexes,
+  TOP_COMPLEX_MIN_SAMPLE,
+  TOP_COMPLEX_SOLID_SAMPLE,
   getDataSource,
 } from '../services/reportData.js';
 import { fetchMarketReport } from '../services/marketReport.js';
-import { formatPrice } from '../utils/priceUtils.js';
 import { formatRegionName } from '../utils/regionName.js';
 import { PRIMARY, SURFACE_WARM, TEXT_STRONG, TEXT_STRONG_SOFT, TEXT_MUTED, BORDER } from '../styles/tokens.js';
 
@@ -191,7 +192,7 @@ function RegionChartNotes({ rows }) {
       <ul className="chart-note-list">
         {notes.gapRows.length > 0 && (
           <li>
-            <strong>{notes.gapRows.map((r) => formatRegionName(r.region)).join(' · ')}</strong>는 평균과 중앙값 차이가 큽니다 — 소수 고가 거래가 평균을 끌어내림(일반 매물은 거의 시세대로).
+            <strong>{notes.gapRows.map((r) => formatRegionName(r.region)).join(' · ')}</strong>는 평균과 중앙값 차이가 큽니다 — 소수 이상 거래가 평균을 왜곡한 지역(일반 매물 기준은 ● 중앙값).
           </li>
         )}
         {notes.topDiscount && notes.topDiscount.averageDiscount > 0 && (
@@ -311,7 +312,7 @@ function MonthlyTrendNotes({ rows }) {
       </p>
       <ul className="chart-note-list">
         <li>
-          1년 평균 급매비율 <strong>{notes.avgUrgent}%</strong> (월별 {notes.range}% 범위 — 안정적 추세)
+          1년 평균 급매비율 <strong>{notes.avgUrgent}%</strong> (월별 {notes.range}% 범위)
         </li>
         <li>
           직전 완료월 <strong>{notes.lastCompletedMonth}</strong> 거래{' '}
@@ -337,10 +338,10 @@ function AreaBucketTick({ x, y, payload, rows }) {
       <text textAnchor="middle" dy={14} fontSize={12} fill={TEXT_STRONG}>
         {payload.value}
       </text>
-      <text textAnchor="middle" dy={30} fontSize={10.5} fill={TEXT_MUTED}>
+      <text textAnchor="middle" dy={30} fontSize={12} fill={TEXT_MUTED}>
         급매 {Math.round((row.urgentRatio ?? 0) * 100)}%
       </text>
-      <text textAnchor="middle" dy={44} fontSize={10.5} fill={TEXT_MUTED}>
+      <text textAnchor="middle" dy={44} fontSize={12} fill={TEXT_MUTED}>
         {row.transactionVolume?.toLocaleString() ?? '?'}건
       </text>
     </g>
@@ -373,7 +374,7 @@ function AreaChartNotes({ rows }) {
       <ul className="chart-note-list">
         <li>
           <strong>{notes.topUrgent.bucket}</strong> — 급매비율{' '}
-          {Math.round((notes.topUrgent.urgentRatio ?? 0) * 100)}% 최고 (5개 면적대 중)
+          {Math.round((notes.topUrgent.urgentRatio ?? 0) * 100)}% 최고 ({rows.length}개 면적대 중)
         </li>
         <li>
           <strong>{notes.topSample.bucket}</strong> — 표본{' '}
@@ -496,6 +497,7 @@ function Report() {
   const [topComplexes, setTopComplexes] = useState([]);
   const [dataSource, setDataSource] = useState({ name: '국토교통부 실거래가', lastUpdated: '-', disclosureLag: '데이터 로딩 중', totalTrades: 0 });
   const [aiReport, setAiReport] = useState(null);
+  const [loadState, setLoadState] = useState('loading'); // 'loading' | 'ready' | 'error'
 
   useEffect(() => {
     let active = true;
@@ -516,6 +518,12 @@ function Report() {
       setTopComplexes(nextTop);
       if (nextSource) setDataSource(nextSource);
       setAiReport(nextAi);
+      setLoadState('ready');
+    }).catch((loadError) => {
+      if (!active) return;
+      console.warn('리포트 데이터 로드 실패.', loadError);
+      setDataSource((prev) => ({ ...prev, disclosureLag: '데이터 로드 실패' }));
+      setLoadState('error');
     });
     return () => {
       active = false;
@@ -527,6 +535,7 @@ function Report() {
       <section className="page-hero compact-hero">
         <div className="container report-hero-grid">
           <SectionTitle
+            as="h1"
             eyebrow="시장 데이터"
             title="급매 리포트"
             description="국토교통부 실거래가 데이터를 기반으로 지역·면적·단지별 급매 흐름을 정리합니다."
@@ -730,7 +739,7 @@ function Report() {
                   dataKey="averageDiscount"
                   position="top"
                   formatter={(value) => `${value}%`}
-                  fontSize={11}
+                  fontSize={12}
                   fill={TEXT_MUTED}
                 />
               </Bar>
@@ -745,8 +754,11 @@ function Report() {
       <section className="container">
         <div className="report-table-card">
           <div className="chart-title-row">
-            <h3>급매 집중 단지 Top 10</h3>
-            <span>거래 표본 30건 이상</span>
+            <h3>급매 집중 단지</h3>
+            <span>
+              거래 표본 {TOP_COMPLEX_MIN_SAMPLE}건 이상
+              {topComplexes.length > 0 && ` · ${topComplexes.length}곳`}
+            </span>
           </div>
           <div className="report-table-wrap">
             <table className="report-table">
@@ -761,16 +773,33 @@ function Report() {
                 </tr>
               </thead>
               <tbody>
-                {topComplexes.map((row) => (
-                  <tr key={row.rank}>
-                    <td>{row.rank}</td>
-                    <td><strong>{row.complex}</strong></td>
-                    <td>{row.region}</td>
-                    <td style={{ textAlign: 'right' }}>{row.dealCount}건</td>
-                    <td style={{ textAlign: 'right' }}>{row.sampleSize}건</td>
-                    <td style={{ textAlign: 'right' }}>{formatPercent(row.averageDiscount)}</td>
+                {topComplexes.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="report-table-empty">
+                      {loadState === 'loading'
+                        ? '단지 데이터를 불러오는 중...'
+                        : loadState === 'error'
+                          ? '단지 데이터를 불러오지 못했습니다. 새로고침해 주세요.'
+                          : `거래 표본 ${TOP_COMPLEX_MIN_SAMPLE}건 이상을 충족한 단지가 아직 없습니다.`}
+                    </td>
                   </tr>
-                ))}
+                ) : (
+                  topComplexes.map((row) => (
+                    <tr key={row.rank}>
+                      <td>{row.rank}</td>
+                      <td><strong>{row.complex}</strong></td>
+                      <td>{row.region}</td>
+                      <td style={{ textAlign: 'right' }}>{row.dealCount}건</td>
+                      <td style={{ textAlign: 'right' }}>
+                        {row.sampleSize}건
+                        {row.sampleSize < TOP_COMPLEX_SOLID_SAMPLE && (
+                          <span className="sample-caution"> 표본 적음</span>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>{formatPercent(row.averageDiscount)}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

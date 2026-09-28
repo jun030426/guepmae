@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -8,10 +8,24 @@ const navItems = [
   { label: '매물', path: '/properties' },
   { label: '지도 검색', path: '/map' },
   { label: '급매 리포트', path: '/report' },
+  { label: '저장한 매물', path: '/properties?saved=1', search: '?saved=1' },
 ];
+
+// 같은 경로를 쿼리로 나눠 쓰는 항목들 — 기본 항목의 활성 판정에서 제외 대상
+const QUERY_SCOPED_SEARCHES = navItems.map((item) => item.search).filter(Boolean);
 
 function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+
+  // NavLink는 경로만 비교해서 /properties 와 /properties?saved=1 이 동시에 활성된다.
+  // 쿼리를 가진 항목은 쿼리까지 같을 때만, 기본 항목은 그 쿼리가 아닐 때만 활성으로 본다.
+  const isNavItemActive = (item, isActive) => {
+    if (!isActive) return false;
+    if (item.search) return location.search === item.search;
+    return !QUERY_SCOPED_SEARCHES.includes(location.search);
+  };
+
   const { isAuthenticated, isAdmin, isAgent, profile, signOut } = useAuth();
 
   const closeMenu = () => setIsOpen(false);
@@ -37,7 +51,7 @@ function Header() {
             <NavLink
               key={item.path}
               to={item.path}
-              className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
+              className={({ isActive }) => (isNavItemActive(item, isActive) ? 'nav-link active' : 'nav-link')}
             >
               {item.label}
             </NavLink>
@@ -67,7 +81,7 @@ function Header() {
         <button
           className="mobile-menu-button"
           type="button"
-          aria-label="모바일 메뉴 열기"
+          aria-label={isOpen ? '모바일 메뉴 닫기' : '모바일 메뉴 열기'}
           aria-expanded={isOpen}
           onClick={() => setIsOpen((current) => !current)}
         >
@@ -80,7 +94,9 @@ function Header() {
           <NavLink
             key={item.path}
             to={item.path}
-            className={({ isActive }) => (isActive ? 'mobile-nav-link active' : 'mobile-nav-link')}
+            className={({ isActive }) =>
+              isNavItemActive(item, isActive) ? 'mobile-nav-link active' : 'mobile-nav-link'
+            }
             onClick={closeMenu}
           >
             {item.label}

@@ -62,9 +62,18 @@ export async function fetchAreaTypeBreakdown() {
   return all.area_type ?? [];
 }
 
+// 단지별 급매 집중도는 표본이 적으면 우연에 좌우된다 (표본 5건 중 2건이 급매여도 40%).
+// 화면에 붙는 하한과 여기 하한은 반드시 같아야 한다 — 라벨이 보증하는 규칙을 실제로 적용한다.
+export const TOP_COMPLEX_MIN_SAMPLE = 10;
+// 이 아래는 통계적으로 약해 '표본 적음' 주의 표기를 붙인다.
+export const TOP_COMPLEX_SOLID_SAMPLE = 30;
+
 export async function fetchTopUrgentComplexes(limit = 10) {
   const all = await loadAll();
-  return (all.top_urgent ?? []).slice(0, limit);
+  return (all.top_urgent ?? [])
+    .filter((row) => (row.sampleSize ?? 0) >= TOP_COMPLEX_MIN_SAMPLE)
+    .slice(0, limit)
+    .map((row, index) => ({ ...row, rank: index + 1 })); // 필터 후 순위 재부여
 }
 
 export async function fetchMarketInsights() {

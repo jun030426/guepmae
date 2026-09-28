@@ -30,16 +30,19 @@ body {
     "Malgun Gothic",
     system-ui,
     sans-serif;
-  line-height: 1.5;
+  line-height: var(--lh-body-sm);
   letter-spacing: 0;
 }
 
-body,
+/* `font` 단축 속성은 line-height를 normal로 되돌린다.
+ * 여기에 body가 섞여 있어서 위에서 지정한 line-height가 통째로 무효화되고 있었다
+ * (사이트 전체가 브라우저 기본 행간으로 렌더됨). 폼 컨트롤에만 적용한다. */
 button,
 input,
 select,
 textarea {
-  font: inherit;
+  font-family: inherit;
+  font-size: inherit;
 }
 
 button,
@@ -135,8 +138,8 @@ main {
   min-height: 40px;
   padding: 0 13px;
   color: #364153;
-  font-size: 15px;
-  font-weight: 650;
+  font-size: var(--type-body);
+  font-weight: 600;
 }
 
 .nav-link::after {
@@ -181,7 +184,7 @@ main {
   background: transparent;
   color: #344054;
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--type-body);
   cursor: pointer;
 }
 
@@ -254,7 +257,7 @@ main {
   align-items: center;
   justify-content: center;
   padding: 0 16px;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .mobile-menu-button {
@@ -288,17 +291,6 @@ main {
   background:
     linear-gradient(180deg, rgba(20, 28, 42, 0.1) 0%, rgba(10, 14, 22, 0.75) 100%),
     linear-gradient(115deg, #263245 0%, #6f7f93 42%, #c5ccd5 74%, #f5f7fa 100%);
-}
-
-.hero-visual::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 72px 72px;
-  opacity: 0.45;
 }
 
 .hero-overlay {
@@ -357,8 +349,8 @@ main {
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.11);
-  font-size: 15px;
-  font-weight: 750;
+  font-size: var(--type-body);
+  font-weight: 700;
 }
 
 .hero-content h1 {
@@ -366,7 +358,7 @@ main {
   max-width: 780px;
   font-size: clamp(42px, 6vw, 78px);
   line-height: 1.05;
-  font-weight: 850;
+  font-weight: 800;
   letter-spacing: 0;
 }
 
@@ -375,7 +367,7 @@ main {
   max-width: 650px;
   color: rgba(255, 255, 255, 0.86);
   font-size: clamp(17px, 2vw, 22px);
-  font-weight: 550;
+  font-weight: var(--fw-emphasis);
 }
 
 .hero-search-panel {
@@ -446,7 +438,7 @@ main {
 }
 
 .hero-cta {
-  min-height: 46px;
+  min-height: var(--control-h);
   padding: 0 18px;
   border-radius: var(--radius-control);
   font-weight: 800;
@@ -503,7 +495,7 @@ main {
 .stat-card span {
   display: block;
   color: var(--color-muted);
-  font-weight: 750;
+  font-weight: 700;
   font-size: 14px;
 }
 
@@ -533,10 +525,11 @@ main {
 .section-eyebrow {
   margin: 0 0 12px;
   color: var(--color-red);
-  font-weight: 850;
+  font-weight: 800;
   font-size: 14px;
 }
 
+.section-title h1,
 .section-title h2,
 .report-header h2,
 .detail-section h2,
@@ -546,9 +539,10 @@ main {
 .login-panel h2 {
   margin: 0;
   color: var(--color-navy);
-  font-size: clamp(28px, 3.4vw, 44px);
-  line-height: 1.18;
-  letter-spacing: 0;
+  font-size: var(--type-display);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-tight);
 }
 
 .section-title p:not(.section-eyebrow) {
@@ -569,12 +563,6 @@ main {
 }
 
 .data-rule-list,
-.cta-copy-list {
-  display: grid;
-  gap: 15px;
-  margin-top: 32px;
-}
-
 .data-rule-list div {
   display: flex;
   align-items: center;
@@ -589,28 +577,6 @@ main {
 .data-rule-list svg {
   color: var(--color-red);
   flex: 0 0 auto;
-}
-
-.split-visual {
-  position: relative;
-  min-height: 430px;
-  border-radius: var(--radius-card);
-  overflow: hidden;
-  background:
-    linear-gradient(145deg, rgba(23, 32, 51, 0.92), rgba(72, 83, 101, 0.75)),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 1px, transparent 1px 58px);
-  box-shadow: var(--shadow-soft);
-}
-
-.data-proof-visual::before,
-.verify-visual::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(90deg, transparent 0 14%, rgba(255, 255, 255, 0.1) 14% 16%, transparent 16% 100%),
-    linear-gradient(180deg, transparent 0 24%, rgba(255, 255, 255, 0.08) 24% 26%, transparent 26% 100%);
-  background-size: 120px 96px;
 }
 
 .proof-card,
@@ -639,7 +605,7 @@ main {
 .verify-panel span {
   display: block;
   color: var(--color-muted);
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .proof-card strong,
@@ -659,7 +625,7 @@ main {
   background: #ecf6f0;
   color: var(--color-red);
   font-style: normal;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .proof-line {
@@ -686,14 +652,14 @@ main {
   align-items: center;
   gap: 6px;
   color: var(--color-red);
-  font-weight: 850;
+  font-weight: 800;
   white-space: nowrap;
 }
 
 .property-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
+  gap: var(--s-6);
 }
 
 .property-card {
@@ -766,7 +732,7 @@ main {
   position: relative;
   z-index: 1;
   color: white;
-  font-weight: 850;
+  font-weight: 800;
   text-shadow: 0 2px 18px rgba(0, 0, 0, 0.34);
 }
 
@@ -828,7 +794,7 @@ main {
   background: #ecf6f0;
   color: #157a4a;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .property-title-link h3 {
@@ -844,7 +810,7 @@ main {
   gap: 6px;
   margin: 9px 0 18px;
   color: #667085;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .price-stack {
@@ -896,7 +862,7 @@ main {
   display: block;
   margin-top: 5px;
   color: var(--color-navy);
-  font-size: 15px;
+  font-size: var(--type-body);
 }
 
 .discount-metric {
@@ -914,7 +880,7 @@ main {
 
 .discount-metric span {
   color: var(--color-red);
-  font-size: 15px;
+  font-size: var(--type-body);
 }
 
 .property-card-actions {
@@ -931,9 +897,9 @@ main {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: var(--control-h);
   border-radius: var(--radius-control);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .outline-button {
@@ -1002,7 +968,7 @@ main {
   align-items: center;
   gap: 6px;
   color: var(--color-red);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .verify-cta-section {
@@ -1013,15 +979,6 @@ main {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
-
-.cta-copy-list p {
-  margin: 0;
-  padding: 15px 18px;
-  border-left: 3px solid var(--color-red);
-  background: white;
-  color: #475467;
-  font-weight: 700;
 }
 
 .primary-link-button {
@@ -1087,7 +1044,7 @@ main {
 
 .chart-title-row span {
   color: var(--color-muted);
-  font-weight: 750;
+  font-weight: 700;
   font-size: 13px;
 }
 
@@ -1106,8 +1063,10 @@ main {
   padding: 74px 0 56px;
 }
 
+.page-hero .section-title h1,
 .page-hero .section-title h2,
 .page-hero .section-title p:not(.section-eyebrow),
+.report-hero .section-title h1,
 .report-hero .section-title h2,
 .report-hero .section-title p:not(.section-eyebrow) {
   color: white;
@@ -1141,30 +1100,37 @@ main {
 .filter-title h2 {
   margin: 0;
   color: var(--color-navy);
-  font-size: 19px;
+  font-size: var(--type-subheading);
+  font-weight: var(--fw-heading);
+  line-height: var(--lh-heading);
 }
 
 .filter-grid {
   display: grid;
-  gap: 14px;
+  gap: var(--gap-section);
 }
 
 label {
   display: grid;
   gap: 8px;
   color: #344054;
-  font-weight: 800;
-  font-size: 14px;
+  font-weight: var(--fw-emphasis);
+  font-size: var(--type-label);
+  line-height: var(--lh-label);
 }
 
 input,
 select,
 textarea {
   width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--type-body-sm);
+  font-weight: var(--fw-body);
+  color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: white;
-  min-height: 46px;
+  min-height: var(--control-h);
   padding: 0 12px;
   outline: 0;
 }
@@ -1210,11 +1176,15 @@ textarea:focus {
 .listing-summary p {
   margin: 0;
   color: #475467;
-  font-weight: 750;
+  font-size: var(--type-body-sm);
+  font-weight: var(--fw-body);
+  line-height: var(--lh-body-sm);
 }
 
 .listing-summary strong {
-  color: var(--color-red);
+  color: var(--color-text);
+  font-weight: var(--fw-data);
+  font-variant-numeric: tabular-nums;
 }
 
 .listing-grid {
@@ -1238,16 +1208,26 @@ textarea:focus {
   flex-wrap: wrap;
 }
 
+.pagination-ellipsis {
+  min-width: 24px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-weight: var(--fw-emphasis);
+  user-select: none;
+}
+
 .pagination button {
   display: grid;
   place-items: center;
   min-width: 42px;
-  min-height: 42px;
+  min-height: var(--control-h);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: #ffffff;
   color: #344054;
-  font-weight: 800;
+  font-size: var(--type-body-sm);
+  font-weight: var(--fw-emphasis);
+  font-variant-numeric: tabular-nums;
   transition:
     border-color 0.18s ease,
     color 0.18s ease,
@@ -1273,14 +1253,14 @@ textarea:focus {
 
 /* 현재 페이지 — 테라코타 채움 */
 .pagination-page.active {
-  border-color: var(--primary);
-  background: var(--primary);
+  border-color: var(--text-strong-soft);
+  background: var(--text-strong-soft);
   color: #ffffff;
 }
 
 .pagination-page.active:hover {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--text-strong-soft);
+  border-color: var(--text-strong-soft);
   color: #ffffff;
   transform: none;
 }
@@ -1341,7 +1321,7 @@ textarea:focus {
   margin: 0 0 4px;
   color: var(--color-muted);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .map-list-header h2 {
@@ -1353,7 +1333,7 @@ textarea:focus {
 .map-list-header span {
   color: var(--color-red);
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -1397,14 +1377,14 @@ textarea:focus {
 .map-pagination button {
   display: grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border: 1px solid var(--border);
   border-radius: 4px;
   background: var(--surface);
   color: var(--text-strong);
   font-size: 14px;
-  font-weight: 750;
+  font-weight: 700;
   transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
 
@@ -1415,10 +1395,10 @@ textarea:focus {
   color: var(--text-strong);
 }
 
-/* 현재 페이지 — 테라코타 채움. hover와 시각 분리 */
+/* 현재 페이지 — 네이비 채움 (active 상태는 네이비, 초록은 할인 수치 전용) */
 .map-pagination button.active {
-  background: var(--primary);
-  border-color: var(--primary);
+  background: var(--text-strong-soft);
+  border-color: var(--text-strong-soft);
   color: #ffffff;
 }
 
@@ -1437,7 +1417,7 @@ textarea:focus {
   min-width: 20px;
   height: 32px;
   color: #4f5d75;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .map-view {
@@ -1601,7 +1581,7 @@ textarea:focus {
   border-radius: 999px;
   background: #ffffff;
   color: #1a2233;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .google-map-mode button.active {
@@ -1614,7 +1594,7 @@ textarea:focus {
   margin: 0;
   color: #4f5d75;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .google-map-property-strip {
@@ -1696,7 +1676,7 @@ textarea:focus {
   border: 1px solid var(--color-border);
   background: rgba(255, 255, 255, 0.94);
   color: #344054;
-  font-weight: 850;
+  font-weight: 800;
   box-shadow: var(--shadow-tight);
 }
 
@@ -1939,7 +1919,7 @@ textarea:focus {
   border-top: 1px solid var(--color-border);
   background: white;
   color: #475467;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .map-legend span {
@@ -1976,36 +1956,6 @@ textarea:focus {
   background: white;
 }
 
-.detail-image-placeholder {
-  position: relative;
-  display: grid;
-  place-items: end start;
-  min-height: 440px;
-  padding: 48px max(48px, calc((100% - 1180px) / 2));
-  overflow: hidden;
-  background:
-    linear-gradient(180deg, rgba(17, 24, 39, 0.05), rgba(17, 24, 39, 0.62)),
-    linear-gradient(120deg, #d7dce5 0%, #9da8b8 48%, #303a4b 100%);
-}
-
-.detail-image-placeholder::before {
-  content: "";
-  position: absolute;
-  inset: 58px 12% 0 18%;
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.36) 0 12px, transparent 12px 30px),
-    linear-gradient(180deg, rgba(23, 32, 51, 0.22), rgba(23, 32, 51, 0.78));
-  border-radius: 6px 6px 0 0;
-}
-
-.detail-image-placeholder span {
-  position: relative;
-  z-index: 1;
-  color: white;
-  font-size: clamp(28px, 4vw, 46px);
-  font-weight: 900;
-}
-
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 340px;
@@ -2039,7 +1989,7 @@ textarea:focus {
   gap: 8px;
   margin: 14px 0 0;
   color: #667085;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .detail-price-grid {
@@ -2072,15 +2022,6 @@ textarea:focus {
   color: var(--color-red);
 }
 
-.detail-description {
-  margin: 0 0 24px;
-  padding: 20px 22px;
-  border-left: 3px solid var(--color-red);
-  background: white;
-  color: #475467;
-  font-weight: 700;
-}
-
 .price-report,
 .detail-section,
 .contact-panel,
@@ -2105,7 +2046,7 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
 }
 
 .verdict {
@@ -2167,7 +2108,7 @@ textarea:focus {
   margin: 0;
   flex: 1;
   color: var(--color-navy);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .report-verdict-box span {
@@ -2214,7 +2155,7 @@ textarea:focus {
   display: block;
   margin-top: 7px;
   color: var(--color-navy);
-  font-size: 15px;
+  font-size: var(--type-body);
 }
 
 .detail-sidebar {
@@ -2231,7 +2172,7 @@ textarea:focus {
 .agent-profile {
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 12px;
   margin: 20px 0 16px;
 }
 
@@ -2265,9 +2206,9 @@ textarea:focus {
 .agent-verified,
 .agent-phone,
 .agent-date {
-  margin: 0 0 10px;
+  margin: 0 0 8px;
   color: #475467;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .agent-verified svg {
@@ -2286,12 +2227,12 @@ textarea:focus {
   justify-content: center;
   gap: 7px;
   width: 100%;
-  min-height: 42px;
+  min-height: var(--control-h);
   margin-top: 12px;
   border: 0;
   background: transparent;
   color: var(--color-red);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .sidebar-proof-card {
@@ -2355,14 +2296,14 @@ textarea:focus {
 
 .report-stat-grid,
 .admin-stat-grid {
-  padding: 42px 0 24px;
+  padding: 40px 0 24px;
 }
 
 .report-grid-layout,
 .report-bottom-grid,
 .admin-grid {
   display: grid;
-  gap: 22px;
+  gap: 20px;
 }
 
 .report-grid-layout {
@@ -2528,7 +2469,7 @@ textarea:focus {
 
 .calculation-panel p {
   color: var(--color-muted);
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .result-verdict {
@@ -2659,11 +2600,11 @@ textarea:focus {
 
 .auth-mode-tabs button,
 .signup-type-toggle button {
-  min-height: 42px;
+  min-height: var(--control-h);
   border: 0;
   background: transparent;
   color: #475467;
-  font-weight: 850;
+  font-weight: 800;
   cursor: pointer;
 }
 
@@ -2741,7 +2682,7 @@ textarea:focus {
   margin: 0;
   color: #1a2233;
   font-size: 21px;
-  font-weight: 900;
+  font-weight: var(--fw-display);
   line-height: 1.55;
 }
 
@@ -2793,7 +2734,7 @@ textarea:focus {
 .inline-login-form label,
 .signup-form label {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   color: #1a2233;
   font-size: 14px;
   font-weight: 900;
@@ -2819,7 +2760,8 @@ textarea:focus {
 .agent-next-button:disabled,
 .agent-outline-button:disabled {
   background: #e4e8ef;
-  color: white;
+  border-color: #e4e8ef;
+  color: var(--text-secondary); /* 흰 글자(1.2:1)는 판독 불가 — 비활성 사유를 읽을 수 있게 */
   cursor: not-allowed;
 }
 
@@ -2857,7 +2799,7 @@ textarea:focus {
   border: 0;
   background: transparent;
   color: var(--color-red);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .agent-entry-link {
@@ -2869,12 +2811,12 @@ textarea:focus {
   margin-top: 24px;
   color: #475467;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .signup-heading {
-  margin-bottom: 38px;
-  padding-bottom: 28px;
+  margin-bottom: 40px;
+  padding-bottom: 24px;
   border-bottom: 1px solid #eef1f5;
 }
 
@@ -2882,13 +2824,13 @@ textarea:focus {
 .agent-signup-heading h1 {
   margin: 0;
   color: #1a2233;
-  font-size: 30px;
-  font-weight: 950;
+  font-size: var(--type-display);
+  font-weight: var(--fw-display);
 }
 
 .signup-heading p,
 .agent-signup-heading p {
-  margin: 26px 0 0;
+  margin: 24px 0 0;
   color: #1a2233;
   font-size: 14px;
   font-weight: 800;
@@ -2923,33 +2865,33 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 34px;
+  margin-bottom: 32px;
   color: #4f5d75;
   font-size: 13px;
   font-weight: 800;
 }
 
 .agent-signup-heading {
-  margin-bottom: 46px;
+  margin-bottom: 48px;
 }
 
 .agent-form-section {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 220px;
-  gap: 28px;
-  padding: 34px 0;
+  gap: 24px;
+  padding: 32px 0;
   border-top: 1px solid #eef1f5;
 }
 
 .agent-form-section h2 {
   margin: 0;
   color: #1a2233;
-  font-size: 20px;
-  font-weight: 950;
+  font-size: var(--type-subheading);
+  font-weight: var(--fw-display);
 }
 
 .agent-form-section p {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   color: #4f5d75;
   font-size: 13px;
   font-weight: 700;
@@ -2958,14 +2900,14 @@ textarea:focus {
 
 .agent-section-controls {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   align-content: start;
 }
 
 .agent-section-controls input {
-  min-height: 42px;
+  min-height: var(--control-h);
   border: 1px solid #e4e8ef;
-  padding: 0 13px;
+  padding: 0 12px;
 }
 
 .agent-outline-button {
@@ -2983,12 +2925,12 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 42px;
+  gap: 6px;
+  min-height: var(--control-h);
   border: 1px solid #e4e8ef;
   color: #1a2233;
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 800;
   overflow: hidden;
 }
 
@@ -3001,7 +2943,7 @@ textarea:focus {
 
 .verification-chip {
   display: inline-flex;
-  margin-top: 14px;
+  margin-top: 12px;
   color: #2e6cf6;
   font-size: 13px;
   font-weight: 900;
@@ -3009,7 +2951,7 @@ textarea:focus {
 
 .agent-next-button {
   width: 100%;
-  margin-top: 34px;
+  margin-top: 32px;
   border: 0;
   background: var(--text-strong-soft);
   color: white;
@@ -3021,11 +2963,14 @@ textarea:focus {
 
 .admin-grid {
   grid-template-columns: 1fr 1fr;
-  padding: 18px 0 96px;
+  padding: 16px 0 96px;
 }
 
 .admin-panel {
-  padding: 24px;
+  padding: var(--s-6);
+  /* 그리드 아이템의 기본 min-width:auto 는 안쪽 표(min-width 620px)가
+   * 패널을 부풀려 페이지를 밀어내게 만든다 — .table-wrap 이 스스로 스크롤하도록 놔둔다. */
+  min-width: 0;
 }
 
 .admin-panel.wide {
@@ -3078,7 +3023,7 @@ td {
   border-radius: var(--radius-control);
   background: white;
   color: var(--color-navy);
-  font-weight: 850;
+  font-weight: 800;
 }
 
 .log-item {
@@ -3122,7 +3067,7 @@ td {
 
 .footer-column h3 {
   margin: 0 0 14px;
-  font-size: 15px;
+  font-size: var(--type-body);
 }
 
 .footer-column a {
@@ -3198,7 +3143,7 @@ td {
     border-radius: var(--radius-control);
     background: white;
     color: #1a2233;
-    font-weight: 850;
+    font-weight: 800;
   }
 
 .mobile-signup {
@@ -3285,10 +3230,6 @@ td {
   .report-bottom-grid,
   .admin-grid {
     grid-template-columns: 1fr;
-  }
-
-  .split-visual {
-    min-height: 350px;
   }
 
   .section-heading-row {
@@ -3445,11 +3386,6 @@ td {
     width: 200px;
   }
 
-  .detail-image-placeholder {
-    min-height: 340px;
-    padding: 34px 20px;
-  }
-
   .detail-title-block,
   .price-report,
   .detail-section,
@@ -3488,23 +3424,14 @@ td {
   }
 }
 
-/* Compass-inspired redesign layer for 급매. The layout rhythm is referenced, not copied. */
+/* Compass-inspired redesign layer for 급매. The layout rhythm is referenced, not copied.
+ * 색 토큰은 tokens.css(단일 진실원)가 소유 — 여기서 재정의하면 캐스케이드 누수가 생긴다.
+ * (과거 이 블록의 --color-red 재정의가 로그인 버튼에 적색으로 새던 버그의 원인) */
 :root {
-  --color-bg: #ffffff;
-  --color-surface: #ffffff;
-  --color-surface-soft: #f5f7fa;
-  --color-text: #1a2233;
-  --color-muted: #667085;
-  --color-border: #e4e8ef;
-  --color-line: #eef1f5;
-  --color-navy: #1a2233;
-  --color-red: #c73b2f;
-  --color-red-dark: #9d2f27;
   --shadow-soft: 0 18px 42px rgba(0, 0, 0, 0.08);
   --shadow-tight: 0 8px 22px rgba(0, 0, 0, 0.05);
   --radius-card: 16px;
   --radius-control: 10px;
-  --header-height: 72px;
 }
 
 body {
@@ -3583,7 +3510,7 @@ body {
 
 .signup-button {
   min-height: 38px;
-  padding: 0 18px;
+  padding: 0 16px;
   border-color: #1a2233;
   background: #1a2233;
   color: #ffffff;
@@ -3638,14 +3565,6 @@ body {
     linear-gradient(115deg, #f5f7fa 0%, #b9b9b9 38%, #4f5d75 72%, #1a2233 100%);
 }
 
-.hero-visual::before {
-  opacity: 0.28;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.32) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
-  background-size: 88px 88px;
-}
-
 .hero-overlay {
   background:
     radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.18), transparent 32%),
@@ -3696,7 +3615,7 @@ body {
 .hero-content h1 {
   max-width: 800px;
   font-size: clamp(44px, 5.6vw, 80px);
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.05;
 }
 
@@ -3729,7 +3648,7 @@ body {
   min-height: 56px;
   border-right: 0;
   color: #4c4c4c;
-  font-size: 15px;
+  font-size: var(--type-body);
   font-weight: 500;
 }
 
@@ -3754,7 +3673,7 @@ body {
 .primary-button,
 .primary-link-button,
 .hero-cta.primary {
-  min-height: 46px;
+  min-height: var(--control-h);
   border-color: var(--text-strong-soft);
   border-radius: var(--radius-control);
   background: var(--text-strong-soft);
@@ -3850,6 +3769,7 @@ body {
   font-weight: 500;
 }
 
+.section-title h1,
 .section-title h2,
 .report-header h2,
 .detail-section h2,
@@ -3896,24 +3816,6 @@ body {
   color: #1a2233;
 }
 
-.split-visual {
-  min-height: 480px;
-  border-radius: var(--radius-card);
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.34)),
-    linear-gradient(125deg, #f5f7fa 0%, #cfd4dc 48%, #585858 100%);
-  box-shadow: none;
-}
-
-.split-visual::after {
-  content: "";
-  position: absolute;
-  inset: 12% 14% 0 22%;
-  background:
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.48) 0 10px, transparent 10px 28px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0.34));
-}
-
 .proof-card,
 .verify-panel {
   border: 1px solid #e4e8ef;
@@ -3946,7 +3848,7 @@ body {
 }
 
 .property-grid {
-  gap: 30px;
+  gap: var(--s-6);
 }
 
 .property-card {
@@ -4150,15 +4052,6 @@ body {
   font-weight: 500;
 }
 
-.cta-copy-list p {
-  border-left: 0;
-  border-top: 1px solid #e4e8ef;
-  background: transparent;
-  color: #4f5d75;
-  padding: 16px 0;
-  font-weight: 500;
-}
-
 .report-preview-list span {
   border-color: #e4e8ef;
   border-radius: 0;
@@ -4209,7 +4102,7 @@ body {
 
 .popular-region-grid a {
   color: #1a2233;
-  font-size: 15px;
+  font-size: var(--type-body);
   font-weight: 400;
   text-decoration: underline;
   text-decoration-color: transparent;
@@ -4263,12 +4156,6 @@ textarea:focus {
 .map-marker.yellow {
   background: #e4e8ef;
   color: #1a2233;
-}
-
-.detail-image-placeholder {
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.62)),
-    linear-gradient(120deg, #eef1f5 0%, #a8a8a8 48%, #1a2233 100%);
 }
 
 .report-stat.highlight,
@@ -4354,7 +4241,7 @@ textarea:focus {
   }
 
   .property-grid {
-    gap: 22px;
+    gap: var(--s-5);
   }
 }
 
@@ -4456,8 +4343,9 @@ textarea:focus {
 .masthead-copy h1 {
   margin: 0;
   color: #1a2233;
-  font-size: 21px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: var(--ls-tight);
   line-height: 1.25;
 }
 
@@ -4511,8 +4399,13 @@ textarea:focus {
   line-height: 1.2;
 }
 
+/* 매도가는 이 페이지의 결정 근거 — 스펙 행과 같은 급이 아니라 디스플레이 티어로 */
 .masthead-stat.price strong {
-  font-size: 18px;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: var(--ls-tight);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
 }
 
 .masthead-stat span,
@@ -4522,6 +4415,14 @@ textarea:focus {
   font-size: 13px;
   font-style: normal;
   line-height: 1.35;
+}
+
+/* 할인율은 제품의 핵심 숫자 — 캡션이 아니라 강조 수치로 렌더 */
+.masthead-stat.price em {
+  color: var(--primary-strong);
+  font-size: 14px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .masthead-actions {
@@ -4542,7 +4443,7 @@ textarea:focus {
   background: transparent;
   color: var(--text-strong);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease,
               transform 0.16s ease, box-shadow 0.16s ease;
@@ -4585,7 +4486,7 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 38px;
-  min-height: 42px;
+  min-height: var(--control-h);
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -4595,7 +4496,7 @@ textarea:focus {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  min-height: 42px;
+  min-height: var(--control-h);
   color: #4f4f4f;
   font-size: 13px;
   font-weight: 500;
@@ -4688,7 +4589,7 @@ textarea:focus {
   background: var(--text-strong);
   color: #ffffff;
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 700;
   line-height: 1.25;
 }
 
@@ -4803,7 +4704,7 @@ textarea:focus {
   width: 92px;
   padding: 8px 6px;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .gallery-action-tile svg {
@@ -4812,6 +4713,7 @@ textarea:focus {
 
 .detail-content-stack {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   margin-top: 30px;
   border-top: 1px solid #e4e8ef;
@@ -4834,14 +4736,14 @@ textarea:focus {
   margin: 0;
   color: #1a2233;
   font-size: 24px;
-  font-weight: 650;
+  font-weight: 600;
   line-height: 1.28;
 }
 
 .description-panel > p:not(.section-eyebrow) {
   max-width: 760px;
   margin: 16px 0 0;
-  color: #373737;
+  color: var(--text-secondary);
   font-size: 16px;
   line-height: 1.75;
 }
@@ -4902,7 +4804,7 @@ textarea:focus {
 
 .open-house-item strong {
   color: #1a2233;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .open-house-item span,
@@ -4952,7 +4854,7 @@ textarea:focus {
 .compass-detail .info-item strong,
 .compass-detail .lifestyle-item strong {
   color: #1a2233;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .compass-detail .report-verdict-box {
@@ -5039,7 +4941,7 @@ textarea:focus {
 .location-copy strong {
   color: #1a2233;
   font-size: 18px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .location-copy p {
@@ -5055,7 +4957,7 @@ textarea:focus {
   margin: 0 0 8px;
   color: #4f5d75;
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 700;
   letter-spacing: 0;
 }
 
@@ -5081,7 +4983,7 @@ textarea:focus {
 }
 
 .fact-row dt {
-  font-weight: 450;
+  font-weight: 500;
 }
 
 .fact-row dd {
@@ -5101,11 +5003,11 @@ textarea:focus {
 .compass-detail .contact-panel h2 {
   color: #1a2233;
   font-size: 20px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .compass-detail .agent-profile {
-  margin: 18px 0 14px;
+  margin: 16px 0 12px;
 }
 
 .compass-detail .agent-avatar {
@@ -5119,8 +5021,8 @@ textarea:focus {
 
 .compass-detail .agent-profile strong {
   color: #1a2233;
-  font-size: 17px;
-  font-weight: 650;
+  font-size: var(--type-body);
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -5130,14 +5032,14 @@ textarea:focus {
 .compass-detail .agent-phone,
 .compass-detail .agent-date {
   color: #4f5d75;
-  font-weight: 450;
+  font-weight: 500;
 }
 
 .compass-detail .agent-phone,
 .compass-detail .agent-date {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   margin: 8px 0;
 }
 
@@ -5147,16 +5049,18 @@ textarea:focus {
   width: 100%;
   min-height: 62px;
   margin-top: 22px;
-  border: 1px solid var(--primary);
+  border: 1px solid var(--text-strong-soft);
   border-radius: 999px;
-  background: var(--primary);
+  background: var(--text-strong-soft);
   color: #ffffff;
-  font-weight: 750;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
 }
 
 .tour-button:hover {
-  border-color: var(--primary-hover);
-  background: var(--primary-hover);
+  border-color: var(--navy-deep);
+  background: var(--navy-deep);
 }
 
 .tour-button span {
@@ -5188,7 +5092,7 @@ textarea:focus {
 .compass-detail .sidebar-proof-card strong {
   color: #1a2233;
   font-size: 21px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .compass-detail .sidebar-proof-card span {
@@ -5196,7 +5100,7 @@ textarea:focus {
 }
 
 .verification-card strong {
-  font-size: 19px;
+  font-size: var(--type-subheading);
 }
 
 .property-media-viewer {
@@ -5267,7 +5171,7 @@ textarea:focus {
   border-radius: 999px;
   background: transparent;
   color: var(--text-strong);
-  font-weight: 650;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
 }
@@ -5335,7 +5239,7 @@ textarea:focus {
   background: rgba(0, 0, 0, 0.66);
   color: #ffffff;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .viewer-photo-note {
@@ -5346,7 +5250,7 @@ textarea:focus {
   background: rgba(0, 0, 0, 0.72);
   color: #ffffff;
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .viewer-map-shell,
@@ -5441,7 +5345,7 @@ textarea:focus {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.12);
   color: #ffffff;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .indoor-tour-scenes button.active {
@@ -5459,7 +5363,7 @@ textarea:focus {
   background: rgba(0, 0, 0, 0.72);
   color: #ffffff;
   font-size: 13px;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .viewer-map-popup {
@@ -5641,7 +5545,7 @@ textarea:focus {
 .street-location-card em {
   padding-bottom: 10px;
   color: rgba(255, 255, 255, 0.72);
-  font-size: 11px;
+  font-size: var(--type-micro);
   font-style: normal;
 }
 
@@ -5677,7 +5581,7 @@ textarea:focus {
   gap: 70px;
   color: #ffffff;
   font-size: 72px;
-  font-weight: 200;
+  font-weight: var(--fw-body);
   line-height: 1;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.38);
   transform: translateX(-50%);
@@ -5949,4 +5853,218 @@ textarea:focus {
     grid-template-columns: 1fr;
     gap: 4px;
   }
+}
+
+/* =====================================================================
+ * 홈 — 검증 방식 스트립 (첫 방문 온보딩)
+ * 낯선 개념은 '검증' 하나뿐이므로, 히어로 직후에 수집→산출→선별
+ * 순서를 명세서 톤으로 한 번만 가르친다. 카드 그리드 대신 구분선 레일.
+ * ===================================================================== */
+.verify-strip {
+  background: var(--surface-warm);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-6) 0;
+}
+
+.verify-strip-head {
+  max-width: 640px;
+  margin-bottom: var(--space-4);
+}
+
+.verify-strip-head h2 {
+  margin: 0 0 var(--space-1);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-navy);
+  text-wrap: balance;
+}
+
+.verify-strip-head p {
+  margin: 0;
+  font-size: var(--type-body);
+  color: var(--color-text-muted);
+}
+
+.verify-strip-rail {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.verify-step {
+  padding: var(--space-1) var(--space-3) var(--space-2) 0;
+}
+
+.verify-step + .verify-step {
+  border-left: 1px solid var(--color-border);
+  padding-left: var(--space-3);
+}
+
+.verify-step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-navy);
+  margin-bottom: var(--space-2);
+}
+
+.verify-step h3 {
+  margin: 0 0 6px;
+  font-size: var(--type-subheading);
+  font-weight: 700;
+  color: var(--color-navy);
+}
+
+.verify-step p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--color-text-muted);
+}
+
+.verify-strip-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.verify-legend-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.verify-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--type-label);
+  font-weight: 600;
+  color: var(--color-navy);
+}
+
+.verify-strip-legend > p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 880px) {
+  .verify-strip {
+    padding: var(--space-5) 0;
+  }
+
+  .verify-strip-rail {
+    grid-template-columns: 1fr;
+  }
+
+  .verify-step {
+    padding: var(--space-2) 0;
+  }
+
+  .verify-step + .verify-step {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    padding-left: 0;
+  }
+}
+
+/* --------------------------------------------------------------------
+ * 가격 검증 리포트 — 판정문 옆 산출 근거 (표본·기간을 아하 순간에 노출)
+ * -------------------------------------------------------------------- */
+.report-verdict-box {
+  flex-wrap: wrap;
+}
+
+.report-verdict-box .verdict-basis {
+  flex-basis: 100%;
+  margin-top: 2px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------
+ * 빈 상태 — 회복 액션 줄 (필터 초기화 등)
+ * -------------------------------------------------------------------- */
+.empty-state-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: var(--space-3);
+}
+
+/* 중개사 가입 폼 — 고정 라벨 (플레이스홀더는 형식 예시 전용) */
+.agent-field {
+  display: grid;
+  gap: 6px;
+}
+
+.agent-field > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.agent-field > span small {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+/* 앵커 이동 시 스티키 헤더(72px) + 앵커 바(약 52px)에 가리지 않도록 여유를 둔다 */
+.compass-detail [id] {
+  scroll-margin-top: calc(var(--header-height) + 64px);
+}
+
+/* 앵커 바가 static으로 바뀌는 좁은 화면에서는 헤더만 고려 */
+@media (max-width: 900px) {
+  .compass-detail [id] {
+    scroll-margin-top: calc(var(--header-height) + 16px);
+  }
+}
+
+/* 목록 요약줄 — 결과 수와 조건 초기화를 한 줄에 */
+.listing-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.listing-reset {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  font-size: 13px;
+}
+
+/* 폼 컨트롤은 line-height를 상속하지 않는다(UA 기본값 normal) — 한국어에 맞는 값을 명시한다 */
+button,
+input,
+select,
+textarea {
+  line-height: var(--lh-label);
+}
+
+/* <small> 의 브라우저 기본값은 부모의 0.83em 이라 13px 라벨 안에서 10.8px 가 된다.
+ * 마이크로 하한(12px)을 벗어나므로 스케일에 고정한다. */
+small {
+  font-size: var(--type-micro);
+  line-height: var(--lh-label);
 }

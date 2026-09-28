@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
+import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const DIRECTIONS = ['남향', '동향', '서향', '북향', '남동향', '남서향'];
 const OCCUPANCY_OPTIONS = ['공실', '세입자 거주', '집주인 거주'];
@@ -29,6 +30,7 @@ const initialForm = {
   saleReason: '',
   saleDeadline: '',
   description: '',
+  contactPhone: '', // 매수자가 실제로 연락할 번호 — 없으면 매물이 막다른 길이 된다
   photos: [], // File[] — 사진 업로드용
 };
 
@@ -39,12 +41,21 @@ function AgentRegisterProperty() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [attempted, setAttempted] = useState(false); // 제출 시도 여부 (필드별 빨간 안내용)
+  const [photoOverflow, setPhotoOverflow] = useState(0); // 10장 초과 선택분 안내
   // 자동 산출된 기준 실거래가 미리보기 { price, source } | null
   const [reference, setReference] = useState(null);
 
   const update = (key) => (event) => {
-    setForm((s) => ({ ...s, [key]: event.target.value }));
+    const value = key === 'contactPhone' ? formatPhone(event.target.value) : event.target.value;
+    setForm((s) => ({ ...s, [key]: value }));
   };
+
+  // 프로필에 등록된 연락처를 기본값으로 — 비어 있으면 직접 입력해야 등록된다
+  useEffect(() => {
+    if (profile?.phone) {
+      setForm((s) => (s.contactPhone ? s : { ...s, contactPhone: formatPhone(profile.phone) }));
+    }
+  }, [profile?.phone]);
 
   // 입력 단위(㎡/평)를 ㎡로 환산 — 저장·매칭·표시 기준
   const toSqm = (value) => {
@@ -68,6 +79,10 @@ function AgentRegisterProperty() {
       areaBucket: getAreaBucket(areaSqm),
     }).then((result) => {
       if (active) setReference(result);
+    }).catch((referenceError) => {
+      // 미리보기 실패는 치명적이지 않음 — 안내문이 "등록 시 지역 시세로 자동 산출" 폴백을 이미 설명
+      console.warn('기준가 미리보기 조회 실패.', referenceError);
+      if (active) setReference(null);
     });
     return () => {
       active = false;
@@ -89,6 +104,7 @@ function AgentRegisterProperty() {
     builtYear: '건축연도',
     price: '매도 호가',
     description: '매물 설명',
+    contactPhone: '문의 연락처',
   };
 
   // 필수 항목인데 비어있고, 제출을 시도한 적이 있으면 표시할 빨간 안내
@@ -178,7 +194,7 @@ function AgentRegisterProperty() {
               }))}
               placeholder="단지명 입력 후 목록에서 선택 (예: 마포래미안푸르지오)"
             />
-            <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
+            <small className="field-hint">
               {form.complexGu
                 ? `선택됨: ${form.complexSigungu} — 단지 실거래가로 기준가가 계산됩니다.`
                 : '※ 선택하면 단지 실거래가로, 비우면 지역 시세로 기준 실거래가가 자동 산출됩니다.'}
@@ -187,7 +203,7 @@ function AgentRegisterProperty() {
           <label>
             주소 *
             <input type="text" name="address" value={form.address} onChange={update('address')} placeholder="예: 서울특별시 마포구 아현동 1-1" required />
-            <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>
+            <small className="field-hint">
               ※ 주소를 정확히 입력하면 지역·지도 좌표·주변 시설을 자동으로 찾아드립니다.
             </small>
             {fieldError('address')}
@@ -207,7 +223,7 @@ function AgentRegisterProperty() {
           <div className="register-grid-2">
             <label>
               전용면적 ({unitLabel}) *
-              <input type="number" name="area" step="0.1" value={form.area} onChange={update('area')} required />
+              <input type="number" name="area" min="1" step="0.1" value={form.area} onChange={update('area')} required />
               {fieldError('area')}
             </label>
             <label>
@@ -245,7 +261,7 @@ function AgentRegisterProperty() {
               건축연도 *
               <input type="number" name="builtYear" min="1970" max="2030" value={form.builtYear} onChange={update('builtYear')} required />
               {form.complexGu && form.builtYear ? (
-                <small style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 4 }}>단지 선택으로 자동 입력됨 (수정 가능)</small>
+                <small className="field-hint">단지 선택으로 자동 입력됨 (수정 가능)</small>
               ) : null}
               {fieldError('builtYear')}
             </label>
@@ -311,14 +327,21 @@ function AgentRegisterProperty() {
             type="file"
             accept="image/*"
             multiple
+            aria-label="매물 사진 선택 (최대 10장)"
             onChange={(event) => {
-              const files = Array.from(event.target.files ?? []).slice(0, 10);
-              setForm((s) => ({ ...s, photos: files }));
+              const selected = Array.from(event.target.files ?? []);
+              setPhotoOverflow(Math.max(0, selected.length - 10));
+              setForm((s) => ({ ...s, photos: selected.slice(0, 10) }));
             }}
           />
           {form.photos.length > 0 && (
             <p className="register-hint">
               <strong>{form.photos.length}장</strong> 선택됨 — {form.photos.map((f) => f.name).join(', ')}
+            </p>
+          )}
+          {photoOverflow > 0 && (
+            <p className="register-hint">
+              최대 10장까지 등록됩니다 — 초과한 {photoOverflow}장은 제외했습니다.
             </p>
           )}
           <p className="register-hint">사진을 안 올려도 등록은 가능하지만, 사진이 있는 매물이 매수자 신뢰가 훨씬 높습니다.</p>
@@ -351,7 +374,28 @@ function AgentRegisterProperty() {
             required
           />
           {fieldError('description')}
-          <p className="register-hint">중개사무소명·연락처는 가입한 중개사 계정 정보로 자동 등록됩니다.</p>
+        </fieldset>
+
+        {/* Section: 문의 연락처 — 매수자의 여정이 여기서 끊기지 않도록 필수 */}
+        <fieldset className="register-section">
+          <legend>문의 연락처</legend>
+          <label>
+            매수자 문의 연락처 *
+            <input
+              type="tel"
+              name="contactPhone"
+              value={form.contactPhone}
+              onChange={update('contactPhone')}
+              placeholder="예: 010-1234-5678"
+              inputMode="numeric"
+              maxLength={PHONE_MAX_LENGTH}
+              required
+            />
+            <small className="field-hint">
+              ※ 매물 상세의 문의 버튼에 연결되는 번호입니다. 중개사무소명은 가입 정보로 자동 등록됩니다.
+            </small>
+            {fieldError('contactPhone')}
+          </label>
         </fieldset>
 
         {error && <p className="form-status error">{error}</p>}

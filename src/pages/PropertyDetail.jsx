@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
   AlertTriangle,
   Bath,
@@ -20,6 +20,7 @@ import {
   Share2,
   ShieldCheck,
   TrendingDown,
+  X,
 } from 'lucide-react';
 import PropertyMediaViewer from '../components/PropertyMediaViewer.jsx';
 import PropertyLocationMap from '../components/PropertyLocationMap.jsx';
@@ -28,11 +29,12 @@ import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
 import { formatArea, formatPrice } from '../utils/priceUtils.js';
 import { getPropertyPhotos } from '../utils/propertyMedia.js';
+import { isSaved, toggleSaved } from '../utils/savedProperties.js';
+import { hasPriceConflict } from '../utils/priceEvidence.js';
 
 // 탭 순서는 페이지 DOM의 섹션 순서와 동일해야 함 (스크롤 흐름과 일치)
 const detailTabs = [
   ['개요', '#overview'],
-  ['방문 일정', '#open-house'],
   ['가격 리포트', '#price-report'],
   ['매물 정보', '#property-info'],
   ['위치', '#location'],
@@ -68,14 +70,91 @@ function getDaysSince(dateString) {
 function PropertyDetail() {
   const { id } = useParams();
   const { property } = useProperty(id);
+  // 매물 등록 직후 진입(?just_registered=1) — 중개사의 첫 성공 순간을 확인해주는 배너.
+  // URL 파라미터 기반이라 재방문·새로고침(닫기 후)에는 다시 뜨지 않음.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const justRegistered = searchParams.get('just_registered') === '1';
+
+  const dismissRegisteredBanner = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('just_registered');
+    setSearchParams(next, { replace: true });
+  };
   const photos = useMemo(() => (property ? getPropertyPhotos(property, 12) : []), [property]);
   const [activePhoto, setActivePhoto] = useState(0);
   const [viewerMode, setViewerMode] = useState(null);
   const thumbnailTrackRef = useRef(null);
+  // 저장(찜) — localStorage 영속, 로그인 불필요
+  const [saved, setSaved] = useState(false);
+  // 공유 피드백 — '복사됨' 2초 표시
+  const [shareCopied, setShareCopied] = useState(false);
+  const [activeSection, setActiveSection] = useState('overview');
 
   useEffect(() => {
     setActivePhoto(0);
+    setSaved(isSaved(id));
   }, [id]);
+
+  // 앵커 탭 — React Router가 네이티브 해시 스크롤을 삼키므로 직접 스크롤한다.
+  // (스크롤 오프셋은 CSS scroll-margin-top이 담당)
+  const handleAnchorClick = (event, href) => {
+    const target = document.getElementById(href.slice(1));
+    if (!target) return; // 섹션이 없으면 기본 동작에 맡긴다
+    event.preventDefault();
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.history.replaceState(null, '', href);
+  };
+
+  // 목록 카드의 '문의하기'처럼 해시를 달고 진입한 경우 — 데이터 렌더 후 해당 섹션으로 이동
+  useEffect(() => {
+    if (!property) return undefined;
+    const hash = window.location.hash;
+    if (!hash) return undefined;
+    const timer = setTimeout(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [property]);
+
+  // 현재 보고 있는 섹션을 탭에 반영 — 긴 페이지에서 현재 위치를 알려주는 유일한 단서
+  useEffect(() => {
+    if (!property) return undefined;
+    const sections = detailTabs
+      .map(([, href]) => document.getElementById(href.slice(1)))
+      .filter(Boolean);
+    if (sections.length === 0) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        if (visible.length > 0) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: '-150px 0px -70% 0px', threshold: 0 },
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [property]);
+
+  const handleToggleSave = () => {
+    setSaved(toggleSaved(id));
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = property ? `${property.title} — 급매` : '급매';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch (shareError) {
+      // 사용자가 공유 시트를 닫은 경우(AbortError)는 정상 — 그 외에만 로그
+      if (shareError?.name !== 'AbortError') console.warn('공유 실패.', shareError);
+    }
+  };
 
   // 화살표로 사진을 넘기면 활성 썸네일이 화면 밖일 수 있어 가로 스크롤로 끌어옴
   useEffect(() => {
@@ -165,10 +244,6 @@ function PropertyDetail() {
     ? `${basis.method} · 국토부 기준${basis.confidence === 'low' ? ' (표본 적음)' : ''}`
     : '동일 단지와 유사 면적 최근 실거래가 기준';
 
-  // 방문 일정은 매물별로 다르고 매도자/중개사 일정에 따라 변동.
-  // 통일된 시스템 만들기 전까지는 "협의" 메시지로 단순화.
-  const openHouseItems = [];
-
   const showPreviousPhoto = () => {
     setActivePhoto((current) => (current === 0 ? photos.length - 1 : current - 1));
   };
@@ -179,6 +254,29 @@ function PropertyDetail() {
 
   return (
     <div className="detail-page compass-detail">
+      {justRegistered && (
+        <div className="just-registered-banner" role="status">
+          <div className="container just-registered-inner">
+            <CheckCircle2 size={20} aria-hidden="true" />
+            <div className="just-registered-copy">
+              <strong>매물이 등록되었습니다 — 지금 매수자에게 보이는 화면입니다.</strong>
+              <span>실거래가 검증과 AI 매물 리포트는 자동으로 생성됩니다. 잠시 후 이 페이지에서 확인하세요.</span>
+            </div>
+            <Link to="/agent/properties" className="just-registered-link">
+              내 매물 관리
+            </Link>
+            <button
+              type="button"
+              className="just-registered-dismiss"
+              onClick={dismissRegisteredBanner}
+              aria-label="등록 완료 안내 닫기"
+            >
+              <X size={17} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <section className="property-masthead" id="overview">
         <div className="container property-masthead-inner">
           <div className="masthead-copy">
@@ -202,13 +300,18 @@ function PropertyDetail() {
             </div>
 
             <div className="masthead-actions">
-              <button type="button" className="pill-action-button primary">
-                <Heart size={17} />
-                저장
+              <button
+                type="button"
+                className={saved ? 'pill-action-button primary is-saved' : 'pill-action-button primary'}
+                onClick={handleToggleSave}
+                aria-pressed={saved}
+              >
+                <Heart size={17} fill={saved ? 'currentColor' : 'none'} />
+                {saved ? '저장됨' : '저장'}
               </button>
-              <button type="button" className="pill-action-button">
+              <button type="button" className="pill-action-button" onClick={handleShare}>
                 <Share2 size={17} />
-                공유
+                {shareCopied ? '링크 복사됨' : '공유'}
               </button>
             </div>
           </div>
@@ -217,8 +320,14 @@ function PropertyDetail() {
 
       <nav className="detail-anchor-tabs" aria-label="매물 상세 메뉴">
         <div className="container detail-anchor-list">
-          {detailTabs.map(([label, href], index) => (
-            <a key={href} href={href} className={index === 0 ? 'is-active' : undefined}>
+          {detailTabs.map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className={activeSection === href.slice(1) ? 'is-active' : undefined}
+              aria-current={activeSection === href.slice(1) ? 'true' : undefined}
+              onClick={(event) => handleAnchorClick(event, href)}
+            >
               {label}
             </a>
           ))}
@@ -238,24 +347,30 @@ function PropertyDetail() {
                 </span>
               </div>
 
-              <button
-                type="button"
-                className="gallery-nav previous"
-                aria-label="이전 사진"
-                onClick={showPreviousPhoto}
-              >
-                <ChevronLeft size={24} />
-              </button>
-              <button type="button" className="gallery-nav next" aria-label="다음 사진" onClick={showNextPhoto}>
-                <ChevronRight size={24} />
-              </button>
+              {photos.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className="gallery-nav previous"
+                    aria-label="이전 사진"
+                    onClick={showPreviousPhoto}
+                  >
+                    <ChevronLeft size={24} />
+                  </button>
+                  <button type="button" className="gallery-nav next" aria-label="다음 사진" onClick={showNextPhoto}>
+                    <ChevronRight size={24} />
+                  </button>
+                </>
+              )}
             </div>
 
             <div className="thumbnail-dock">
               <div className="thumbnail-scroll-zone">
-                <button type="button" className="dock-arrow" aria-label="이전 사진" onClick={showPreviousPhoto}>
-                  <ChevronLeft size={21} />
-                </button>
+                {photos.length > 1 && (
+                  <button type="button" className="dock-arrow" aria-label="이전 사진" onClick={showPreviousPhoto}>
+                    <ChevronLeft size={21} />
+                  </button>
+                )}
                 <div className="thumbnail-track" aria-label="사진 썸네일 목록" ref={thumbnailTrackRef}>
                   {photos.map((photo, index) => (
                     <button
@@ -269,9 +384,11 @@ function PropertyDetail() {
                     </button>
                   ))}
                 </div>
-                <button type="button" className="dock-arrow" aria-label="다음 사진" onClick={showNextPhoto}>
-                  <ChevronRight size={21} />
-                </button>
+                {photos.length > 1 && (
+                  <button type="button" className="dock-arrow" aria-label="다음 사진" onClick={showNextPhoto}>
+                    <ChevronRight size={21} />
+                  </button>
+                )}
               </div>
               <div className="gallery-action-group" aria-label="전체 미디어 보기">
                 <button type="button" className="gallery-action-tile" onClick={() => setViewerMode('photos')}>
@@ -303,6 +420,13 @@ function PropertyDetail() {
             <section className="detail-section description-panel">
               <p className="section-eyebrow">매물 설명</p>
               <h2>{property.title} 핵심 포인트</h2>
+              {hasPriceConflict(property) && (
+                <p className="price-conflict-note">
+                  <AlertTriangle size={16} aria-hidden="true" />
+                  아래 설명문에는 전세 보증금을 낀 총액이나 초기 투자금이 적혀 있어, 위에 표시된 매도가와 다를 수 있습니다.
+                  할인율은 <strong>매도가</strong>와 국토부 실거래 중앙값을 비교해 산출한 값입니다.
+                </p>
+              )}
               <p>{property.description}</p>
               <div className="detail-highlight-grid">
                 {highlightItems.map(([label, value]) => (
@@ -312,30 +436,6 @@ function PropertyDetail() {
                   </div>
                 ))}
               </div>
-            </section>
-
-            <section className="detail-section open-house-panel" id="open-house">
-              <p className="section-eyebrow">방문 일정</p>
-              <h2>예약 가능한 방문 시간</h2>
-              {openHouseItems.length > 0 ? (
-                <div className="open-house-list">
-                  {openHouseItems.map(([day, time, note]) => (
-                    <div key={day} className="open-house-item">
-                      <CalendarCheck size={20} />
-                      <div>
-                        <strong>{day}</strong>
-                        <span>{time}</span>
-                      </div>
-                      <em>{note}</em>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="open-house-empty">
-                  <CalendarCheck size={20} />
-                  <p>방문 일정은 담당 중개사와 협의해주세요.</p>
-                </div>
-              )}
             </section>
 
             <section className="detail-section" id="price-report">
@@ -427,10 +527,12 @@ function PropertyDetail() {
               {property.agent.verified ? <CheckCircle2 size={17} /> : <AlertTriangle size={17} />}
               {property.agent.verified ? '인증 중개사' : '인증 확인 중'}
             </p>
-            <a className="agent-phone" href={`tel:${phoneHref}`}>
-              <Phone size={17} />
-              {property.agent.phone}
-            </a>
+            {phoneHref && (
+              <a className="agent-phone" href={`tel:${phoneHref}`}>
+                <Phone size={17} />
+                {property.agent.phone}
+              </a>
+            )}
             {agentEmail && (
               <a className="agent-phone" href={`mailto:${agentEmail}`}>
                 <Mail size={17} />
@@ -441,13 +543,22 @@ function PropertyDetail() {
               <CalendarCheck size={17} />
               최근 매물 확인일 {formatKoreanDate(property.lastVerifiedAt)}
             </p>
-            <button type="button" className="tour-button">
-              방문 예약 요청
-              <span>중개사와 일정 협의</span>
-            </button>
-            <button type="button" className="outline-button full">
-              중개사에게 문의
-            </button>
+            {phoneHref ? (
+              <a className="tour-button" href={`tel:${phoneHref}`}>
+                전화로 방문 예약·문의
+                <span>방문 일정은 중개사와 협의</span>
+              </a>
+            ) : agentEmail ? (
+              <a className="tour-button" href={`mailto:${agentEmail}`}>
+                이메일로 방문 예약·문의
+                <span>방문 일정은 중개사와 협의</span>
+              </a>
+            ) : (
+              <p className="contact-empty-note">
+                이 매물은 중개사무소 연락처가 아직 등록되지 않았습니다.
+                가격 검증 근거는 위 가격 리포트에서 직접 확인하실 수 있습니다.
+              </p>
+            )}
           </section>
 
           <section className="sidebar-proof-card">

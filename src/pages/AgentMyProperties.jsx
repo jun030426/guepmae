@@ -68,7 +68,19 @@ function AgentMyProperties() {
         {error && <p className="form-status error">{error}</p>}
 
         {mine.length === 0 ? (
-          <p className="admin-empty">아직 등록한 매물이 없습니다. 새 매물을 등록해보세요.</p>
+          <div className="agent-empty-state">
+            <div className="agent-empty-icon" aria-hidden="true">
+              <Plus size={22} />
+            </div>
+            <h3>아직 등록한 매물이 없습니다</h3>
+            <p>
+              매물을 등록하면 실거래가 검증과 AI 리포트가 자동으로 붙고,
+              등록한 매물이 이 목록에 표시됩니다.
+            </p>
+            <Link to="/agent/properties/new" className="primary-link-button">
+              첫 매물 등록하기
+            </Link>
+          </div>
         ) : (
           <div className="admin-scroll-table">
             <table className="admin-table">
@@ -87,7 +99,7 @@ function AgentMyProperties() {
                 {mine.map((property) => (
                   <tr key={property.id}>
                     <td>
-                      <Link to={`/properties/${property.id}`} className="admin-link" target="_blank">
+                      <Link to={`/properties/${property.id}`} className="admin-link" target="_blank" rel="noreferrer">
                         {property.title}
                         <ExternalLink size={12} />
                       </Link>

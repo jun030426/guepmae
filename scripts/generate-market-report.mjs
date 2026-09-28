@@ -56,7 +56,7 @@ const SYSTEM_PROMPT = `당신은 한국 부동산 시장 데이터를 분석하�
 - "평균과 중앙값 차이가 큰 지역은 무엇이고 이는 무엇을 의미하는가" (소수 고가 거래가 평균을 흔든 것)
 - "면적대별로 가격·할인이 어떻게 분포하는가"
 - "급매 집중 단지 Top 10 의 공통점·지역 분포"
-- "13개월 추이에서 관찰되는 거래량·급매 비율 변화"
+- "월별 추이에서 관찰되는 거래량·급매 비율 변화"
 
 출력 형식은 주어진 JSON schema 를 정확히 따르세요.`;
 
@@ -66,7 +66,7 @@ const RESPONSE_SCHEMA = {
   properties: {
     dataAsOf: {
       type: 'string',
-      description: '데이터 기준 월 (예: "2026-05"). 입력 metadata.lastUpdated 에서 정확히 인용.',
+      description: '데이터가 실제로 덮는 마지막 월 (예: "2026-07"). 입력 metadata.months 의 마지막 원소를 그대로 인용. 갱신일(lastUpdated)이 아니다.',
     },
     marketMood: {
       type: 'string',
@@ -158,7 +158,8 @@ function buildUserPrompt(market) {
   return `아래 데이터로 3~5개 인사이트 카드를 작성하세요.
 
 ## 📅 데이터 기준
-- 기준 월: ${md.lastUpdated || '미상'}
+- 기준 월(데이터가 덮는 마지막 월): ${md.months?.[md.months.length - 1] || '미상'}
+- 갱신일(수집 실행일, 분석 기준이 아님): ${md.lastUpdated || '미상'}
 - 출처: ${md.name || '미상'}
 - 총 거래 표본: ${md.totalRows?.toLocaleString() || '?'}건
 - 집계 기간: ${md.months?.[0] || '?'} ~ ${md.months?.[md.months.length - 1] || '?'} (${md.months?.length || '?'}개월)
@@ -167,7 +168,7 @@ function buildUserPrompt(market) {
 ## 🗺️ 17개 시도 평균/중앙값 (음수 = 또래 시세보다 비싸게 거래 = 프리미엄, 양수 = 할인)
 ${regionalLines}
 
-## 📈 13개월 월별 추이
+## 📈 ${md.months?.length ?? '?'}개월 월별 추이
 ${monthlyLines}
 
 ## 📐 면적대별
@@ -184,14 +185,14 @@ ${insightLines}
 - **미래 가격 단정 절대 금지** ("오를"·"내릴"·"전망"·"예상" 등). 과거 패턴만 서술.
 - **매수·투자 권유 절대 금지** ("사세요"·"기회"·"추천" 등). 사실 기술만.
 - 숫자는 위에서 정확히 인용. 새 수치 만들지 말 것.
-- 데이터 기준 ${md.lastUpdated || '미상'}임을 인사이트 본문 또는 dataAsOf 필드에 명시.
+- dataAsOf 에는 갱신일이 아니라 데이터가 덮는 마지막 월(${md.months?.[md.months.length - 1] || '미상'})을 쓸 것.
 
 좋은 인사이트는 다음 같은 진단:
 - "서울 평균 -32.8% vs 중앙값 -1.1%"의 의미 (소수 고가 거래가 평균을 흔든 것, 일반 매물은 거의 시세대로)
 - 프리미엄 우세 지역 vs 할인 우세 지역의 분포 패턴
 - 면적대별 가격·할인 차이 (소형 vs 대형)
 - Top 10 단지의 지역적 분포·공통점
-- 13개월 거래량·급매 추이의 관찰된 변화`;
+- 월별 거래량·급매 추이의 관찰된 변화`;
 }
 
 async function callGemini(key, model, system, user) {
@@ -241,7 +242,9 @@ async function main() {
     throw new Error('public/data/market_snapshots.json 이 없습니다. 시장 스냅샷을 먼저 생성하세요.');
   }
   const market = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'));
-  const dataAsOf = market.metadata?.lastUpdated || null;
+  // 갱신일이 아니라 데이터가 실제로 덮는 마지막 월이 분석의 기준이다.
+  const md = market.metadata || {};
+  const dataAsOf = md.months?.[md.months.length - 1] || md.lastUpdated || null;
 
   console.log(`시장 리포트 생성 시작 (기준 ${dataAsOf || '미상'}, 모델 ${MODELS[0]})...`);
   const { report, model } = await generate(key, market);

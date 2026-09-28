@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
 import { db } from '../lib/dataClient.js';
@@ -15,6 +15,7 @@ function AgentEditProperty() {
   const [newFiles, setNewFiles] = useState([]); // 추가 업로드할 파일
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [photoOverflow, setPhotoOverflow] = useState(0); // 10장 초과 선택분 안내
 
   useEffect(() => {
     if (!property) return;
@@ -32,6 +33,21 @@ function AgentEditProperty() {
     setExistingMedia(Array.isArray(property.media) ? property.media : []);
   }, [property]);
 
+  // 로드가 끝났는데 매물이 없으면 not-found — "불러오는 중" 무한 표시 방지
+  if (!isLoading && !property) {
+    return (
+      <div className="page-shell agent-register-page">
+        <section className="container empty-state detail-empty">
+          <h1>매물을 찾을 수 없습니다.</h1>
+          <p>삭제되었거나 주소가 잘못되었을 수 있습니다. 내 매물 목록에서 다시 선택해 주세요.</p>
+          <Link to="/agent/properties" className="primary-link-button">
+            내 매물 목록으로 이동
+          </Link>
+        </section>
+      </div>
+    );
+  }
+
   if (isLoading || !form) {
     return (
       <div className="page-shell agent-register-page">
@@ -44,10 +60,10 @@ function AgentEditProperty() {
 
   const update = (key) => (event) => setForm((s) => ({ ...s, [key]: event.target.value }));
 
-  // 기준 실거래가는 등록 시 확정된 값 유지, 매도가만 바꾸면 할인율 재계산
-  const market = property.actualTransactionPrice || Number(form.price);
-  const newDiscount =
-    market > 0 ? (((market - Number(form.price)) / market) * 100).toFixed(1) : '0.0';
+  // 기준 실거래가는 등록 시 확정된 값 유지 — 없으면 할인율을 계산하지 않는다
+  // (자기 호가를 기준가로 삼으면 항상 0%가 되는 가짜 지표가 됨)
+  const market = property.actualTransactionPrice || 0;
+  const newDiscount = market > 0 ? (((market - Number(form.price)) / market) * 100).toFixed(1) : null;
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -72,26 +88,31 @@ function AgentEditProperty() {
     }
     media = media.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
 
-    const { data, error: updateError } = await db
-      .from('properties')
-      .update({
-        title: form.title,
-        price: Number(form.price),
-        discount_rate: Number(newDiscount),
-        floor: form.floor,
-        direction: form.direction,
-        occupancy_status: form.occupancyStatus,
-        rooms: Number(form.rooms),
-        bathrooms: Number(form.bathrooms),
-        parking: form.parking || '미공개',
-        description: form.description,
-        media,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select('id');
-    if (updateError) {
-      setError(`수정 실패: ${updateError.message}`);
+    let data;
+    try {
+      const { data: updated, error: updateError } = await db
+        .from('properties')
+        .update({
+          title: form.title,
+          price: Number(form.price),
+          // 기준가가 없어 재계산 불가하면 기존 할인율 유지
+          discount_rate: newDiscount !== null ? Number(newDiscount) : property.discountRate,
+          floor: form.floor,
+          direction: form.direction,
+          occupancy_status: form.occupancyStatus,
+          rooms: Number(form.rooms),
+          bathrooms: Number(form.bathrooms),
+          parking: form.parking || '미공개',
+          description: form.description,
+          media,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select('id');
+      if (updateError) throw updateError;
+      data = updated;
+    } catch (saveError) {
+      setError(`수정 실패: ${saveError.message || '네트워크 오류 — 잠시 후 다시 시도해주세요.'}`);
       setSaving(false);
       return;
     }
@@ -200,10 +221,18 @@ function AgentEditProperty() {
             type="file"
             accept="image/*"
             multiple
-            onChange={(event) => setNewFiles(Array.from(event.target.files ?? []).slice(0, 10))}
+            aria-label="추가할 매물 사진 선택 (최대 10장)"
+            onChange={(event) => {
+              const selected = Array.from(event.target.files ?? []);
+              setPhotoOverflow(Math.max(0, selected.length - 10));
+              setNewFiles(selected.slice(0, 10));
+            }}
           />
           {newFiles.length > 0 && (
             <p className="register-hint"><strong>{newFiles.length}장</strong> 추가 예정 — 저장 시 업로드됩니다.</p>
+          )}
+          {photoOverflow > 0 && (
+            <p className="register-hint">최대 10장까지 추가됩니다 — 초과한 {photoOverflow}장은 제외했습니다.</p>
           )}
           <p className="register-hint">첫 번째 사진이 대표 사진으로 표시됩니다. 기존 사진은 × 로 삭제할 수 있어요.</p>
         </fieldset>

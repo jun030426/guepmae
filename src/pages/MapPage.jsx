@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, MapPin, Minus, Plus, SlidersHorizontal, X } from 'lucide-react';
 import MapView from '../components/MapView.jsx';
 import { useProperties } from '../hooks/useProperties.js';
+import { getPaginationItems } from '../utils/pagination.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { getPrimaryPropertyPhoto } from '../utils/propertyMedia.js';
 
@@ -41,23 +42,8 @@ const initialFilters = {
 };
 
 function getUnitCount(property) {
-  return property.unitCount ?? 500;
-}
-
-function getPaginationItems(currentPage, totalPages) {
-  if (totalPages <= 7) {
-    return Array.from({ length: totalPages }, (_, index) => index + 1);
-  }
-
-  if (currentPage <= 4) {
-    return [1, 2, 3, 4, 5, 'ellipsis', totalPages];
-  }
-
-  if (currentPage >= totalPages - 3) {
-    return [1, 'ellipsis', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
-  }
-
-  return [1, 'ellipsis-left', currentPage - 1, currentPage, currentPage + 1, 'ellipsis-right', totalPages];
+  // 세대수 미상은 0 — "N세대 이상" 필터에 잘못 걸리지 않게 (전체 필터에서는 그대로 노출)
+  return property.unitCount ?? 0;
 }
 
 function formatDiscount(discountRate) {
@@ -67,12 +53,22 @@ function formatDiscount(discountRate) {
 function MapListCard({ property, selected, onSelect, registerRef }) {
   const photo = getPrimaryPropertyPhoto(property);
 
+  // 내부에 상세보기 <Link> 가 있어 <button> 으로 감싸면 무효 HTML — div[role=button] + 키보드 처리로 대체
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onSelect(property.id);
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       ref={registerRef}
       className={`map-list-card ${selected ? 'selected' : ''}`}
       onClick={() => onSelect(property.id)}
+      onKeyDown={handleKeyDown}
       aria-pressed={selected}
     >
       <div className="map-list-card-photo">
@@ -100,7 +96,7 @@ function MapListCard({ property, selected, onSelect, registerRef }) {
           상세 보기 →
         </Link>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -247,7 +243,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
           {/* 방 + 욕실 — 같은 스테퍼 형태로 통일 */}
           <div className="map-filter-room-box">
             <div className="map-filter-room-col">
-              <label className="map-filter-room-label">방</label>
+              <span className="map-filter-room-label">방</span>
               <div className="map-filter-stepper">
                 <button
                   type="button"
@@ -270,7 +266,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
             </div>
 
             <div className="map-filter-room-col">
-              <label className="map-filter-room-label">욕실</label>
+              <span className="map-filter-room-label">욕실</span>
               <div className="map-filter-stepper">
                 <button
                   type="button"
@@ -356,7 +352,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 }
 
 function MapPage() {
-  const { properties: urgentProperties } = useProperties({ urgentOnly: true });
+  const { properties: urgentProperties, isLoading: propertiesLoading } = useProperties({ urgentOnly: true });
   const [filters, setFilters] = useState(initialFilters);
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -373,7 +369,7 @@ function MapPage() {
       if (p.price < minP || p.price > maxP) return false;
       if (filters.minRooms > 0 && p.rooms < filters.minRooms) return false;
       if (filters.minBaths > 0 && p.bathrooms < filters.minBaths) return false;
-      const pyeong = (p.supplyArea ?? p.area ?? 0) / 3.3;
+      const pyeong = (p.supplyArea ?? p.area ?? 0) * 0.3025; // ㎡→평 (priceUtils 와 동일 상수)
       if (filters.pyeongMin > PYEONG_MIN && pyeong < filters.pyeongMin) return false;
       if (filters.pyeongMax < PYEONG_MAX && pyeong > filters.pyeongMax) return false;
       if (unitOption && !unitOption.test(getUnitCount(p))) return false;
@@ -471,10 +467,21 @@ function MapPage() {
                   registerRef={registerCardRef(property.id)}
                 />
               ))
+            ) : propertiesLoading ? (
+              <div className="map-card-empty">
+                <p>매물을 불러오는 중...</p>
+              </div>
             ) : (
               <div className="map-card-empty">
                 <p>조건에 맞는 매물이 없습니다.</p>
                 <p>필터를 조금 넓혀 다시 확인해보세요.</p>
+                <button
+                  type="button"
+                  className="outline-button map-empty-reset"
+                  onClick={() => setFilters(initialFilters)}
+                >
+                  필터 초기화
+                </button>
               </div>
             )}
           </div>
@@ -484,7 +491,7 @@ function MapPage() {
               <button
                 type="button"
                 className="map-page-arrow"
-                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                onClick={() => setCurrentPage(Math.max(1, activePage - 1))}
                 disabled={activePage === 1}
                 aria-label="이전 페이지"
               >
@@ -512,7 +519,7 @@ function MapPage() {
               <button
                 type="button"
                 className="map-page-arrow"
-                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                onClick={() => setCurrentPage(Math.min(totalPages, activePage + 1))}
                 disabled={activePage === totalPages}
                 aria-label="다음 페이지"
               >

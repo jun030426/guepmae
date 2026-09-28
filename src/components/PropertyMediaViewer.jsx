@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Compass, Expand, MapPin, Minus, Plus, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Minus, Plus, X } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
 import L, { createOsmTileLayer, createSpotIcon } from '../utils/leafletLoader.js';
@@ -564,31 +564,46 @@ function NaverStreetViewPanel({ property, photos }) {
 }
 
 function TourFallbackPreview({ property, photos, note }) {
-  const streetPhoto = photos[0] ?? photos[1];
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const activePhoto = photos[photoIndex] ?? photos[0];
+
+  const movePhoto = (offset) => {
+    setPhotoIndex((current) => (current + offset + photos.length) % photos.length);
+  };
 
   return (
     <div className="viewer-street-fallback">
-      {streetPhoto && <img src={streetPhoto.src} alt={`${property.title} 외부 사진`} />}
+      {activePhoto && (
+        <img src={activePhoto.src} alt={`${property.title} ${activePhoto.label ?? '등록 사진'}`} />
+      )}
       <div className="street-location-card">
         <strong>{property.title}</strong>
         <span>{property.address}</span>
         <em>{note}</em>
       </div>
-      {/* 데모용 목업 프리뷰의 장식 컨트롤 — 동작하지 않으므로 버튼 시맨틱을 주지 않는다 */}
-      <div className="street-expand-button" aria-hidden="true">
-        <Expand size={20} />
-      </div>
-      <div className="street-arrows" aria-hidden="true">
-        <span>&lt;</span>
-        <span>&gt;</span>
-      </div>
-      <div className="street-compass" aria-hidden="true">
-        <Compass size={24} />
-      </div>
-      <div className="street-zoom" aria-hidden="true">
-        <Plus size={18} />
-        <Minus size={18} />
-      </div>
+      {photos.length > 1 && (
+        <>
+          <button
+            type="button"
+            className="street-arrow prev"
+            aria-label="이전 사진"
+            onClick={() => movePhoto(-1)}
+          >
+            <ChevronLeft size={28} />
+          </button>
+          <button
+            type="button"
+            className="street-arrow next"
+            aria-label="다음 사진"
+            onClick={() => movePhoto(1)}
+          >
+            <ChevronRight size={28} />
+          </button>
+          <span className="street-photo-count" aria-live="polite">
+            {photoIndex + 1} / {photos.length}
+          </span>
+        </>
+      )}
     </div>
   );
 }

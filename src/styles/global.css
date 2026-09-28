@@ -5464,8 +5464,7 @@ textarea:focus {
   font-style: normal;
 }
 
-.viewer-map-zoom,
-.street-zoom {
+.viewer-map-zoom {
   position: absolute;
   right: 26px;
   bottom: 28px;
@@ -5477,15 +5476,13 @@ textarea:focus {
   color: #ffffff;
 }
 
-.viewer-map-zoom svg,
-.street-zoom svg {
+.viewer-map-zoom svg {
   box-sizing: content-box;
   padding: 11px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.24);
 }
 
-.viewer-map-zoom svg:last-child,
-.street-zoom svg:last-child {
+.viewer-map-zoom svg:last-child {
   border-bottom: 0;
 }
 
@@ -5557,48 +5554,48 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.16);
 }
 
-.street-expand-button {
+/* 사진 넘기기 — 실제 동작하는 컨트롤만 노출 (거리뷰 흉내 장식 금지) */
+.street-arrow {
   position: absolute;
-  top: 28px;
-  right: 30px;
+  top: 50%;
   z-index: 2;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   border: 0;
   border-radius: 2px;
   background: rgba(0, 0, 0, 0.68);
   color: #ffffff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background 0.16s ease;
 }
 
-.street-arrows {
+.street-arrow:hover {
+  background: rgba(0, 0, 0, 0.88);
+}
+
+.street-arrow.prev {
+  left: 22px;
+}
+
+.street-arrow.next {
+  right: 22px;
+}
+
+.street-photo-count {
   position: absolute;
-  bottom: 19%;
+  bottom: 28px;
   left: 50%;
   z-index: 2;
-  display: flex;
-  gap: 70px;
+  padding: 7px 12px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.68);
   color: #ffffff;
-  font-size: 72px;
-  font-weight: var(--fw-body);
-  line-height: 1;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.38);
+  font-size: 12px;
+  font-weight: 600;
   transform: translateX(-50%);
-}
-
-.street-compass {
-  position: absolute;
-  right: 26px;
-  bottom: 134px;
-  z-index: 2;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.72);
-  color: #ffffff;
 }
 
 @media (max-width: 1180px) {
@@ -5831,14 +5828,17 @@ textarea:focus {
     max-width: calc(100% - 84px);
   }
 
-  .street-expand-button {
-    top: 16px;
-    right: 16px;
+  .street-arrow {
+    width: 40px;
+    height: 40px;
   }
 
-  .street-arrows {
-    gap: 42px;
-    font-size: 54px;
+  .street-arrow.prev {
+    left: 12px;
+  }
+
+  .street-arrow.next {
+    right: 12px;
   }
 
   .open-house-item {

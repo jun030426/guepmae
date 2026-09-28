@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
+import { canUpload3DModel, getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
@@ -345,6 +345,28 @@ function AgentRegisterProperty() {
             </p>
           )}
           <p className="register-hint">사진을 안 올려도 등록은 가능하지만, 사진이 있는 매물이 매수자 신뢰가 훨씬 높습니다.</p>
+
+          {canUpload3DModel && (
+            <div className="register-3d-field">
+              <label htmlFor="register-model3d">3D 모델 <small>(선택 — .glb/.gltf, 최대 50MB)</small></label>
+              <input
+                id="register-model3d"
+                type="file"
+                accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+                aria-label="3D 모델 파일 선택"
+                onChange={(event) => {
+                  const file = event.target.files?.[0] ?? null;
+                  setForm((s) => ({ ...s, model3d: file }));
+                }}
+              />
+              {form.model3d && (
+                <p className="register-hint">
+                  <strong>{form.model3d.name}</strong> ({(form.model3d.size / 1024 / 1024).toFixed(1)}MB) — 등록하면 매물 상세의 “3D 투어” 탭에 바로 표시됩니다.
+                </p>
+              )}
+              <p className="register-hint">공간 스캔(.glb)을 올리면 매수자가 상세 페이지에서 집 구조를 회전·확대하며 볼 수 있습니다.</p>
+            </div>
+          )}
         </fieldset>
 
         {/* Section 7: 매도 사유 + 매물 설명 (둘 다 AI 리포트 입력) */}

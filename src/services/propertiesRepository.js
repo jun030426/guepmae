@@ -57,6 +57,13 @@ function normalizeProperty(row) {
     priceHistory,
     priceTable: row.price_table ?? null,
     media: Array.isArray(row.media) ? row.media : [],
+    // 3D 모델은 media 의 { type: '3d' } 항목으로 저장 — 투어 패널이 읽는 tour 로 승격.
+    tour: (() => {
+      const media = Array.isArray(row.media) ? row.media : [];
+      const model3d = media.find((item) => item && item.type === '3d' && item.src);
+      const baseTour = row.tour && typeof row.tour === 'object' ? row.tour : {};
+      return model3d ? { ...baseTour, modelUrl: model3d.src, modelLabel: model3d.label ?? null } : baseTour;
+    })(),
     createdAt: row.created_at ?? null,
     priceBasis: row.price_basis ?? null,
   };

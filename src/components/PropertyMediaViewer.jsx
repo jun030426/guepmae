@@ -190,10 +190,61 @@ function MapFallback({ property, note }) {
   );
 }
 
+/* Model3DPanel — 중개사가 올린 .glb/.gltf 를 <model-viewer> 로 렌더.
+ * 뷰어 모듈은 탭을 열 때만 동적 로드 (기본 번들 불변). */
+function Model3DPanel({ property, modelUrl, modelLabel }) {
+  const [loaderStatus, setLoaderStatus] = useState('loading');
+
+  useEffect(() => {
+    let cancelled = false;
+    import('@google/model-viewer')
+      .then(() => { if (!cancelled) setLoaderStatus('ready'); })
+      .catch(() => { if (!cancelled) setLoaderStatus('error'); });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loaderStatus === 'error') {
+    return (
+      <TourFallbackPreview
+        property={property}
+        photos={[]}
+        note="3D 뷰어를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해주세요."
+      />
+    );
+  }
+
+  return (
+    <div className="viewer-model-shell">
+      {loaderStatus === 'ready' ? (
+        <model-viewer
+          src={modelUrl}
+          alt={`${property.title} 3D 모델`}
+          camera-controls
+          auto-rotate
+          auto-rotate-delay="1200"
+          interaction-prompt="auto"
+          shadow-intensity="1"
+          style={{ width: '100%', height: '100%' }}
+        />
+      ) : (
+        <div className="viewer-status-overlay">3D 모델을 불러오는 중입니다.</div>
+      )}
+      <div className="viewer-model-caption">
+        <strong>{modelLabel || '3D 모델'}</strong>
+        <span>드래그로 회전 · 휠로 확대</span>
+      </div>
+    </div>
+  );
+}
+
 function PropertyTourPanel({ property, photos }) {
   const tour = property.tour ?? property.virtualTour ?? {};
   const embedUrl = tour.embedUrl;
   const panoramas = tour.panoramas ?? [];
+
+  if (tour.modelUrl) {
+    return <Model3DPanel property={property} modelUrl={tour.modelUrl} modelLabel={tour.modelLabel} />;
+  }
 
   if (embedUrl) {
     return (

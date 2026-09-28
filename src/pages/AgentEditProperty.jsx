@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
 import { db } from '../lib/dataClient.js';
-import { uploadPropertyPhotos } from '../services/propertyRegistration.js';
+import { canUpload3DModel, uploadProperty3DModel, uploadPropertyPhotos } from '../services/propertyRegistration.js';
 import { formatPrice } from '../utils/priceUtils.js';
 
 function AgentEditProperty() {
@@ -13,6 +13,7 @@ function AgentEditProperty() {
   const [form, setForm] = useState(null);
   const [existingMedia, setExistingMedia] = useState([]); // 유지할 기존 사진
   const [newFiles, setNewFiles] = useState([]); // 추가 업로드할 파일
+  const [model3dFile, setModel3dFile] = useState(null); // 새로/교체 업로드할 3D 모델(.glb)
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [photoOverflow, setPhotoOverflow] = useState(0); // 10장 초과 선택분 안내
@@ -74,19 +75,27 @@ function AgentEditProperty() {
     setSaving(true);
     setError('');
 
-    // 사진: 유지한 기존 + 새로 업로드, 첫 장을 대표 사진으로 재라벨
-    let media = [...existingMedia];
+    // 사진: 유지한 기존 + 새로 업로드, 첫 장을 대표 사진으로 재라벨.
+    // 3D 모델 등 비사진 항목은 재라벨에서 제외하고 뒤에 붙인다.
+    let photoMedia = existingMedia.filter((m) => !m.type || m.type === 'photo');
+    let model3dItem = existingMedia.find((m) => m.type === '3d') ?? null;
     try {
       if (newFiles.length > 0) {
         const uploaded = await uploadPropertyPhotos(newFiles, id);
-        media = [...media, ...uploaded];
+        photoMedia = [...photoMedia, ...uploaded];
+      }
+      if (model3dFile) {
+        model3dItem = await uploadProperty3DModel(model3dFile, id);
       }
     } catch (uploadErr) {
       setError(uploadErr.message || '사진 업로드 실패');
       setSaving(false);
       return;
     }
-    media = media.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
+    let media = photoMedia.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
+    if (model3dItem) {
+      media = [...media, model3dItem];
+    }
 
     let data;
     try {
@@ -199,20 +208,23 @@ function AgentEditProperty() {
           <legend>매물 사진</legend>
           {existingMedia.length > 0 ? (
             <div className="edit-photo-grid">
-              {existingMedia.map((m, i) => (
-                <div key={m.src} className="edit-photo-item">
-                  <img src={m.src} alt={m.alt || `사진 ${i + 1}`} />
-                  {i === 0 && <span className="edit-photo-cover">대표</span>}
-                  <button
-                    type="button"
-                    className="edit-photo-remove"
-                    aria-label="사진 삭제"
-                    onClick={() => setExistingMedia((arr) => arr.filter((_, idx) => idx !== i))}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+              {existingMedia
+                .map((m, i) => ({ m, i }))
+                .filter(({ m }) => !m.type || m.type === 'photo')
+                .map(({ m, i }, photoIndex) => (
+                  <div key={m.src} className="edit-photo-item">
+                    <img src={m.src} alt={m.alt || `사진 ${photoIndex + 1}`} />
+                    {photoIndex === 0 && <span className="edit-photo-cover">대표</span>}
+                    <button
+                      type="button"
+                      className="edit-photo-remove"
+                      aria-label="사진 삭제"
+                      onClick={() => setExistingMedia((arr) => arr.filter((_, idx) => idx !== i))}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
             </div>
           ) : (
             <p className="register-hint">등록된 사진이 없습니다.</p>
@@ -235,6 +247,38 @@ function AgentEditProperty() {
             <p className="register-hint">최대 10장까지 추가됩니다 — 초과한 {photoOverflow}장은 제외했습니다.</p>
           )}
           <p className="register-hint">첫 번째 사진이 대표 사진으로 표시됩니다. 기존 사진은 × 로 삭제할 수 있어요.</p>
+
+          {(canUpload3DModel || existingMedia.some((m) => m.type === '3d')) && (
+            <div className="register-3d-field">
+              <label htmlFor="edit-model3d">3D 모델 <small>(선택 — .glb/.gltf, 최대 50MB)</small></label>
+              {existingMedia.some((m) => m.type === '3d') && !model3dFile && (
+                <p className="register-hint">
+                  현재 3D 모델이 등록돼 있습니다. 새 파일을 올리면 교체됩니다.{' '}
+                  <button
+                    type="button"
+                    className="register-3d-remove"
+                    onClick={() => setExistingMedia((arr) => arr.filter((m) => m.type !== '3d'))}
+                  >
+                    3D 모델 제거
+                  </button>
+                </p>
+              )}
+              {canUpload3DModel && (
+                <input
+                  id="edit-model3d"
+                  type="file"
+                  accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
+                  aria-label="3D 모델 파일 선택"
+                  onChange={(event) => setModel3dFile(event.target.files?.[0] ?? null)}
+                />
+              )}
+              {model3dFile && (
+                <p className="register-hint">
+                  <strong>{model3dFile.name}</strong> ({(model3dFile.size / 1024 / 1024).toFixed(1)}MB) — 저장 시 반영됩니다.
+                </p>
+              )}
+            </div>
+          )}
         </fieldset>
 
         <fieldset className="register-section">

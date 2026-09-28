@@ -28,8 +28,12 @@ function withImageParams(src, width, quality) {
 
 export function getPropertyPhotos(property, count = 8) {
   // 1순위: 매물에 등록된 실 사진 (property.media)
-  if (Array.isArray(property?.media) && property.media.length > 0) {
-    return property.media.slice(0, count).map((item, index) => ({
+  // media 에는 사진 외 항목(type: '3d' 등)도 섞일 수 있어 사진만 거른다.
+  const photoItems = Array.isArray(property?.media)
+    ? property.media.filter((item) => item && item.src && (!item.type || item.type === 'photo'))
+    : [];
+  if (photoItems.length > 0) {
+    return photoItems.slice(0, count).map((item, index) => ({
       src: withImageParams(item.src, index === 0 ? 1800 : 640, index === 0 ? 84 : 76),
       label: item.label || `사진 ${index + 1}`,
       alt: item.alt || `${property?.title ?? '매물'} 사진 ${index + 1}`,

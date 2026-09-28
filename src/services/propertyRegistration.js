@@ -7,7 +7,7 @@
  *   3) 새 매물 id 반환
  */
 
-import { db } from '../lib/dataClient.js';
+import { db, isHybrid } from '../lib/dataClient.js';
 
 function generatePropertyId() {
   const ts = Date.now().toString(36);
@@ -24,6 +24,29 @@ function readAsDataURL(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+/*
+ * 3D 모델(.glb/.gltf) 업로드 — Storage 전용 (하이브리드 모드에서만).
+ * 사진과 달리 수 MB~수십 MB 라 data URL 로 매물 행에 넣을 수 없다.
+ * 반환: media 항목 { type: '3d', src, label } 또는 null.
+ */
+export const canUpload3DModel = isHybrid;
+
+export async function uploadProperty3DModel(file, propertyId) {
+  if (!isHybrid || !file) return null;
+  const isGltfJson = /\.gltf$/i.test(file.name);
+  const ext = isGltfJson ? 'gltf' : 'glb';
+  const path = `properties/${propertyId}/model-${Date.now()}.${ext}`;
+  const { error } = await db.storage.from('property-3d').upload(path, file, {
+    contentType: isGltfJson ? 'model/gltf+json' : 'model/gltf-binary',
+    upsert: true,
+  });
+  if (error) {
+    throw new Error(`3D 모델 업로드 실패: ${error.message}`);
+  }
+  const { data } = db.storage.from('property-3d').getPublicUrl(path);
+  return { type: '3d', src: data.publicUrl, label: '3D 모델' };
 }
 
 export async function uploadPropertyPhotos(files, propertyId) {
@@ -214,12 +237,14 @@ export async function registerProperty(form, agentProfile) {
   const id = generatePropertyId();
   const now = new Date().toISOString().slice(0, 10);
 
-  // 1) 사진 업로드 + 주소로 좌표/lifestyle 자동 조회 (병렬)
+  // 1) 사진·3D 업로드 + 주소로 좌표/lifestyle 자동 조회 (병렬)
   const photoFiles = Array.isArray(form.photos) ? form.photos.filter(Boolean) : [];
-  const [media, lookupResult] = await Promise.all([
+  const [photoMedia, model3d, lookupResult] = await Promise.all([
     photoFiles.length > 0 ? uploadPropertyPhotos(photoFiles, id) : Promise.resolve([]),
+    form.model3d ? uploadProperty3DModel(form.model3d, id) : Promise.resolve(null),
     form.address ? fetchLifestyleAndCoords({ address: form.address }) : Promise.resolve({ lifestyle: null, coordinates: null }),
   ]);
+  const media = model3d ? [...photoMedia, model3d] : photoMedia;
 
   const lifestyle = lookupResult.lifestyle ?? {
     subway: '', school: '', mart: '', hospital: '', convenience: '', gym: '',

@@ -78,14 +78,22 @@ function seedUsers() {
 
 // ───────────────────────── 하이브리드: Supabase 매물 오버레이 캐시 ─────────────────────────
 const REMOTE_PROPS_TTL = 60 * 1000;
+// 잠든 무료 티어 백엔드는 CORS 차단 응답 + supabase-js 내부 재시도(~7초),
+// 저장된 세션이 있으면 토큰 갱신 대기까지 겹쳐 쿼리가 무기한 걸릴 수 있다.
+// 오버레이는 부가 데이터일 뿐이므로 짧게 자르고 번들 렌더를 보장한다.
+const REMOTE_PROPS_TIMEOUT = 2500;
 let _remoteProps = null; // { at, promise }
 function remotePropertiesRows() {
   const now = Date.now();
   if (_remoteProps && now - _remoteProps.at < REMOTE_PROPS_TTL) return _remoteProps.promise;
-  const promise = supa()
+  const fetchRows = supa()
     .then((c) => (c ? c.from('properties').select('*') : { data: null }))
     .then(({ data }) => data || [])
     .catch(() => []);
+  const promise = Promise.race([
+    fetchRows,
+    new Promise((resolve) => setTimeout(() => resolve(null), REMOTE_PROPS_TIMEOUT)),
+  ]).then((rows) => rows || []);
   _remoteProps = { at: now, promise };
   return promise;
 }

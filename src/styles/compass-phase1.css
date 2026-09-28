@@ -9,6 +9,9 @@ body {
   font-family: var(--font-sans);
   color: var(--color-text);
   background: var(--color-bg);
+  /* 한국어 어절 보존 — 좁은 폭에서 단어 중간이 꺾이지 않게. 긴 영문·숫자는 break-word 로 탈출. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* ----------------------------- Header ----------------------------- */
@@ -3244,6 +3247,40 @@ tr.is-suspended {
 .register-section textarea:focus {
   outline: none;
   border-color: var(--color-text);
+}
+
+/* 파일 입력 — 브라우저 기본 버튼을 시스템 버튼 언어로 (등록·수정·중개사 가입 공통) */
+input[type='file'] {
+  padding: 10px 12px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+input[type='file']:hover {
+  border-color: var(--text-strong-soft);
+}
+input[type='file']:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+input[type='file']::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--text-strong-soft);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+input[type='file']::file-selector-button:hover {
+  background: var(--border-strong);
 }
 
 /* 단지명 자동완성 */

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Compass, Expand, MapPin, Minus, Plus, X } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
+import L, { createOsmTileLayer, createSpotIcon } from '../utils/leafletLoader.js';
+import { MAP_PROVIDER } from '../utils/mapProvider.js';
 import { loadPannellum } from '../utils/pannellumLoader.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import PropertyReportPanel from './PropertyReportPanel.jsx';
@@ -42,15 +44,54 @@ function PropertyMapPanel({ property }) {
     return <MapFallback property={property} note="좌표가 등록되면 이 위치에 지도가 표시됩니다." />;
   }
 
-  if (GOOGLE_MAPS_API_KEY) {
+  if (MAP_PROVIDER === 'google') {
     return <GoogleMapPanel property={property} />;
   }
 
-  if (NAVER_MAP_CLIENT_ID) {
+  if (MAP_PROVIDER === 'naver') {
     return <NaverMapPanel property={property} />;
   }
 
-  return <MapFallback property={property} note="지도 API 키가 없어 좌표 기반 미리보기로 표시합니다." />;
+  return <LeafletViewerMapPanel property={property} />;
+}
+
+/* OSM(Leaflet) — 뷰어 지도 탭 기본. 키·결제 불필요. */
+function LeafletViewerMapPanel({ property }) {
+  const mapElementRef = useRef(null);
+
+  useEffect(() => {
+    if (!mapElementRef.current) return undefined;
+    const position = [property.coordinates.lat, property.coordinates.lng];
+    const map = L.map(mapElementRef.current, {
+      center: position,
+      zoom: 16,
+      minZoom: 10,
+      zoomControl: true,
+    });
+    createOsmTileLayer().addTo(map);
+    const marker = L.marker(position, { icon: createSpotIcon(), title: property.title }).addTo(map);
+    marker
+      .bindPopup(
+        `<div class="viewer-map-popup"><strong>${escapeHtml(property.title)}</strong><span>${escapeHtml(
+          property.address,
+        )}</span></div>`,
+        { closeButton: false },
+      )
+      .openPopup();
+    return () => {
+      map.remove();
+    };
+  }, [property]);
+
+  return (
+    <div className="viewer-map-shell">
+      <div
+        ref={mapElementRef}
+        className="viewer-map-canvas leaflet-map-canvas"
+        aria-label={`${property.title} 위치 지도`}
+      />
+    </div>
+  );
 }
 
 function GoogleMapPanel({ property }) {
@@ -382,11 +423,11 @@ function StreetViewFallbackPanel({ property, photos }) {
     );
   }
 
-  if (GOOGLE_MAPS_API_KEY) {
+  if (MAP_PROVIDER === 'google') {
     return <GoogleStreetViewPanel property={property} photos={photos} />;
   }
 
-  if (NAVER_MAP_CLIENT_ID) {
+  if (MAP_PROVIDER === 'naver') {
     return <NaverStreetViewPanel property={property} photos={photos} />;
   }
 
@@ -394,7 +435,7 @@ function StreetViewFallbackPanel({ property, photos }) {
     <TourFallbackPreview
       property={property}
       photos={photos}
-      note="지도 API 키가 없어 집 앞 거리뷰 대신 등록 사진으로 먼저 보여드립니다."
+      note="실내 3D 투어가 아직 없어 등록 사진으로 먼저 보여드립니다."
     />
   );
 }

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+import L, { createOsmTileLayer, createSpotIcon } from '../utils/leafletLoader.js';
+import { MAP_PROVIDER, GOOGLE_MAPS_API_KEY } from '../utils/mapProvider.js';
 
 function getStoredCoordinates(property) {
   if (Number.isFinite(property.coordinates?.lat) && Number.isFinite(property.coordinates?.lng)) {
@@ -39,15 +39,46 @@ function FallbackSketch() {
   );
 }
 
-function PropertyLocationMap({ property }) {
+/* OSM(Leaflet) — 기본. 좌표가 있으면 즉시 렌더, 키·결제 불필요. */
+function LeafletLocationMap({ property, coordinates }) {
   const mapElementRef = useRef(null);
-  const [status, setStatus] = useState('idle');
-  const storedCoords = getStoredCoordinates(property);
-  // 키가 있고, 좌표든 주소든 하나라도 있으면 진짜 지도를 시도
-  const canRenderMap = Boolean(GOOGLE_MAPS_API_KEY) && Boolean(storedCoords || property.address);
 
   useEffect(() => {
-    if (!canRenderMap || !mapElementRef.current) return undefined;
+    if (!mapElementRef.current) return undefined;
+    const map = L.map(mapElementRef.current, {
+      center: [coordinates.lat, coordinates.lng],
+      zoom: 15,
+      minZoom: 10,
+      zoomControl: true,
+      scrollWheelZoom: false, // 페이지 스크롤과 충돌 방지 (기존 cooperative 동작 유지)
+    });
+    createOsmTileLayer().addTo(map);
+    L.marker([coordinates.lat, coordinates.lng], {
+      icon: createSpotIcon(),
+      title: property.title,
+    }).addTo(map);
+    return () => {
+      map.remove();
+    };
+  }, [property.id, property.title, coordinates.lat, coordinates.lng]);
+
+  return (
+    <div className="detail-map-wrapper">
+      <div
+        ref={mapElementRef}
+        className="detail-map-canvas leaflet-map-canvas"
+        aria-label={`${property.title} 위치 지도`}
+      />
+    </div>
+  );
+}
+
+function GoogleLocationMap({ property, storedCoords }) {
+  const mapElementRef = useRef(null);
+  const [status, setStatus] = useState('idle');
+
+  useEffect(() => {
+    if (!mapElementRef.current) return undefined;
 
     let cancelled = false;
     setStatus('loading');
@@ -91,11 +122,7 @@ function PropertyLocationMap({ property }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [property.id, property.address, property.coordinates?.lat, property.coordinates?.lng]);
-
-  if (!canRenderMap) {
-    return <FallbackSketch />;
-  }
+  }, [property.id, property.address, storedCoords?.lat, storedCoords?.lng]);
 
   return (
     <div className="detail-map-wrapper">
@@ -110,6 +137,21 @@ function PropertyLocationMap({ property }) {
       )}
     </div>
   );
+}
+
+function PropertyLocationMap({ property }) {
+  const storedCoords = getStoredCoordinates(property);
+
+  if (MAP_PROVIDER === 'google' && (storedCoords || property.address)) {
+    return <GoogleLocationMap property={property} storedCoords={storedCoords} />;
+  }
+
+  // OSM 은 좌표 기반 — 좌표가 없으면 스케치 폴백
+  if (storedCoords) {
+    return <LeafletLocationMap property={property} coordinates={storedCoords} />;
+  }
+
+  return <FallbackSketch />;
 }
 
 export default PropertyLocationMap;

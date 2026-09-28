@@ -3283,6 +3283,25 @@ input[type='file']::file-selector-button:hover {
   background: var(--border-strong);
 }
 
+/* Leaflet(OSM) 지도 — 무료 기본 제공자 */
+.leaflet-map-canvas {
+  z-index: 0; /* 사이트 헤더(z-50) 아래로 */
+}
+.map-cluster-icon {
+  background: transparent;
+  border: none;
+}
+.leaflet-container {
+  font-family: var(--font-sans);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(26, 34, 51, 0.18);
+}
+
 /* 3D 모델 업로드 필드 (등록·수정 폼) */
 .register-3d-field {
   display: grid;

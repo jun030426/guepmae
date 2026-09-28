@@ -3,26 +3,10 @@ import { MapPin } from 'lucide-react';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
+import L, { createOsmTileLayer } from '../utils/leafletLoader.js';
+import { MAP_PROVIDER, GOOGLE_MAPS_API_KEY, NAVER_MAP_CLIENT_ID } from '../utils/mapProvider.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { MARKER_HOT, MARKER_WARM, MARKER_MILD } from '../styles/tokens.js';
-
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-const NAVER_MAP_CLIENT_ID = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
-
-const markerPositions = [
-  { top: 18, left: 58 },
-  { top: 34, left: 42 },
-  { top: 48, left: 62 },
-  { top: 58, left: 32 },
-  { top: 72, left: 68 },
-  { top: 64, left: 48 },
-  { top: 28, left: 71 },
-  { top: 42, left: 23 },
-  { top: 52, left: 77 },
-  { top: 23, left: 36 },
-  { top: 74, left: 24 },
-  { top: 39, left: 55 },
-];
 
 const MARKER_COLORS = {
   red: MARKER_HOT,
@@ -116,64 +100,161 @@ function getInfoWindowHtml(property) {
 }
 
 /* ============================================================
- * MockMap — 두 SDK 모두 없을 때 보이는 정적 placeholder
+ * LeafletMap — OpenStreetMap 기반 무료 지도 (기본 제공자)
+ * 키·계정·결제 없이 동작. 마커/클러스터/선택 동작은 Google 구현과 동일한 언어.
  * ============================================================ */
-function MockMap({ properties, selectedId, onSelect, note }) {
-  const markers = useMemo(
-    () =>
-      properties.map((property, index) => ({
-        ...property,
-        position: markerPositions[index % markerPositions.length],
-      })),
-    [properties],
+function buildLeafletPillIcon(property, active) {
+  const tone = getMarkerTone(property.discountRate);
+  return L.icon({
+    iconUrl: buildPillIconDataUrl(
+      formatDiscount(property.discountRate),
+      MARKER_COLORS[tone],
+      active,
+    ),
+    iconSize: active ? [96, 46] : [72, 30],
+    iconAnchor: active ? [48, 23] : [36, 15],
+    popupAnchor: [0, active ? -20 : -14],
+  });
+}
+
+function buildClusterIcon(cluster) {
+  const rates = cluster
+    .getAllChildMarkers()
+    .map((marker) => marker.options.discountRate)
+    .filter((rate) => typeof rate === 'number');
+  const mean = rates.length > 0 ? rates.reduce((sum, rate) => sum + rate, 0) / rates.length : 0;
+  const fill = MARKER_COLORS[getMarkerTone(mean)];
+  const count = cluster.getChildCount();
+  return L.divIcon({
+    className: 'map-cluster-icon',
+    iconSize: [44, 44],
+    html:
+      `<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">` +
+      `<circle cx="22" cy="22" r="20" fill="${fill}" stroke="#ffffff" stroke-width="2"/>` +
+      `<text x="22" y="26" font-family="Pretendard, -apple-system, system-ui, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">${count}</text>` +
+      `</svg>`,
+  });
+}
+
+function LeafletMap({ properties, selectedId, onSelect }) {
+  const mapElementRef = useRef(null);
+  const mapRef = useRef(null);
+  const clusterRef = useRef(null);
+  const markerRefs = useRef(new Map());
+  const selectedIdRef = useRef(selectedId);
+  const [status, setStatus] = useState('idle');
+
+  const mappedProperties = useMemo(() => properties.filter(hasCoordinates), [properties]);
+  const propertyById = useMemo(
+    () => new Map(mappedProperties.map((property) => [property.id, property])),
+    [mappedProperties],
   );
-  const selectedProperty = markers.find((property) => property.id === selectedId);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+
+  useEffect(() => {
+    if (!mapElementRef.current || !mappedProperties.length) return undefined;
+
+    const initialId = selectedIdRef.current;
+    const centerProperty = propertyById.get(initialId) ?? mappedProperties[0];
+    const center = centerProperty
+      ? [centerProperty.coordinates.lat, centerProperty.coordinates.lng]
+      : [DEFAULT_CENTER.lat, DEFAULT_CENTER.lng];
+
+    const map = L.map(mapElementRef.current, {
+      center,
+      zoom: 11,
+      minZoom: 6,
+      zoomControl: true,
+    });
+    createOsmTileLayer().addTo(map);
+
+    const cluster = L.markerClusterGroup({
+      maxClusterRadius: 60,
+      showCoverageOnHover: false,
+      iconCreateFunction: buildClusterIcon,
+    });
+
+    const bounds = L.latLngBounds([]);
+    mappedProperties.forEach((property) => {
+      const position = [property.coordinates.lat, property.coordinates.lng];
+      const active = property.id === initialId;
+      const marker = L.marker(position, {
+        icon: buildLeafletPillIcon(property, active),
+        title: property.title,
+        zIndexOffset: active ? 1500 : 0,
+        discountRate: property.discountRate, // 클러스터 평균색 계산용
+      });
+      marker.bindPopup(getInfoWindowHtml(property), { closeButton: true });
+      marker.on('click', () => onSelect(property.id));
+      markerRefs.current.set(property.id, marker);
+      cluster.addLayer(marker);
+      bounds.extend(position);
+    });
+
+    map.addLayer(cluster);
+    if (mappedProperties.length > 1) {
+      map.fitBounds(bounds, { padding: [60, 60] });
+      if (map.getZoom() > 12) map.setZoom(12);
+    }
+
+    mapRef.current = map;
+    clusterRef.current = cluster;
+    setStatus('ready');
+
+    return () => {
+      markerRefs.current.clear();
+      clusterRef.current = null;
+      mapRef.current = null;
+      map.remove();
+    };
+  }, [mappedProperties, propertyById, onSelect]);
+
+  // 선택 변경: 마커 아이콘 토글 + 지도 이동 + 팝업
+  useEffect(() => {
+    if (status !== 'ready' || !selectedId) return;
+    const map = mapRef.current;
+    const property = propertyById.get(selectedId);
+    const selectedMarker = markerRefs.current.get(selectedId);
+    if (!map || !property || !selectedMarker) return;
+
+    markerRefs.current.forEach((marker, propertyId) => {
+      const target = propertyById.get(propertyId);
+      if (!target) return;
+      const isActive = propertyId === selectedId;
+      marker.setIcon(buildLeafletPillIcon(target, isActive));
+      marker.setZIndexOffset(isActive ? 1500 : 0);
+    });
+
+    const position = [property.coordinates.lat, property.coordinates.lng];
+    const targetZoom = Math.max(map.getZoom(), 15);
+    map.setView(position, targetZoom, { animate: true });
+    // 클러스터에 묶여 있으면 풀어서 마커를 드러낸 뒤 팝업
+    const cluster = clusterRef.current;
+    if (cluster) {
+      cluster.zoomToShowLayer(selectedMarker, () => selectedMarker.openPopup());
+    } else {
+      selectedMarker.openPopup();
+    }
+  }, [status, selectedId, propertyById]);
+
+  if (!mappedProperties.length) {
+    return (
+      <div className="map-canvas map-empty">
+        <div className="map-status-overlay">좌표가 등록된 매물이 없습니다.</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="map-canvas" role="img" aria-label="지도 기반 급매 탐색 대체 화면">
-      <div className="map-grid-line horizontal top" />
-      <div className="map-grid-line horizontal middle" />
-      <div className="map-grid-line vertical left" />
-      <div className="map-grid-line vertical right" />
-      <div className="map-river" />
-      <div className="map-district district-a">서울</div>
-      <div className="map-district district-b">경기</div>
-      <div className="map-district district-c">인천</div>
-
-      {markers.map((property) => (
-        <button
-          key={property.id}
-          type="button"
-          className={`map-marker ${getMarkerTone(property.discountRate)} ${
-            selectedId === property.id ? 'active' : ''
-          }`}
-          style={{ top: `${property.position.top}%`, left: `${property.position.left}%` }}
-          onClick={() => onSelect(property.id)}
-          aria-label={`${property.title} 지도 마커`}
-        >
-          {formatDiscount(property.discountRate)}
-        </button>
-      ))}
-
-      {selectedProperty && (
-        <div
-          className="map-popup"
-          style={{
-            top: `${Math.max(10, selectedProperty.position.top - 14)}%`,
-            left: `${Math.min(62, selectedProperty.position.left + 4)}%`,
-          }}
-        >
-          <strong>{selectedProperty.title}</strong>
-          <span>{selectedProperty.region}</span>
-          <b>{formatPrice(selectedProperty.price)}</b>
-          <em>{formatDiscount(selectedProperty.discountRate)} 저렴</em>
-        </div>
-      )}
-
-      <div className="map-api-note">
-        <MapPin size={15} />
-        {note}
-      </div>
+    <div className="map-canvas-wrapper">
+      <div
+        ref={mapElementRef}
+        className="map-canvas leaflet-map-canvas"
+        aria-label="OpenStreetMap 기반 급매 탐색"
+      />
     </div>
   );
 }
@@ -680,7 +761,7 @@ function MapLegend({ note }) {
  *   우선순위: Google → Naver → Mock
  * ============================================================ */
 function MapView({ properties, selectedId, onSelect }) {
-  if (GOOGLE_MAPS_API_KEY) {
+  if (MAP_PROVIDER === 'google') {
     return (
       <div className="map-view">
         <GoogleJsMap properties={properties} selectedId={selectedId} onSelect={onSelect} />
@@ -689,7 +770,7 @@ function MapView({ properties, selectedId, onSelect }) {
     );
   }
 
-  if (NAVER_MAP_CLIENT_ID) {
+  if (MAP_PROVIDER === 'naver') {
     return (
       <div className="map-view">
         <NaverMap properties={properties} selectedId={selectedId} onSelect={onSelect} />
@@ -700,13 +781,8 @@ function MapView({ properties, selectedId, onSelect }) {
 
   return (
     <div className="map-view">
-      <MockMap
-        properties={properties}
-        selectedId={selectedId}
-        onSelect={onSelect}
-        note="지도 API 키 미설정 — .env.local에 VITE_GOOGLE_MAPS_API_KEY 또는 VITE_NAVER_MAP_CLIENT_ID를 추가하세요."
-      />
-      <MapLegend note="정식 지도 키가 설정되면 자동으로 전환됩니다." />
+      <LeafletMap properties={properties} selectedId={selectedId} onSelect={onSelect} />
+      <MapLegend note="OpenStreetMap 연동" />
     </div>
   );
 }

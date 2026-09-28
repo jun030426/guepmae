@@ -25,6 +25,7 @@ import {
 import PropertyMediaViewer from '../components/PropertyMediaViewer.jsx';
 import PropertyLocationMap from '../components/PropertyLocationMap.jsx';
 import PriceReport from '../components/PriceReport.jsx';
+import InspectionChecklist from '../components/InspectionChecklist.jsx';
 import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
 import { formatArea, formatPrice } from '../utils/priceUtils.js';
@@ -37,6 +38,7 @@ const detailTabs = [
   ['개요', '#overview'],
   ['가격 리포트', '#price-report'],
   ['매물 정보', '#property-info'],
+  ['점검', '#inspection'],
   ['위치', '#location'],
   ['생활권', '#lifestyle'],
   ['문의', '#agent'],
@@ -453,6 +455,12 @@ function PropertyDetail() {
                   </div>
                 ))}
               </div>
+            </section>
+
+            <section className="detail-section" id="inspection">
+              <p className="section-eyebrow">설비 점검</p>
+              <h2>AI 점검 체크리스트</h2>
+              <InspectionChecklist property={property} />
             </section>
 
             <section className="detail-section" id="location">

@@ -137,8 +137,8 @@ async function tableRows(table) {
   }
 }
 
-// 하이브리드에서 통째로 Supabase 에 위임하는 테이블 (인증·운영 데이터)
-const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications']);
+// 하이브리드에서 통째로 Supabase 에 위임하는 테이블 (인증·운영·동적 생성 데이터)
+const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications', 'property_inspections']);
 
 // ───────────────────────── 쿼리 빌더 (thenable) ─────────────────────────
 const BUILDER_METHODS = [
@@ -465,4 +465,16 @@ const localStorageMock = {
 
 const storage = isHybrid ? hybridStorage : localStorageMock;
 
-export const db = { from, auth, storage };
+// ───────────────────────── Edge Functions ─────────────────────────
+const functions = {
+  async invoke(name, options) {
+    if (!isHybrid) {
+      return { data: null, error: { message: '로컬 데모 모드에서는 사용할 수 없는 기능입니다.' } };
+    }
+    const c = await supa();
+    if (!c) return { data: null, error: CONNECT_FAIL };
+    return c.functions.invoke(name, options);
+  },
+};
+
+export const db = { from, auth, storage, functions };

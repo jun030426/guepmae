@@ -4,6 +4,7 @@
 > 호가가 아닌 *실거래가* 기준으로, 시세보다 5% 이상 저렴한 아파트 매매 급매물만 골라 검증해 보여줍니다.
 
 🔗 **Live**: [guepmae.vercel.app](https://guepmae.vercel.app)
+📄 **기획서(한 장 요약)**: [docs/PLAN.md](docs/PLAN.md) — 서비스·기술·현황·로드맵을 한 파일에
 
 ---
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { validatePanoramaFile } from '../utils/panoramaImage.js';
+import { convertInspToPanorama, validatePanoramaFile } from '../utils/panoramaImage.js';
+import { isInspFile } from '../utils/inspStitch.js';
 import { PANORAMA_MAX_COUNT } from '../utils/panoramaTour.js';
 import { resolveMediaUrl } from '../utils/mediaUrl.js';
 
@@ -21,8 +22,8 @@ function newPanoramaId() {
   return `pano-${Date.now().toString(36)}${idSeed.toString(36)}`;
 }
 
-export function createPanoramaItem(file) {
-  return { id: newPanoramaId(), label: '', file, previewUrl: URL.createObjectURL(file) };
+export function createPanoramaItem(file, extra = {}) {
+  return { id: newPanoramaId(), label: '', file, previewUrl: URL.createObjectURL(file), ...extra };
 }
 
 function ExistingPreview({ src, alt }) {
@@ -67,6 +68,14 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
     const failures = [];
     for (const file of files.slice(0, remaining)) {
       try {
+        if (isInspFile(file)) {
+          // Insta360 원본 — 브라우저에서 즉시 정방형 JPG 로 변환(수 초). 이후는 일반 360 JPG 와 동일
+          setChecking(`${file.name} 변환 중…`);
+          // eslint-disable-next-line no-await-in-loop
+          const converted = await convertInspToPanorama(file);
+          accepted.push(createPanoramaItem(converted.file, { stitched: 'browser', calibrated: converted.calibrated, model: converted.model, sourceName: file.name }));
+          continue;
+        }
         // eslint-disable-next-line no-await-in-loop
         await validatePanoramaFile(file);
         accepted.push(createPanoramaItem(file));
@@ -103,24 +112,24 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
   return (
     <div className="register-360-field">
       <label htmlFor={`${idPrefix}-input`}>
-        360 투어 사진 <small>(선택 — 합성된 360 JPG, 최대 {PANORAMA_MAX_COUNT}장)</small>
+        360 투어 사진 <small>(선택 — 360 JPG 또는 Insta360 원본 .insp, 최대 {PANORAMA_MAX_COUNT}장)</small>
       </label>
       <ul className="pano-guide" aria-label="촬영 안내">
         <li>카메라 앞면을 진행 방향으로 향하게 세워 들고, 한 걸음씩 이동하며 찍으세요. 올린 순서대로 앞·뒤 화살표가 자동으로 이어집니다.</li>
-        <li>Insta360 앱에서 사진을 폰으로 받으면 합성된 360 JPG 가 갤러리에 생깁니다. 그 파일을 올려주세요 (.insp 원본은 아직 지원하지 않습니다).</li>
+        <li>Insta360 앱에서 내보낸 360 JPG 가 화질이 가장 좋습니다. 카메라 원본(.insp)을 그대로 올리면 브라우저에서 자동 변환되지만, 두 렌즈가 만나는 자리에서 가까운 물체가 살짝 어긋날 수 있습니다.</li>
         <li>서류·사진·얼굴이 찍히지 않게 정리한 뒤 촬영하세요. 360 사진은 방 전체가 담깁니다.</li>
       </ul>
       <input
         ref={inputRef}
         id={`${idPrefix}-input`}
         type="file"
-        accept="image/jpeg,.jpg,.jpeg"
+        accept="image/jpeg,.jpg,.jpeg,.insp"
         multiple
         disabled={disabled || checking || remaining === 0}
         aria-label="360 투어 사진 선택"
         onChange={handleSelect}
       />
-      {checking && <p className="register-hint">사진 크기를 확인하는 중…</p>}
+      {checking && <p className="register-hint">{typeof checking === 'string' ? checking : '사진 크기를 확인하는 중…'}</p>}
       {rejected.length > 0 && (
         <ul className="pano-rejected" role="alert">
           {rejected.map((item) => (
@@ -153,7 +162,14 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
                   aria-label={`지점 ${index + 1} 이름`}
                   onChange={(event) => setLabel(index, event.target.value)}
                 />
-                <small>{item.file ? `${item.file.name} · ${(item.file.size / 1024 / 1024).toFixed(1)}MB` : '저장된 사진'}</small>
+                <small>
+                  {item.file ? `${item.sourceName ?? item.file.name} · ${(item.file.size / 1024 / 1024).toFixed(1)}MB` : '저장된 사진'}
+                  {item.stitched && (
+                    <span className="pano-stitched-tag">
+                      {item.calibrated ? '원본에서 자동 변환' : `자동 변환 · ${item.model || '모델 미확인'} 미보정 — 결과 확인 필요`}
+                    </span>
+                  )}
+                </small>
               </div>
               <div className="pano-controls">
                 <button type="button" disabled={disabled || index === 0} aria-label="앞으로" onClick={() => move(index, -1)}>↑</button>

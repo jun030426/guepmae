@@ -9,6 +9,7 @@
  */
 
 import { isEquirectangular } from './panoramaTour.js';
+import { isInspFile, stitchInsp } from './inspStitch.js';
 
 export const PANORAMA_TARGET_WIDTH = 4096;
 export const PANORAMA_JPEG_QUALITY = 0.85;
@@ -21,7 +22,35 @@ export class PanoramaValidationError extends Error {
 }
 
 function looksLikeJpeg(file) {
-  return /^image\/jpe?g$/i.test(file.type || '') || /\.jpe?g$/i.test(file.name || '');
+  return /^image\/jpe?g$/i.test(file.type || '') || /\.jpe?g$/i.test(file.name || '') || isInspFile(file);
+}
+
+/**
+ * Insta360 원본(.insp)을 브라우저에서 정방형 JPG 로 바꿔 File 로 돌려준다.
+ * 반환 { file, calibrated, model, width, height } — 이후 파이프라인은 일반 360 JPG 와 동일하게 처리.
+ */
+export async function convertInspToPanorama(file, { targetWidth = PANORAMA_TARGET_WIDTH } = {}) {
+  let result;
+  try {
+    result = await stitchInsp(file, { targetWidth, quality: 0.9 });
+  } catch (error) {
+    const message = String(error?.message ?? '');
+    if (message.startsWith('GPU_TEXTURE_LIMIT')) {
+      throw new PanoramaValidationError('이 기기의 그래픽 성능으로는 .insp 를 변환할 수 없습니다. PC 에서 올리거나 Insta360 앱에서 내보낸 360 JPG 를 올려주세요.');
+    }
+    if (message.startsWith('WEBGL')) {
+      throw new PanoramaValidationError('.insp 변환 중 그래픽 오류가 났습니다. Insta360 앱에서 내보낸 360 JPG 를 올려주세요.');
+    }
+    throw new PanoramaValidationError(message || '.insp 변환에 실패했습니다.');
+  }
+  const name = String(file.name || 'panorama').replace(/\.insp$/i, '') + '.jpg';
+  return {
+    file: new File([result.blob], name, { type: 'image/jpeg', lastModified: file.lastModified }),
+    calibrated: result.calibrated,
+    model: result.model,
+    width: result.width,
+    height: result.height,
+  };
 }
 
 /** 디코딩 없이 크기만 필요할 때도 createImageBitmap 이 가장 빠르고 EXIF 회전을 반영한다. */

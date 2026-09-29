@@ -53,6 +53,7 @@ export function normalizePanoramaItems(media) {
       order: Number.isFinite(Number(item.order)) ? Number(item.order) : index + 1,
       yawOffset: Number.isFinite(Number(item.yawOffset)) ? Number(item.yawOffset) : 0,
       links: Array.isArray(item.links) ? item.links : undefined,
+      stitched: item.stitched || undefined, // 'browser' = .insp 를 브라우저에서 자동 변환한 파노라마
     }));
   return items.sort((a, b) => a.order - b.order);
 }
@@ -97,7 +98,7 @@ export function buildTourPanoramas(media) {
 }
 
 /** 새 360 media 항목 생성 (등록·수정 폼에서 사용). */
-export function panoramaMediaItem({ id, src, label, order, yawOffset = 0, links }) {
+export function panoramaMediaItem({ id, src, label, order, yawOffset = 0, links, stitched }) {
   const item = {
     type: PANORAMA_MEDIA_TYPE,
     id,
@@ -107,6 +108,7 @@ export function panoramaMediaItem({ id, src, label, order, yawOffset = 0, links 
     yawOffset,
   };
   if (Array.isArray(links) && links.length > 0) item.links = links;
+  if (stitched) item.stitched = stitched;
   return item;
 }
 

@@ -447,6 +447,7 @@ function IndoorTourPreview({ property, panoramas }) {
           {panoramas.length > 1
             ? '화살표를 누르면 다음 지점으로 이동 · 드래그로 둘러보기 · 휠로 줌'
             : '마우스 드래그로 둘러보기 · 휠로 줌'}
+          {activeScene.stitched === 'browser' && ' · 카메라 원본을 자동 변환한 사진이라 이음새가 보일 수 있습니다'}
         </span>
       </div>
       {panoramas.length > 1 && (

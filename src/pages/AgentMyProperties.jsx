@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useProperties } from '../hooks/useProperties.js';
 import { db } from '../lib/dataClient.js';
 import { formatPrice } from '../utils/priceUtils.js';
+import { discountLabel } from '../utils/priceBasis.js';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 
 function formatDate(iso) {
@@ -106,7 +107,7 @@ function AgentMyProperties() {
                     </td>
                     <td>{property.region}</td>
                     <td>{formatPrice(property.price)}</td>
-                    <td>{property.discountRate}%</td>
+                    <td>{discountLabel(property.discountRate)}</td>
                     <td>
                       {property.verified ? (
                         <span className="status-badge ok">검증 완료</span>

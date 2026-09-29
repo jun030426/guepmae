@@ -32,6 +32,8 @@ npx supabase db push
 - `profiles`: Supabase Auth 사용자별 내부 역할
 - `seller_verifications`: 매도자 소유 증빙 심사
 - `agent_applications`: 중개사 가입/광고문의 신청서
+- `complex_prices` / `complex_trades`: 단지×면적 실거래 중앙값 / 개별 실거래(판정 규칙용). 데스크톱 파이프라인이 `load-bundles-to-supabase.mjs` 로 적재
+
 
 ## 3. Auth 역할 운영
 

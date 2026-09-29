@@ -26,6 +26,7 @@ import PropertyMediaViewer from '../components/PropertyMediaViewer.jsx';
 import PropertyLocationMap from '../components/PropertyLocationMap.jsx';
 import PriceReport from '../components/PriceReport.jsx';
 import InspectionChecklist from '../components/InspectionChecklist.jsx';
+import { isHeld } from '../utils/priceBasis.js';
 import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
 import { formatArea, formatPrice } from '../utils/priceUtils.js';
@@ -192,9 +193,11 @@ function PropertyDetail() {
   const phoneHref = property.agent.phone.replace(/[^\d+]/g, '');
   const pricePerSquareMeter = Math.round(property.price / property.area);
   const pricePerPyeong = Math.round(property.price / (property.area * 0.3025));
+  // 판정 보류(표본 부족·데이터 없음) — 할인율 대신 보류 상태를 보여준다
+  const isHeldListing = property.discountRate == null || isHeld(property.priceBasis);
 
   const summaryStats = [
-    { label: '가격', value: formatPrice(property.price), note: `${property.discountRate}% 저렴`, className: 'price' },
+    { label: '가격', value: formatPrice(property.price), note: isHeldListing ? '판정 보류' : `${property.discountRate}% 저렴`, className: 'price' },
     { label: '방', value: `${property.rooms}개`, Icon: BedDouble },
     { label: '욕실', value: `${property.bathrooms}개`, Icon: Bath },
     { label: '전용면적', value: formatArea(property.area), note: `공급 ${formatArea(property.supplyArea)}`, Icon: Ruler },
@@ -237,16 +240,23 @@ function PropertyDetail() {
     ['체육시설', property.lifestyle.gym || ''],
   ];
 
-  const highlightItems = [
-    ['기준 실거래가', formatPrice(property.actualTransactionPrice)],
-    ['가격 차이', formatPrice(property.actualTransactionPrice - property.price)],
-  ];
+  const highlightItems = isHeldListing
+    ? [
+        ['기준 실거래가', '판정 보류'],
+        ['가격 차이', '—'],
+      ]
+    : [
+        ['기준 실거래가', formatPrice(property.actualTransactionPrice)],
+        ['가격 차이', formatPrice(property.actualTransactionPrice - property.price)],
+      ];
 
   // ④ 기준가 산출 근거 — priceBasis 있으면 동적, 없으면 기존 문구로 안전 폴백
   const basis = property.priceBasis;
-  const priceBasisLabel = basis?.method
-    ? `${basis.method} · 국토부 기준${basis.confidence === 'low' ? ' (표본 적음)' : ''}`
-    : '동일 단지와 유사 면적 최근 실거래가 기준';
+  const priceBasisLabel = isHeldListing
+    ? basis?.method || '기준 실거래가 미산출 — 판정 보류'
+    : basis?.method
+      ? `${basis.method} · 국토부 기준${basis.confidence === 'low' || basis.confidence === 'medium' ? ' (표본 적음)' : ''}`
+      : '동일 단지와 유사 면적 최근 실거래가 기준';
 
   const showPreviousPhoto = () => {
     setActivePhoto((current) => (current === 0 ? photos.length - 1 : current - 1));
@@ -350,7 +360,7 @@ function PropertyDetail() {
               <div className="gallery-badges">
                 <UrgentBadge discountRate={property.discountRate} verified={property.verified} />
                 <span className="listed-badge">
-                  {property.verified ? '검증된 급매' : '검증 확인 중'}
+                  {isHeldListing ? '기준가 판정 보류' : property.verified ? '검증된 급매' : '검증 확인 중'}
                 </span>
               </div>
 
@@ -576,7 +586,7 @@ function PropertyDetail() {
 
           <section className="sidebar-proof-card">
             <TrendingDown size={21} />
-            <strong>{property.discountRate}% 저렴</strong>
+            <strong>{isHeldListing ? '판정 보류' : `${property.discountRate}% 저렴`}</strong>
             <span>{priceBasisLabel}</span>
           </section>
 

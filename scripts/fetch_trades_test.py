@@ -7,10 +7,53 @@ spec = importlib.util.spec_from_file_location(
 ft = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ft)
 
-# 헤더: 시군구, 단지명, 거래금액(만원), 계약년월, 해제사유발생일, 전용면적(㎡), 건축년도, 층, 일
+# 헤더: 시군구, 단지명, 거래금액(만원), 계약년월, 해제사유발생일, 전용면적(㎡), 건축년도, 층, 일, 거래유형
 def row(sigungu="서울특별시 강남구 역삼동", apt="래미안", amount="150000",
-        ym="202606", cdeal="", area="84.97", built="2005", floor="7", day="15"):
-    return [sigungu, apt, amount, ym, cdeal, area, built, floor, day]
+        ym="202606", cdeal="", area="84.97", built="2005", floor="7", day="15", dealing="중개거래"):
+    return [sigungu, apt, amount, ym, cdeal, area, built, floor, day, dealing]
+
+
+class ReadExistingRows(unittest.TestCase):
+    """거래유형 열이 없던 9열 CSV 를 읽으면 빈 값으로 채워 10열로 맞춘다."""
+
+    def _write(self, tmp, name, rows):
+        with open(os.path.join(tmp, f"api_{name}.csv"), "w", encoding="cp949", newline="") as f:
+            w = csv.writer(f); w.writerows(rows)
+
+    def test_legacy_nine_column_rows_are_padded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old_data = ft.DATA
+            ft.DATA = tmp
+            try:
+                self._write(tmp, "테스트", [ft.HEADER[:-1], row()[:-1], row(day="16")[:-1]])
+                rows = ft.read_existing_rows("테스트")
+            finally:
+                ft.DATA = old_data
+        self.assertEqual(len(rows), 2)
+        self.assertTrue(all(len(r) == len(ft.HEADER) for r in rows))
+        self.assertEqual(rows[0][-1], "")
+
+    def test_current_ten_column_rows_pass_through(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old_data = ft.DATA
+            ft.DATA = tmp
+            try:
+                self._write(tmp, "테스트", [ft.HEADER, row(dealing="직거래")])
+                rows = ft.read_existing_rows("테스트")
+            finally:
+                ft.DATA = old_data
+        self.assertEqual(rows, [row(dealing="직거래")])
+
+    def test_malformed_rows_are_dropped(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            old_data = ft.DATA
+            ft.DATA = tmp
+            try:
+                self._write(tmp, "테스트", [ft.HEADER, row(), ["깨진", "행"]])
+                rows = ft.read_existing_rows("테스트")
+            finally:
+                ft.DATA = old_data
+        self.assertEqual(len(rows), 1)
 
 
 class MonthsSince(unittest.TestCase):
@@ -133,7 +176,8 @@ class ReadExisting(unittest.TestCase):
         self.assertIsNotNone(rows)
         self.assertGreater(len(rows), 0)
         self.assertNotEqual(rows[0][0], "시군구")
-        self.assertEqual(len(rows[0]), 9)
+        # 옛 9열 파일도 거래유형 빈 값으로 채워져 항상 헤더 길이(10)로 맞춰진다
+        self.assertEqual(len(rows[0]), len(ft.HEADER))
 
 
 HEADER_9 = ["시군구", "단지명", "거래금액(만원)", "계약년월",

@@ -10,7 +10,8 @@
 #   python scripts/fetch-trades.py --since 2026-06         # 증분: 2026-06~지난달만 받아 기존 CSV 에 병합
 #
 # .env.local 의 MOLIT_API_KEY(디코딩 키) 필요. 시군구코드: scripts/_sigungu_codes.json
-# 출력 컬럼: 시군구, 단지명, 거래금액(만원), 계약년월, 해제사유발생일, 전용면적(㎡), 건축년도, 층, 일
+# 출력 컬럼: 시군구, 단지명, 거래금액(만원), 계약년월, 해제사유발생일, 전용면적(㎡), 건축년도, 층, 일, 거래유형
+#   거래유형(dealingGbn: 중개거래/직거래)은 2026-09 에 추가 — 그 전에 받은 9열 CSV 는 빈 값으로 채워 읽는다.
 # 인코딩 CP949 (빌드 스크립트가 cp949 디코딩). 일 한도(10,000) 초과 시 멈춤 → --resume 으로 다음날 이어받기.
 import os, sys, csv, time, json, datetime, urllib.request, urllib.parse, urllib.error
 import http.client
@@ -94,7 +95,9 @@ def read_existing_rows(sido):
     with open(path, encoding="cp949", errors="replace", newline="") as f:
         rows = list(csv.reader(f))
     body = rows[1:]
-    kept = [r for r in body if len(r) == len(HEADER)]
+    # 거래유형 열 이전(9열) CSV 는 빈 값으로 채워 병합한다 — 거래유형 미상(직거래 제외 불가)
+    legacy_len = len(HEADER) - 1
+    kept = [r if len(r) == len(HEADER) else r + [""] for r in body if len(r) in (len(HEADER), legacy_len)]
     dropped = len(body) - len(kept)
     if dropped:
         print(f"    ⚠ {sido}: 형식이 깨진 행 {dropped}건 무시(컬럼 수 {len(HEADER)} 불일치)")
@@ -156,10 +159,11 @@ def row_from(item, sigungu_base):
     umd = cv(item, "umdNm", "법정동")
     floor = cv(item, "floor", "층")
     cdeal = cv(item, "cdealDay", "해제사유발생일")
+    dealing = cv(item, "dealingGbn", "거래유형")  # 중개거래 / 직거래 (2021-01 계약분부터 제공)
     ym = f"{year}{int(month):02d}" if year and month and month.isdigit() else ""
-    return [(sigungu_base + " " + umd).strip(), apt, amount, ym, cdeal, area, built, floor, day]
+    return [(sigungu_base + " " + umd).strip(), apt, amount, ym, cdeal, area, built, floor, day, dealing]
 
-HEADER = ["시군구", "단지명", "거래금액(만원)", "계약년월", "해제사유발생일", "전용면적(㎡)", "건축년도", "층", "일"]
+HEADER = ["시군구", "단지명", "거래금액(만원)", "계약년월", "해제사유발생일", "전용면적(㎡)", "건축년도", "층", "일", "거래유형"]
 
 def backup_old_manual(sido):
     # 해당 시도의 옛 수동 CSV(api_ 아님)를 _manual_backup 으로 이동 (이중집계 방지)

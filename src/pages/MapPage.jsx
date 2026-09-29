@@ -47,6 +47,7 @@ function getUnitCount(property) {
 }
 
 function formatDiscount(discountRate) {
+  if (discountRate == null) return '판정 보류';
   return Number.isInteger(discountRate) ? `${discountRate}%` : `${discountRate.toFixed(1)}%`;
 }
 

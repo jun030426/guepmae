@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, MapPin, ShieldCheck, TrendingDown } from 'lucide-react';
 import UrgentBadge from './UrgentBadge.jsx';
+import { discountLabel } from '../utils/priceBasis.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { formatPriceEvidence, hasPriceConflict } from '../utils/priceEvidence.js';
 import { getPrimaryPropertyPhoto } from '../utils/propertyMedia.js';
@@ -53,11 +54,13 @@ function PropertyCard({ property, compact = false }) {
 
         <div className="discount-headline">
           <TrendingDown size={20} aria-hidden="true" />
-          <strong>{property.discountRate}%</strong>
+          <strong>{discountLabel(property.discountRate)}</strong>
           <span>
-            {savedAmount > 0
-              ? `기준 실거래가 대비 ${formatPrice(savedAmount)} 저렴`
-              : '기준 실거래가 대비'}
+            {property.discountRate == null
+              ? '기준 실거래가 미산출 — 표본 부족'
+              : savedAmount > 0
+                ? `기준 실거래가 대비 ${formatPrice(savedAmount)} 저렴`
+                : '기준 실거래가 대비'}
           </span>
         </div>
 

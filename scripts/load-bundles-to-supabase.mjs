@@ -10,6 +10,7 @@
  *   market_snapshots.json   → market_snapshots    (key/value 행으로 변환)
  *   property_reports.json   → property_reports    (AI 매물 리포트)
  *   ai_market_reports.json  → ai_market_reports   (AI 시장 리포트)
+ *   scripts/output/complex_trades_rows.json → complex_trades (단지×면적 개별 실거래 전체, 없으면 public 번들)
  *
  * 사용:
  *   .env.local 에 VITE_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY 필요
@@ -70,6 +71,14 @@ function readBundle(name) {
   return JSON.parse(fs.readFileSync(path.join(DATA, `${name}.json`), 'utf-8'));
 }
 
+// scripts/output 의 전체 산출물이 있으면 그것을, 없으면 public 번들(상위 4,000행)을 적재한다.
+function readOutputOrBundle(outputName, bundleName) {
+  const outputPath = path.join(ROOT, 'scripts', 'output', `${outputName}.json`);
+  if (fs.existsSync(outputPath)) return JSON.parse(fs.readFileSync(outputPath, 'utf-8'));
+  console.warn(`  ⚠ ${path.relative(ROOT, outputPath)} 가 없어 public/data/${bundleName}.json(상위 행만) 을 적재합니다.`);
+  return readBundle(bundleName);
+}
+
 // pk: 전체 삭제용 필터 (delete 는 filter 필수)
 const JOBS = {
   properties: {
@@ -91,6 +100,10 @@ const JOBS = {
   ai_market_reports: {
     pk: 'data_as_of', wipe: 'data_as_of=neq.__none__',
     rows: () => readBundle('ai_market_reports'),
+  },
+  complex_trades: {
+    pk: 'complex', wipe: 'complex=neq.__none__',
+    rows: () => readOutputOrBundle('complex_trades_rows', 'complex_trades'),
   },
 };
 

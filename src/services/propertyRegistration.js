@@ -11,6 +11,13 @@ import { db, isHybrid } from '../lib/dataClient.js';
 import { geocodeAddress, hasKakaoKey } from '../utils/kakaoLoader.js';
 import { processPanoramaFile } from '../utils/panoramaImage.js';
 import { panoramaMediaItem } from '../utils/panoramaTour.js';
+import {
+  basisFromComplexRow,
+  computePriceBasis,
+  expandTradeRow,
+  heldBasis,
+  MIN_SAMPLE as BASIS_MIN_SAMPLE,
+} from '../utils/priceBasis.js';
 
 function generatePropertyId() {
   const ts = Date.now().toString(36);
@@ -129,116 +136,81 @@ export function getAreaBucket(area) {
   return '135㎡ 초과';
 }
 
-// 신뢰도 등급(표본 수 기반) — ④ 감사/투명성용. 하드 표본 가드(③)는 별도 단계.
-function confidenceOf(sampleSize) {
-  if (sampleSize >= 5) return 'high';
-  if (sampleSize >= 3) return 'medium';
-  return 'low';
-}
-
-function periodLabel(start, end) {
-  if (start && end) return start === end ? start : `${start}~${end}`;
-  return end || start || '';
-}
-
-// 기준 실거래가(할인율 계산 기준) + 산출 근거 자동 산출.
-//  1순위: 동일 단지 + 동일 전용면적 타입(area_m2) 중앙값 (complex_prices) → 'complex'
-//  2순위: 동일 단지 + 근접 면적(±2㎡) 중 표본 최다                       → 'complex'(approxArea)
-//  3순위: 구 + 평형대 최근 시세 (price_trends, 재생산 포함)              → 'region'
-// 중개사가 직접 입력하지 못하게 하여 할인율 조작을 차단.
-export async function resolveReferencePrice({ complexName, gu, areaM2, areaBucket }) {
-  if (!gu) {
-    return { price: null, source: null, basis: null };
+/*
+ * 기준 실거래가(할인율 계산 기준) + 산출 근거 자동 산출. 중개사가 직접 입력하지 못하게 하여 조작을 차단.
+ * 규칙: docs/superpowers/specs/2026-09-29-price-basis-judgment-design.md
+ *  1순위: 단지 개별 실거래(complex_trades — 하이브리드 Supabase / 로컬 번들) → 판정 함수
+ *         (해제·직거래 제외 → 최근 12/24/36개월 → 같은 층 구간 → 중앙값)
+ *  2순위: 단지×면적 36개월 중앙값(complex_prices) — 근거에 "전체 기간 · 층 보정 없음" 명시
+ *  없음:  판정 보류(status 'insufficient') — 지역 시세·얇은 표본으로 숫자를 만들지 않는다
+ * 반환: { price: number|null, source: 'complex'|null, basis }
+ */
+export async function resolveReferencePrice({ complexName, gu, areaM2, floor, price }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const requested = Number.isFinite(Number(areaM2)) ? Math.floor(Number(areaM2)) : null;
+  if (!gu || !complexName || requested == null) {
+    return { price: null, source: null, basis: heldBasis('no_data', { requestedAreaM2: requested, areaM2: requested, computedAt: today }) };
   }
 
-  const fromComplex = (data, approxArea) => {
-    const sample = Number(data.sample_size) || 0;
-    return {
-      price: data.median_price,
-      source: 'complex',
-      basis: {
-        source: 'complex',
-        baselinePrice: data.median_price,
-        areaM2: data.area_m2,
-        requestedAreaM2: Number.isFinite(areaM2) ? areaM2 : null,
-        approxArea,
-        sampleSize: sample,
-        periodStart: data.earliest_year_month ?? null,
-        periodEnd: data.latest_year_month ?? null,
-        confidence: confidenceOf(sample),
-        method: `동일 단지 ${data.area_m2}㎡ · ${periodLabel(data.earliest_year_month, data.latest_year_month)} ${sample}건 중앙값`,
-      },
-    };
-  };
-
-  // ③ 최소 표본 가드 — 같은 단지·타입 거래가 이 수 이상일 때만 기준가로 신뢰.
-  //   미만이면 지역 시세로 fallback (1~2건짜리 중앙값을 권위값으로 쓰지 않음).
-  const MIN_SAMPLE = 3;
-  const enough = (row) => row?.median_price && (Number(row.sample_size) || 0) >= MIN_SAMPLE;
-
-  // 지역(구+평형대) 최근 시세 — 단지 표본이 얇을 때 fallback
-  const regionBasis = async () => {
-    if (!areaBucket || areaBucket === '미상') return null;
-    const { data: trend } = await db
-      .from('price_trends')
-      .select('price, year_month')
-      .eq('gu', gu)
-      .eq('area_bucket', areaBucket)
-      .order('year_month', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!trend?.price) return null;
-    return {
-      price: trend.price,
-      source: 'region',
-      basis: {
-        source: 'region',
-        baselinePrice: trend.price,
-        areaBucket,
-        sampleSize: null,
-        periodEnd: trend.year_month ?? null,
-        confidence: 'region',
-        method: `${gu} ${areaBucket} 최근 시세 기준`,
-      },
-    };
-  };
-
-  let exact = null;
-  let near = null;
-  if (complexName && Number.isFinite(areaM2)) {
-    // 1순위: 정확 전용면적 타입 + 표본 충분
-    ({ data: exact } = await db
-      .from('complex_prices')
-      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
-      .eq('complex', complexName)
-      .eq('gu', gu)
-      .eq('area_m2', areaM2)
-      .maybeSingle());
-    if (enough(exact)) return fromComplex(exact, false);
-
-    // 2순위: 근접 면적(±2㎡) 중 표본 최다 + 표본 충분
-    ({ data: near } = await db
-      .from('complex_prices')
-      .select('median_price, sample_size, area_m2, earliest_year_month, latest_year_month')
-      .eq('complex', complexName)
-      .eq('gu', gu)
-      .gte('area_m2', areaM2 - 2)
-      .lte('area_m2', areaM2 + 2)
-      .order('sample_size', { ascending: false })
-      .limit(1)
-      .maybeSingle());
-    if (enough(near)) return fromComplex(near, true);
+  // 1순위: 개별 실거래 (요청 면적 ±2㎡ 행만)
+  const { data: tradeRows } = await db
+    .from('complex_trades')
+    .select('area_m2, trades, latest_year_month')
+    .eq('complex', complexName)
+    .eq('gu', gu);
+  const rows = Array.isArray(tradeRows)
+    ? tradeRows.filter((row) => Math.abs(Number(row.area_m2) - requested) <= 2)
+    : [];
+  if (rows.length > 0) {
+    const trades = rows.flatMap(expandTradeRow);
+    const asOf = rows.map((row) => row.latest_year_month).filter(Boolean).sort().pop() ?? undefined;
+    const basis = computePriceBasis({ trades, areaM2: requested, floor, price, asOf, computedAt: today });
+    return { price: basis.baselinePrice, source: basis.status === 'ok' ? 'complex' : null, basis };
   }
 
-  // 3순위: 지역 시세 (단지 표본이 MIN_SAMPLE 미만)
-  const region = await regionBasis();
-  if (region) return region;
+  // 2순위: 중앙값 테이블 — 동일 면적 → 근접 면적(±2㎡, 표본 최다)
+  const columns = 'median_price, sample_size, area_m2, earliest_year_month, latest_year_month';
+  const enough = (row) => row?.median_price && (Number(row.sample_size) || 0) >= BASIS_MIN_SAMPLE;
+  const { data: exact } = await db
+    .from('complex_prices')
+    .select(columns)
+    .eq('complex', complexName)
+    .eq('gu', gu)
+    .eq('area_m2', requested)
+    .maybeSingle();
+  if (enough(exact)) {
+    const basis = basisFromComplexRow(exact, { requestedAreaM2: requested, approxArea: false, price, computedAt: today });
+    return { price: basis.baselinePrice, source: 'complex', basis };
+  }
+  const { data: near } = await db
+    .from('complex_prices')
+    .select(columns)
+    .eq('complex', complexName)
+    .eq('gu', gu)
+    .gte('area_m2', requested - 2)
+    .lte('area_m2', requested + 2)
+    .order('sample_size', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (enough(near)) {
+    const basis = basisFromComplexRow(near, { requestedAreaM2: requested, approxArea: true, price, computedAt: today });
+    return { price: basis.baselinePrice, source: 'complex', basis };
+  }
 
-  // 4순위(최후): 지역도 없으면 얇은 단지 값이라도 사용 (confidence 'low' 로 표시됨)
-  if (exact?.median_price) return fromComplex(exact, false);
-  if (near?.median_price) return fromComplex(near, true);
-
-  return { price: null, source: null, basis: null };
+  // 판정 보류 — 표본이 얇은 값(1~2건)을 기준가로 쓰지 않는다
+  const thin = exact ?? near;
+  const basis = thin
+    ? heldBasis('low_sample', {
+        requestedAreaM2: requested,
+        areaM2: Number(thin.area_m2),
+        approxArea: Number(thin.area_m2) !== requested,
+        totalSample36: Number(thin.sample_size) || 0,
+        dataAsOf: thin.latest_year_month ?? null,
+        computedAt: today,
+        method: `동일 단지 ${thin.area_m2}㎡ 실거래 ${Number(thin.sample_size) || 0}건 — 표본 부족(${BASIS_MIN_SAMPLE}건 미만)으로 판정 보류`,
+      })
+    : heldBasis('no_data', { requestedAreaM2: requested, areaM2: requested, computedAt: today });
+  return { price: null, source: null, basis };
 }
 
 // 구/시/군 + 평형대로 13개월 실거래가 추이를 조회해 price_history 스냅샷 생성.
@@ -310,9 +282,9 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
   const areaBucket = getAreaBucket(Number(form.area));
   const areaM2 = Number.isFinite(Number(form.area)) ? Math.floor(Number(form.area)) : null;
 
-  // 기준 실거래가 자동 산출(단지 면적타입→근접→구 fallback) + 13개월 추이 + 사무소명 자동
+  // 기준 실거래가 자동 산출(개별 실거래 판정 → 중앙값 폴백 → 보류) + 13개월 추이 + 사무소명 자동
   const [reference, priceHistory, officeName] = await Promise.all([
-    resolveReferencePrice({ complexName: form.complexName, gu, areaM2, areaBucket }),
+    resolveReferencePrice({ complexName: form.complexName, gu, areaM2, floor: form.floor, price: Number(form.price) }),
     fetchPriceHistory({ gu, areaBucket }),
     fetchAgentOfficeName(agentProfile?.email),
   ]);
@@ -320,24 +292,16 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
   // region 은 입력받지 않고 자동: 단지 시군구 > Geocoding 구 > 주소
   const region = form.complexSigungu || lookupResult.region?.gu || form.address || '';
 
-  // 기준 실거래가: 산출값 우선, 없으면 매도 호가(=할인율 0)
-  const marketPrice = reference.price || Number(form.price);
+  // 기준 실거래가·할인율: 판정 결과. 보류(status 'insufficient')면 null 로 저장해 급매로 보이지 않게 한다.
+  // (예전처럼 호가를 기준가로 삼아 0% 를 만들지 않는다 — 가짜 지표)
   const sellPrice = Number(form.price);
-  const discountRate =
-    marketPrice && marketPrice > 0
-      ? Number((((marketPrice - sellPrice) / marketPrice) * 100).toFixed(1))
-      : 0;
+  const held = !reference.basis || reference.basis.status === 'insufficient' || !reference.price;
+  const marketPrice = held ? null : reference.price;
+  const discountRate = held ? null : Number((((marketPrice - sellPrice) / marketPrice) * 100).toFixed(1));
 
-  // ④ 할인율 산출 근거 스냅샷 (감사·표시용)
-  const priceBasis = reference.basis
-    ? { ...reference.basis, computedAt: now }
-    : {
-        source: 'asking',
-        baselinePrice: marketPrice,
-        confidence: 'none',
-        method: '기준 실거래가 없음 — 호가 기준(할인율 0)',
-        computedAt: now,
-      };
+  // ④ 할인율 산출 근거 스냅샷 (감사·표시용) — 판정 함수의 discountRate 는 행 컬럼과 중복이라 뺀다
+  const { discountRate: _basisDiscount, ...basisRest } = reference.basis ?? heldBasis('no_data', { requestedAreaM2: areaM2, areaM2 });
+  const priceBasis = { ...basisRest, computedAt: now };
 
   // 2) 매물 INSERT
   const row = {

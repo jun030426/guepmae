@@ -107,6 +107,7 @@ function main() {
   console.log(`[complex] 입력 파일 ${files.length}개`);
 
   const groups = new Map(); // complex|gu|bucket -> { complex, gu, sigungu(대표), bucket, amounts[], latest }
+  let directExcluded = 0;
 
   for (const file of files) {
     const body = readNationalCsv(path.join(dataDir, file));
@@ -125,6 +126,9 @@ function main() {
       const cancel = pickColumn(row, ['해제사유발생일']);
       if (!sigungu || !complex || amount == null) continue;
       if (cancel && cancel !== '-') continue;
+      // 직거래(가족 간 거래 등)는 기준가에서 제외 — 판정 규칙 §4.0 (거래유형 열이 없는 옛 수집분은 미상이라 포함)
+      const dealing = pickColumn(row, ['거래유형']);
+      if (dealing && /직거래/.test(String(dealing))) { directExcluded += 1; continue; }
       const area = parseArea(pickColumn(row, ['전용면적(㎡)', '전용면적']));
       if (area == null) continue; // 정밀 면적 그룹핑에 전용면적 필수
       const areaM2 = Math.floor(area); // 84.97㎡ → "84타입" (한국 평형 타입 명명과 일치)
@@ -182,7 +186,7 @@ function main() {
 
   const sizeMb = (fs.statSync(outPath).size / 1024 / 1024).toFixed(2);
   console.log('—'.repeat(40));
-  console.log(`[complex] 단지+구+평형 그룹 ${groups.size.toLocaleString('ko-KR')}개`);
+  console.log(`[complex] 단지+구+평형 그룹 ${groups.size.toLocaleString('ko-KR')}개 (직거래 제외 ${directExcluded.toLocaleString('ko-KR')}건)`);
   console.log(`[complex] 출력: ${path.relative(projectRoot, outPath)} (${sizeMb}MB)`);
 }
 

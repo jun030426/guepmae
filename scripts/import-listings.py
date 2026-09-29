@@ -85,7 +85,7 @@ def load_complex_trades(needed):  # needed: {(gu, complex)} — 매물 단지만
         for r in csv.DictReader(f):
             key = (r["gu"], r["complex"])
             if key not in needed: continue
-            try: ct.setdefault(key, []).append({"a": int(r["area_m2"]), "ym": r["year_month"], "d": r.get("day", ""), "fl": r.get("floor", ""), "p": int(r["price"])})
+            try: ct.setdefault(key, []).append({"a": int(r["area_m2"]), "ym": r["year_month"], "d": r.get("day", ""), "fl": r.get("floor", ""), "p": int(r["price"]), "dl": r.get("dealing", "")})
             except: pass
     return ct
 def _median(xs):
@@ -101,7 +101,8 @@ def area_summary(trades, my_area):  # 표 A: 단지의 평형별 요약
     return out
 def recent_trades(trades, my_area, limit=30):  # 표 B: 내 평형 최근 실거래
     ts = sorted([t for t in trades if t["a"] == my_area], key=lambda x: (x["ym"], x["d"]), reverse=True)
-    return [{"yearMonth": t["ym"], "day": t["d"], "areaM2": t["a"], "floor": t["fl"], "price": t["p"]} for t in ts[:limit]]
+    return [{"yearMonth": t["ym"], "day": t["d"], "areaM2": t["a"], "floor": t["fl"], "price": t["p"],
+             "dealing": {"direct": "d", "brokered": "b"}.get(t.get("dl", ""), "")} for t in ts[:limit]]
 def real_history(trades, my_area):  # 차트: 내 평형 월별 real 중앙값 (재생산 없음)
     by = {}
     for t in trades:

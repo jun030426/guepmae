@@ -9,11 +9,16 @@
  * complex_trades.csv 로 함께 갱신한다 — 그렇지 않으면 페이지 위에서 주장(claim)과 근거가
  * 서로 어긋나는 상태로 남는다.
  *
- * 재계산 후 할인율이 MIN_DISC 아래이거나 MAX_DISC 위면 "검증된 급매"가 아니므로 제외한다.
+ * 기준가는 src/utils/priceBasis.js 의 판정 규칙(앱과 동일)으로 구한다 — 해제·직거래 제외 →
+ * 최근 12/24/36개월 창 → 같은 층 구간 → 중앙값. 개별 실거래(complex_trades.csv)가 없는 단지는
+ * complex_prices 중앙값(전체 기간·층 보정 없음)으로 폴백한다.
+ *
+ * 재계산 후 판정 보류이거나 할인율이 MIN_DISC 아래·MAX_DISC 위면 "검증된 급매"가 아니므로 제외한다.
  *
  * 실행:
  *   node scripts/recompute-price-basis.mjs 강원            # 미리보기
  *   node scripts/recompute-price-basis.mjs 강원 --write    # public/data/properties.json 갱신
+ *   node scripts/recompute-price-basis.mjs --all --write   # 전 지역
  */
 
 import fs from 'node:fs';
@@ -21,14 +26,21 @@ import readline from 'node:readline';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'csv-parse/sync';
+import {
+  basisFromComplexRow,
+  computePriceBasis,
+  MAX_DISC as BASIS_MAX_DISC,
+  MIN_DISC as BASIS_MIN_DISC,
+  MIN_SAMPLE as BASIS_MIN_SAMPLE,
+} from '../src/utils/priceBasis.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
 
-// import-listings.py:19 와 같은 값
-export const MIN_SAMPLE = 3;
-export const MIN_DISC = 5.0;
-export const MAX_DISC = 40.0;
+// import-listings.py:19 및 src/utils/priceBasis.js 와 같은 값
+export const MIN_SAMPLE = BASIS_MIN_SAMPLE;
+export const MIN_DISC = BASIS_MIN_DISC;
+export const MAX_DISC = BASIS_MAX_DISC;
 
 export function normalizeComplex(name) {
   return String(name ?? '').replace(/\s+|아파트/g, '').trim();
@@ -140,19 +152,20 @@ function parseCsvLine(line) {
 }
 
 // import-listings.py:load_complex_trades 의 한 행 처리와 동일한 필터/파싱 규칙.
-// header: complex,gu,area_m2,year_month,day,floor,price
+// header: complex,gu,area_m2,year_month,day,floor,price[,dealing]  (dealing: direct/brokered/빈값)
 function ingestTradeLine(line, needed, map) {
   if (!line) return;
   const fields = parseCsvLine(line);
   if (fields.length < 7) return;
-  const [complex, gu, areaStr, ym, day, floor, priceStr] = fields;
+  const [complex, gu, areaStr, ym, day, floor, priceStr, dealingRaw] = fields;
   const key = makeTradeKey(gu, complex);
   if (!needed.has(key)) return;
   const a = Number.parseInt(areaStr, 10);
   const p = Number.parseInt(priceStr, 10);
   if (!Number.isFinite(a) || !Number.isFinite(p)) return; // python: try/except: pass
+  const dl = dealingRaw === 'direct' ? 'd' : dealingRaw === 'brokered' ? 'b' : '';
   if (!map.has(key)) map.set(key, []);
-  map.get(key).push({ a, ym, d: day ?? '', fl: floor ?? '', p });
+  map.get(key).push({ a, ym, d: day ?? '', fl: floor ?? '', p, dl });
 }
 
 // 테스트/픽스처용 동기 버전 — 인라인 CSV 문자열을 그대로 파싱한다(104MB 실 파일은 절대
@@ -244,6 +257,7 @@ export function recentTrades(trades, myArea, limit = 30) {
     areaM2: t.a,
     floor: t.fl,
     price: t.p,
+    dealing: t.dl ?? '', // 'd' 직거래(기준가 제외 표시) / 'b' 중개 / '' 미상
   }));
 }
 
@@ -264,64 +278,78 @@ export function realHistory(trades, myArea) {
   }));
 }
 
-// tradesIndex: Map<makeTradeKey(gu, complex), trade[]> — 없으면 빈 배열(트레이드 미보유 단지).
-export function recomputeBasis(property, index, today, tradesIndex = new Map()) {
-  // 매물 title 은 "<단지명> 전용NN㎡ ..." 형태라 " 전용" 앞이 단지명이다
-  const complexName = String(property.title ?? '').split(' 전용')[0];
-  const entry = resolveComplex(complexName, property.region, index);
-  if (!entry) return null;
+// 매물 제목 "<단지명> 전용NN㎡ ..." 에서 단지명을 뗀다
+export function complexNameOf(property) {
+  return String(property.title ?? '').split(' 전용')[0];
+}
+
+// tradesIndex: Map<makeTradeKey(gu, complex), trade[]> — 있으면 판정 규칙(기간·층·직거래 제외),
+// 없으면 complex_prices 중앙값 폴백(전체 기간·층 보정 없음).
+// 반환 { result, reason } — result 가 null 이면 reason 이 제외 사유(로그·집계용).
+export function recomputeDecision(property, index, today, tradesIndex = new Map()) {
+  const entry = resolveComplex(complexNameOf(property), property.region, index);
+  if (!entry) return { result: null, reason: '단지 미매칭' };
 
   const areaM2 = Number(property.area);
-  const picked = pickBaseline(entry.rows, areaM2);
-  if (!picked) return null;
-
-  const { row, approx } = picked;
   const price = Number(property.price);
-  const discount = Math.round(((row.median_price - price) / row.median_price) * 1000) / 10;
-  if (discount < MIN_DISC || discount > MAX_DISC) return null;
-
   const gu = String(property.region ?? '').trim();
   const trades = tradesIndex.get(makeTradeKey(gu, entry.orig)) ?? [];
 
+  let basis;
+  if (trades.length > 0) {
+    const asOf = trades.reduce((max, t) => (t.ym > max ? t.ym : max), '');
+    basis = computePriceBasis({ trades, areaM2, floor: property.floor, price, asOf, computedAt: today });
+    if (basis.status !== 'ok') {
+      return {
+        result: null,
+        reason: basis.reason === 'no_data' ? '판정 보류(데이터 없음)' : `판정 보류(36개월 표본 ${basis.totalSample36 ?? 0}건)`,
+      };
+    }
+  } else {
+    const picked = pickBaseline(entry.rows, areaM2);
+    if (!picked) return { result: null, reason: '판정 보류(중앙값 표본 부족)' };
+    basis = basisFromComplexRow(picked.row, { requestedAreaM2: areaM2, approxArea: picked.approx, price, computedAt: today });
+  }
+
+  const discount = basis.discountRate;
+  if (discount == null || discount < MIN_DISC) return { result: null, reason: '할인율 기준 미달' };
+  if (discount > MAX_DISC) return { result: null, reason: '할인율 이상치(40% 초과)' };
+
+  const { discountRate: _basisDiscount, ...basisFields } = basis;
   return {
-    actual_transaction_price: row.median_price,
-    discount_rate: discount,
-    urgent_score: Math.min(99, Math.round(50 + discount * 3)),
-    recent_transaction_date: `${row.latest_year_month}-01`,
-    price_history: realHistory(trades, areaM2),
-    price_basis: {
-      ...(property.price_basis ?? {}),
-      source: 'complex',
-      baselinePrice: row.median_price,
-      areaM2: row.area_m2,
-      requestedAreaM2: areaM2,
-      approxArea: approx,
-      sampleSize: row.sample_size,
-      periodStart: row.earliest_year_month,
-      periodEnd: row.latest_year_month,
-      // import-listings.py:build_row 와 동일 기준(>= 5). 이전엔 >= 10 이라 56건이 high→medium 으로
-      // 잘못 강등돼 있었다.
-      confidence: row.sample_size >= 5 ? 'high' : 'medium',
-      method: `동일 단지 ${row.area_m2}㎡ · ${row.earliest_year_month}~${row.latest_year_month} ${row.sample_size}건 중앙값`,
-      computedAt: today,
-    },
-    price_table: {
-      complexName: entry.orig,
-      myAreaM2: areaM2,
-      basisPeriod: '최근 3년 실거래',
-      areaSummary: areaSummary(trades, areaM2),
-      recentTrades: recentTrades(trades, areaM2, 30),
+    reason: null,
+    result: {
+      actual_transaction_price: basis.baselinePrice,
+      discount_rate: discount,
+      urgent_score: Math.min(99, Math.round(50 + discount * 3)),
+      recent_transaction_date: `${basis.periodEnd}-01`,
+      price_history: realHistory(trades, areaM2),
+      // 기존 필드(coordSource 등)는 보존하고 판정 필드로 덮어쓴다
+      price_basis: { ...(property.price_basis ?? {}), ...basisFields },
+      price_table: {
+        complexName: entry.orig,
+        myAreaM2: areaM2,
+        basisPeriod: '최근 3년 실거래',
+        areaSummary: areaSummary(trades, areaM2),
+        recentTrades: recentTrades(trades, areaM2, 30),
+      },
     },
   };
+}
+
+export function recomputeBasis(property, index, today, tradesIndex = new Map()) {
+  return recomputeDecision(property, index, today, tradesIndex).result;
 }
 
 async function main() {
   const prefix = process.argv[2];
   const write = process.argv.includes('--write');
   if (!prefix) {
-    console.error('사용: node scripts/recompute-price-basis.mjs <지역접두사> [--write]');
+    console.error('사용: node scripts/recompute-price-basis.mjs <지역접두사|--all> [--write]');
     process.exit(1);
   }
+  const everyRegion = prefix === '--all' || prefix === '전체';
+  const matches = (p) => everyRegion || String(p.region ?? '').startsWith(prefix);
 
   const csvPath = path.join(projectRoot, 'scripts', 'output', 'complex_prices.csv');
   const index = buildComplexIndex(fs.readFileSync(csvPath, 'utf8'));
@@ -329,38 +357,41 @@ async function main() {
   const all = JSON.parse(fs.readFileSync(bundlePath, 'utf8'));
   const today = new Date().toISOString().slice(0, 10);
 
-  const candidates = all.filter((p) => String(p.region ?? '').startsWith(prefix));
+  const candidates = all.filter(matches);
 
-  // 1차 패스: 트레이드 없이 기준선/할인율만 계산해 살아남을 매물을 가리고, 그 매물들이
-  // 필요로 하는 (gu, 단지 정식명) 조합만 모은다 — import-listings.py 가 kept 확정 후에만
-  // complex_trades.csv 를 로드하는 순서와 동일.
+  // 1차 패스: 단지만 매칭해 필요한 (gu, 단지 정식명) 조합을 모은다 — 판정은 개별 실거래가 있어야
+  // 하므로 여기서 하지 않는다. 104MB 트레이드 CSV 는 이 조합만 스트리밍 적재한다.
   const needed = new Set();
   for (const property of candidates) {
-    const basis = recomputeBasis(property, index, today);
-    if (!basis) continue;
-    needed.add(makeTradeKey(String(property.region ?? '').trim(), basis.price_table.complexName));
+    const entry = resolveComplex(complexNameOf(property), property.region, index);
+    if (entry) needed.add(makeTradeKey(String(property.region ?? '').trim(), entry.orig));
   }
 
   const tradesPath = path.join(projectRoot, 'scripts', 'output', 'complex_trades.csv');
   const tradesIndex = await loadTradesIndexFromFile(tradesPath, needed);
+  if (tradesIndex.size === 0) {
+    console.warn('[재계산] ⚠ complex_trades.csv 가 없거나 매칭 단지가 없어 중앙값 테이블 폴백(전체 기간·층 보정 없음)으로 계산합니다.');
+  }
 
   let touched = 0;
-  let dropped = 0;
+  const dropped = new Map(); // 사유 → 건수
   const kept = [];
   for (const property of all) {
-    if (!String(property.region ?? '').startsWith(prefix)) { kept.push(property); continue; }
-    const next = recomputeBasis(property, index, today, tradesIndex);
-    if (!next) {
-      dropped += 1;
-      console.log(`  제외 ${property.title} (${property.region}) — 기준 미달`);
+    if (!matches(property)) { kept.push(property); continue; }
+    const { result, reason } = recomputeDecision(property, index, today, tradesIndex);
+    if (!result) {
+      dropped.set(reason, (dropped.get(reason) ?? 0) + 1);
+      console.log(`  제외 ${property.title} (${property.region}) — ${reason}`);
       continue;
     }
     touched += 1;
-    kept.push({ ...property, ...next, last_verified_at: today });
+    kept.push({ ...property, ...result, last_verified_at: today });
   }
 
+  const droppedTotal = [...dropped.values()].reduce((sum, n) => sum + n, 0);
   console.log('-'.repeat(40));
-  console.log(`[재계산] ${prefix}: 갱신 ${touched}건 / 제외 ${dropped}건 / 전체 ${all.length} → ${kept.length}건`);
+  console.log(`[재계산] ${everyRegion ? '전체' : prefix}: 갱신 ${touched}건 / 제외 ${droppedTotal}건 / 전체 ${all.length} → ${kept.length}건`);
+  for (const [reason, n] of dropped) console.log(`  - ${reason}: ${n}건`);
   if (!write) {
     console.log('[재계산] 미리보기입니다. 반영하려면 --write 를 붙이세요.');
     return;

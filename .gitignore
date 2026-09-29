@@ -40,3 +40,6 @@ scripts/_foreground.ps1
 
 # impeccable 플러그인 작업 캐시
 .impeccable/
+
+# Python 테스트 캐시
+scripts/__pycache__/

@@ -109,7 +109,7 @@ function Properties() {
         if (sort === 'score-desc') return b.urgentScore - a.urgentScore;
         if (sort === 'recent-desc') return new Date(b.lastVerifiedAt) - new Date(a.lastVerifiedAt);
         if (sort === 'price-asc') return a.price - b.price;
-        return b.discountRate - a.discountRate;
+        return (b.discountRate ?? -1) - (a.discountRate ?? -1); // 판정 보류(null)는 뒤로
       });
 
     return result;

@@ -33,8 +33,9 @@ function normalizeProperty(row) {
     region: row.region,
     propertyType: row.property_type,
     price: toNumber(row.price),
-    actualTransactionPrice: toNumber(row.actual_transaction_price),
-    discountRate: toNumber(row.discount_rate),
+    // 판정 보류 매물은 기준가·할인율이 null — 0 으로 바꾸면 "0% 저렴"이라는 가짜 주장이 된다
+    actualTransactionPrice: row.actual_transaction_price == null ? null : toNumber(row.actual_transaction_price),
+    discountRate: row.discount_rate == null ? null : toNumber(row.discount_rate),
     urgentScore: toNumber(row.urgent_score),
     area: toNumber(row.area),
     supplyArea: toNumber(row.supply_area),

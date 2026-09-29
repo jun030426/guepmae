@@ -5402,3 +5402,67 @@ input[type='file']::file-selector-button:hover {
   font-size: 12px;
   line-height: 1.4;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+ * 급매 판정 고도화 — 판정 보류 상태 · 산출 조건 목록 · 직거래 표시
+ * 설계: docs/superpowers/specs/2026-09-29-price-basis-judgment-design.md
+ * ══════════════════════════════════════════════════════════════════ */
+
+.urgent-badge.held {
+  background: transparent;
+  color: var(--text-muted, var(--color-text-muted));
+  border: 1px dashed var(--color-border);
+}
+.verdict.held {
+  background: transparent;
+  color: var(--text-muted, var(--color-text-muted));
+  border: 1px dashed var(--color-border);
+}
+.ref-tag.held {
+  background: transparent;
+  color: var(--text-muted, var(--color-text-muted));
+  border: 1px dashed var(--color-border);
+}
+.reference-price-held {
+  line-height: 1.55;
+}
+.reference-price-held strong {
+  color: var(--text-strong);
+}
+
+/* 산출 조건 — 기간 · 층 구간 · 제외 · 참고 */
+.basis-conditions {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--color-border) 35%, transparent);
+  font-size: 13px;
+}
+.basis-conditions li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+.basis-conditions li span {
+  color: var(--text-muted, var(--color-text-muted));
+  font-weight: 600;
+}
+.basis-conditions li strong {
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.trade-dealing-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px dashed var(--color-border);
+  color: var(--text-muted, var(--color-text-muted));
+  font-size: 11px;
+  vertical-align: middle;
+}

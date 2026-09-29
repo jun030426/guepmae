@@ -6,7 +6,8 @@
  * 매물 상세의 "실거래 표"(평형별 요약 + 최근 실거래 내역)용. 재생산(추정) 없이 실데이터만.
  *   - 해제(취소)된 거래(해제사유발생일 != 빈값/-)는 제외
  *
- * 출력 컬럼: complex, gu, area_m2, year_month, day, floor, price
+ * 출력 컬럼: complex, gu, area_m2, year_month, day, floor, price, dealing
+ *   dealing: direct(직거래) / brokered(중개거래) / 빈값(미상 — 거래유형 열이 없던 옛 수집분)
  * 실행: node scripts/build-complex-trades.mjs
  */
 import fs from 'node:fs';
@@ -47,7 +48,7 @@ function main() {
   const files = fs.readdirSync(dataDir).filter((f) => f.toLowerCase().endsWith('.csv'));
   if (!files.length) throw new Error('scripts/data/ 에 .csv 없음');
   console.log(`[trades] 입력 파일 ${files.length}개`);
-  const out = ['complex,gu,area_m2,year_month,day,floor,price'];
+  const out = ['complex,gu,area_m2,year_month,day,floor,price,dealing'];
   let total = 0, cancelled = 0, kept = 0;
   for (const file of files) {
     const rows = parse(readNationalCsv(path.join(dataDir, file)), {
@@ -68,7 +69,9 @@ function main() {
       const gu = toGu(sigungu);
       const day = String(pick(row, ['일']) ?? '').replace(/[^0-9]/g, '');
       const floor = String(pick(row, ['층']) ?? '').replace(/[^0-9-]/g, '');
-      out.push([csvCell(complex), csvCell(gu), areaM2, ym, day, floor, amount].join(','));
+      const dealingRaw = String(pick(row, ['거래유형']) ?? '');
+      const dealing = /직거래/.test(dealingRaw) ? 'direct' : /중개/.test(dealingRaw) ? 'brokered' : '';
+      out.push([csvCell(complex), csvCell(gu), areaM2, ym, day, floor, amount, dealing].join(','));
       kept += 1;
     }
     console.log(`[trades] ${file} 처리`);

@@ -7,7 +7,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { CheckCircle2, TrendingDown } from 'lucide-react';
+import { AlertCircle, CheckCircle2, TrendingDown } from 'lucide-react';
+import { basisConditions, isHeld } from '../utils/priceBasis.js';
 import {
   calculateDiscountRate,
   calculatePriceGap,
@@ -26,19 +27,24 @@ const eok = (won) => {
 };
 
 function PriceReport({ property }) {
+  const basis = property.priceBasis;
+  // 판정 보류 — 기준가가 없으므로 할인율·차액을 만들지 않는다
+  const held = property.discountRate == null || isHeld(basis);
   const discountRate = calculateDiscountRate(property.price, property.actualTransactionPrice);
   const priceGap = calculatePriceGap(property.price, property.actualTransactionPrice);
-  const urgent = isUrgentSale(property.price, property.actualTransactionPrice);
+  const urgent = !held && isUrgentSale(property.price, property.actualTransactionPrice);
+  const conditions = basisConditions(basis);
 
   // 실거래만 (재생산/추정 없음)
   const chartData = Array.isArray(property.priceHistory) ? property.priceHistory : [];
   const hasChart = chartData.length >= 2;
 
   // ⑤ 산출 근거 — 검증의 핵심 증거를 판정문 바로 옆에 노출. priceBasis 없으면 안전 폴백.
-  const basis = property.priceBasis;
-  const basisLabel = basis?.method
-    ? `${basis.method} · 국토부 실거래${basis.confidence === 'low' ? ' (표본 적음)' : ''}`
-    : '동일 단지 · 유사 면적 최근 실거래가 기준';
+  const basisLabel = held
+    ? basis?.method || '기준 실거래가 미산출 — 판정 보류'
+    : basis?.method
+      ? `${basis.method} · 국토부 실거래${basis.confidence === 'low' || basis.confidence === 'medium' ? ' (표본 적음)' : ''}`
+      : '동일 단지 · 유사 면적 최근 실거래가 기준';
 
   const table = property.priceTable || {};
   const areaSummary = Array.isArray(table.areaSummary) ? table.areaSummary : [];
@@ -52,9 +58,9 @@ function PriceReport({ property }) {
           <p className="section-eyebrow">가격 검증 리포트</p>
           <h2>실거래가 대비 가격 차이</h2>
         </div>
-        <span className={urgent ? 'verdict positive' : 'verdict'}>
-          <CheckCircle2 size={18} />
-          {urgent ? '급매 기준 충족' : '일반 매물'}
+        <span className={held ? 'verdict held' : urgent ? 'verdict positive' : 'verdict'}>
+          {held ? <AlertCircle size={18} /> : <CheckCircle2 size={18} />}
+          {held ? '판정 보류' : urgent ? '급매 기준 충족' : '일반 매물'}
         </span>
       </div>
 
@@ -65,26 +71,45 @@ function PriceReport({ property }) {
         </div>
         <div className="report-stat">
           <span>기준 실거래가</span>
-          <strong>{formatPrice(property.actualTransactionPrice)}</strong>
+          <strong>{held ? '—' : formatPrice(property.actualTransactionPrice)}</strong>
         </div>
         <div className="report-stat">
           <span>차액</span>
-          <strong>{formatPrice(priceGap)}</strong>
+          <strong>{held ? '—' : formatPrice(priceGap)}</strong>
         </div>
         <div className="report-stat highlight">
           <span>할인율</span>
-          <strong>{discountRate}%</strong>
+          <strong>{held ? '판정 보류' : `${discountRate}%`}</strong>
         </div>
       </div>
 
       <div className="report-verdict-box">
         <TrendingDown size={22} />
-        <p>
-          이 매물은 기준 실거래가 대비 {discountRate}% 저렴하여{' '}
-          {urgent ? '급매 기준을 충족합니다.' : '급매 기준에는 아직 도달하지 않았습니다.'}
-        </p>
-        <span>최근 실거래일 {property.recentTransactionDate}</span>
+        {held ? (
+          <p>
+            표본이 부족하거나 단지 실거래 데이터가 없어 <strong>판정을 보류</strong>했습니다. 기준가를 추정해 만들지 않습니다.
+          </p>
+        ) : (
+          <p>
+            이 매물은 기준 실거래가 대비 {discountRate}% 저렴하여{' '}
+            {urgent ? '급매 기준을 충족합니다.' : '급매 기준에는 아직 도달하지 않았습니다.'}
+          </p>
+        )}
+        {!held && <span>최근 실거래일 {property.recentTransactionDate}</span>}
         <span className="verdict-basis">산출 근거: {basisLabel}</span>
+        {conditions.length > 0 && (
+          <ul className="basis-conditions" aria-label="산출 조건">
+            {conditions.map((condition) => (
+              <li key={condition.label}>
+                <span>{condition.label}</span>
+                <strong>
+                  {condition.value}
+                  {condition.price != null ? ` ${formatPrice(condition.price)}` : ''}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="chart-card">
@@ -169,7 +194,10 @@ function PriceReport({ property }) {
                           <td>{fmtDate(r.yearMonth, r.day)}</td>
                           <td>{fmtArea(r.areaM2)}</td>
                           <td>{r.floor ? `${r.floor}층` : '-'}</td>
-                          <td>{formatPrice(r.price)}</td>
+                          <td>
+                            {formatPrice(r.price)}
+                            {r.dealing === 'd' && <span className="trade-dealing-tag">직거래 · 기준가 제외</span>}
+                          </td>
                         </tr>
                       ))}
                     </tbody>

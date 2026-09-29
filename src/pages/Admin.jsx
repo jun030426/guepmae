@@ -23,6 +23,7 @@ import {
   rejectAgentApplication,
 } from '../services/agentApplications.js';
 import { formatPrice } from '../utils/priceUtils.js';
+import { discountLabel } from '../utils/priceBasis.js';
 import { db } from '../lib/dataClient.js';
 
 const APPLICATION_STATUS_LABEL = {
@@ -511,7 +512,7 @@ function Admin() {
                       </td>
                       <td>{property.region}</td>
                       <td>{formatPrice(property.price)}</td>
-                      <td>{property.discountRate}%</td>
+                      <td>{discountLabel(property.discountRate)}</td>
                       <td>{formatDate(property.createdAt)}</td>
                       <td>
                         <div className="table-actions">
@@ -576,7 +577,8 @@ function Admin() {
                     </td>
                     <td>{property.region}</td>
                     <td>{formatPrice(property.price)}</td>
-                    <td>{property.discountRate}%</td>
+                    <td>{discountLabel(property.discountRate)}</td>
+
                     <td>{formatDate(property.createdAt)}</td>
                     <td>
                       <button

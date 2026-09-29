@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { canUpload3DModel, getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
+import { canUpload3DModel, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
+
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
@@ -80,7 +81,8 @@ function AgentRegisterProperty() {
       complexName: form.complexName,
       gu: form.complexGu,
       areaM2: Math.floor(areaSqm), // 등록 시(registerProperty)와 동일한 매칭 키
-      areaBucket: getAreaBucket(areaSqm),
+      floor: form.floor, // 층 구간 보정
+      price: Number(form.price) || null,
     }).then((result) => {
       if (active) setReference(result);
     }).catch((referenceError) => {
@@ -91,7 +93,7 @@ function AgentRegisterProperty() {
     return () => {
       active = false;
     };
-  }, [form.complexGu, form.complexName, areaSqm]);
+  }, [form.complexGu, form.complexName, areaSqm, form.floor]);
 
   const sellPrice = Number(form.price);
   const previewDiscount =
@@ -204,7 +206,7 @@ function AgentRegisterProperty() {
             <small className="field-hint">
               {form.complexGu
                 ? `선택됨: ${form.complexSigungu} — 단지 실거래가로 기준가가 계산됩니다.`
-                : '※ 선택하면 단지 실거래가로, 비우면 지역 시세로 기준 실거래가가 자동 산출됩니다.'}
+                : '※ 목록에서 단지를 선택해야 실거래 기준가가 산출됩니다. 선택하지 않으면 판정 보류로 등록됩니다.'}
             </small>
           </label>
           <label>
@@ -302,13 +304,23 @@ function AgentRegisterProperty() {
           <div className="reference-price-box">
             <div className="reference-price-head">
               <span>기준 실거래가 <em>(국토부 실거래가 기반 · 자동)</em></span>
-              {reference?.source && (
-                <span className={reference.source === 'complex' ? 'ref-tag complex' : 'ref-tag region'}>
-                  {reference.source === 'complex' ? '단지 실거래 기준' : '지역 시세 기반 추정'}
+              {reference?.basis?.status === 'insufficient' ? (
+                <span className="ref-tag held">판정 보류</span>
+              ) : reference?.source === 'complex' ? (
+                <span className="ref-tag complex">
+                  {reference.basis?.fallback ? '단지 중앙값 (전체 기간)' : '단지 실거래 기준'}
                 </span>
-              )}
+              ) : null}
             </div>
-            {reference?.price ? (
+            {reference?.basis?.status === 'insufficient' ? (
+              <p className="reference-price-empty reference-price-held">
+                <strong>{reference.basis.method}</strong>
+                {reference.basis.reason === 'no_data'
+
+                  ? ' 단지명을 목록에서 골랐는지 확인해주세요. 등록은 가능하지만 기준가가 없어 급매 목록에는 노출되지 않습니다.'
+                  : ' 등록은 가능하지만 급매 목록에는 노출되지 않습니다.'}
+              </p>
+            ) : reference?.price ? (
               <>
                 <strong className="reference-price-value">{formatPrice(reference.price)}</strong>
                 {previewDiscount && (
@@ -317,11 +329,11 @@ function AgentRegisterProperty() {
                     {Number(previewDiscount) >= 5 ? ' — 급매 기준 충족' : ' (5% 이상이면 급매로 분류)'}
                   </p>
                 )}
+                {reference.basis?.method && <small className="field-hint">산출 근거: {reference.basis.method}</small>}
               </>
             ) : (
               <p className="reference-price-empty">
                 단지명을 선택하고 전용면적을 입력하면 기준 실거래가가 자동으로 표시됩니다.
-                {' '}못 찾으면 등록 시 지역 시세로 자동 산출됩니다.
               </p>
             )}
           </div>

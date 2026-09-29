@@ -222,7 +222,9 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 
 | 문서 | 내용 |
 |---|---|
+| `docs/DESKTOP_TODO.md` | **데스크톱에서 할 일** — 카카오 키, 실거래 재수집·재계산·Supabase 적재, GitHub 시크릿, 360 실사진. 키·원본 데이터가 필요한 항목만 |
 | `README.md` | 기능·스택·파이프라인·실행 방법 |
+
 | `PRODUCT.md` | 제품 정의·사용자·원칙 (impeccable 스키마) |
 | `SUPABASE_VERCEL_SETUP.md` | 환경변수·DB 적용·역할 운영·배포 설정 |
 | `docs/superpowers/specs/2026-08-26-hybrid-backend-design.md` | 하이브리드 모드 설계·검증 결과 |

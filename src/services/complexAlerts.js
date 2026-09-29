@@ -115,9 +115,14 @@ export async function fetchAlertsByEmail(email) {
   }));
 }
 
+/** 운영진용 — 알림 신청 행(이메일 제외). 운영 권한이 없으면(RLS) 빈 배열 */
+export async function fetchAlertRows() {
+  const { data, error } = await db.from('complex_alerts').select('complex, gu, area_m2, status, created_at');
+  if (error || !Array.isArray(data)) return [];
+  return data;
+}
+
 /** 운영 통계 — 활성 신청 수·단지 수·상위 단지. 운영 권한이 없으면(RLS) 0 으로 보인다. */
 export async function fetchAlertStats() {
-  const { data, error } = await db.from('complex_alerts').select('complex, gu, area_m2, status, created_at');
-  if (error || !Array.isArray(data)) return { total: 0, complexes: 0, top: [] };
-  return summarizeAlerts(data);
+  return summarizeAlerts(await fetchAlertRows());
 }

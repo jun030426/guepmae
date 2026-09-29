@@ -1,8 +1,11 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Plus, FileText, Building2, ShieldCheck, Sparkles } from 'lucide-react';
+import PricingIntentCard from '../components/PricingIntentCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProperties } from '../hooks/useProperties.js';
+import { fetchPropertyStats } from '../services/pilotMetrics.js';
+import { conversionRate, totalsOf } from '../utils/pilotMetrics.js';
 
 // 첫 등록 전 안내 — 등록 폼의 실제 순서와 동일해야 함 (AgentRegisterProperty 참조)
 const firstRunSteps = [
@@ -36,6 +39,16 @@ function AgentDashboard() {
   const verifiedCount = mine.filter((p) => p.verified).length;
   const pendingCount = mine.length - verifiedCount;
   const isFirstRun = !isLoading && mine.length === 0;
+
+  // 최근 30일 매수자 반응 — 내 매물의 조회·문의 (운영진·본인 조회는 빠져 있다)
+  const [interest, setInterest] = useState(null);
+  useEffect(() => {
+    let active = true;
+    if (!myEmail) return undefined;
+    fetchPropertyStats(30).then((stats) => active && setInterest(totalsOf(stats.listings)));
+    return () => { active = false; };
+  }, [myEmail]);
+  const interestRate = interest ? conversionRate(interest.inquiries, interest.views) : null;
 
   return (
     <div className="page-shell agent-dashboard">
@@ -96,6 +109,34 @@ function AgentDashboard() {
             </article>
           </div>
         )}
+
+        {!isFirstRun && (
+          <section className="agent-interest" aria-labelledby="agent-interest-title">
+            <h2 id="agent-interest-title">최근 30일 매수자 반응</h2>
+            <div className="agent-stat-grid">
+              <article className="agent-stat-card">
+                <p className="agent-stat-label">매물 조회</p>
+                <strong>{interest ? `${interest.views.toLocaleString('ko-KR')}회` : '...'}</strong>
+                <span>내 매물 상세를 연 횟수</span>
+              </article>
+              <article className="agent-stat-card">
+                <p className="agent-stat-label">문의</p>
+                <strong>{interest ? `${interest.inquiries.toLocaleString('ko-KR')}건` : '...'}</strong>
+                <span>{interest ? `전화 ${interest.inquiryTel} · 이메일 ${interest.inquiryEmail}` : '전화·이메일 버튼을 누른 횟수'}</span>
+              </article>
+              <article className="agent-stat-card">
+                <p className="agent-stat-label">문의 전환율</p>
+                <strong>{interest ? (interestRate == null ? '–' : `${interestRate}%`) : '...'}</strong>
+                <span>문의 ÷ 조회</span>
+              </article>
+            </div>
+            <p className="agent-interest-note">
+              방문자를 식별하지 않고 센 합계입니다. 같은 사람이 같은 날 다시 본 것, 본인과 운영팀이 본 것은 빠져 있습니다.
+            </p>
+          </section>
+        )}
+
+        {!isFirstRun && !isLoading && <PricingIntentCard listingCount={mine.length} />}
 
         <section className="agent-dashboard-actions">
           <Link to="/agent/properties/new" className="agent-action-tile primary">

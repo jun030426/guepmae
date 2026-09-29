@@ -16,6 +16,7 @@
 
 import { putBlob } from '../utils/localMediaStore.js';
 import { IDB_PREFIX } from '../utils/mediaUrl.js';
+import { EVENTS, STAFF_ROLES, kstDay } from '../utils/pilotMetrics.js';
 
 const SUPA_URL = String(import.meta.env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
 const SUPA_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
@@ -65,6 +66,8 @@ const K_APPS = 'geupmae:applications';  // [application]
 const K_USERS = 'geupmae:users';        // [profile]
 const K_SESSION = 'geupmae:session';    // { user, ... } | null
 const K_ALERTS = 'geupmae:alerts';      // [complex_alerts row] — 관심 단지 급매 알림 구독
+const K_STATS = 'geupmae:stats';        // [property_daily_stats row] — 매물 조회·문의 일별 합계
+const K_INTENTS = 'geupmae:pricing-intents'; // [agent_pricing_intents row] — 중개사 유료 의향 설문
 
 const propsOverlay = () => LS(K_PROPS, { created: [], edits: {}, deleted: [] });
 
@@ -138,6 +141,7 @@ async function tableRows(table) {
     }
     case 'agent_applications': return LS(K_APPS, []);
     case 'complex_alerts': return LS(K_ALERTS, []);
+    case 'agent_pricing_intents': return LS(K_INTENTS, []);
     case 'profiles': return seedUsers();
     case 'price_trends': return []; // 시계열 미번들 (신규 등록 매물은 빈 추이)
     default: return [];
@@ -146,7 +150,7 @@ async function tableRows(table) {
 
 // 하이브리드에서 통째로 Supabase 에 위임하는 테이블 (인증·운영·동적 생성 데이터)
 // complex_trades 는 83k 행이라 번들에 다 못 싣는다 — 하이브리드에서는 Supabase 에서 (complex, gu) 로 읽는다.
-const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications', 'property_inspections', 'complex_trades', 'complex_alerts']);
+const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications', 'property_inspections', 'complex_trades', 'complex_alerts', 'agent_pricing_intents']);
 
 // ───────────────────────── 쿼리 빌더 (thenable) ─────────────────────────
 const BUILDER_METHODS = [
@@ -247,7 +251,8 @@ function localFrom(table) {
     if (table === 'properties') {
       const ov = propsOverlay();
       if (_mutation.type === 'insert' || _mutation.type === 'upsert') {
-        list.forEach((row) => { ov.created.unshift(row); });
+        // DB 는 created_at 을 기본값으로 채운다 — 로컬에서도 등록일이 남게 한다
+        list.forEach((row) => { ov.created.unshift({ created_at: new Date().toISOString(), ...row }); });
         setLS(K_PROPS, ov);
         return { data: list.map((r) => ({ id: r.id })), error: null };
       }
@@ -294,6 +299,23 @@ function localFrom(table) {
         list.forEach((a) => alerts.unshift({ id: Date.now() + alerts.length, created_at: new Date().toISOString(), status: 'active', ...a }));
         setLS(K_ALERTS, alerts);
         return { data: null, error: null };
+      }
+    }
+    if (table === 'agent_pricing_intents') {
+      // 중개사 한 명에 답 하나 (DB 의 기본키 user_id 와 같은 규칙)
+      if (_mutation.type === 'insert' || _mutation.type === 'upsert') {
+        let intents = LS(K_INTENTS, []);
+        const now = new Date().toISOString();
+        for (const row of list) {
+          const previous = intents.find((item) => item.user_id === row.user_id);
+          if (previous && _mutation.type === 'insert') {
+            return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
+          }
+          intents = intents.filter((item) => item.user_id !== row.user_id);
+          intents.unshift({ created_at: previous?.created_at ?? now, ...row, updated_at: now });
+        }
+        setLS(K_INTENTS, intents);
+        return { data: list.map((row) => ({ user_id: row.user_id })), error: null };
       }
     }
     return { data: null, error: null };
@@ -541,7 +563,74 @@ async function rpc(name, args = {}) {
     setLS(K_ALERTS, next);
     return { data: found, error: null };
   }
+  if (name === 'track_property_event') return { data: await localTrackEvent(args), error: null };
+  if (name === 'property_stats') return { data: localPropertyStats(args), error: null };
   return { data: null, error: { message: `로컬 데모 모드에서 지원하지 않는 함수입니다: ${name}` } };
+}
+
+// 로컬 모드의 로그인 사용자 프로필 (없으면 null)
+function localViewer() {
+  const session = LS(K_SESSION, null);
+  if (!session?.user?.id) return null;
+  return seedUsers().find((user) => user.id === session.user.id) ?? null;
+}
+
+const lowerEmail = (value) => String(value ?? '').trim().toLowerCase();
+
+// DB 함수 track_property_event 와 같은 규칙: 있는 매물만, 운영진·담당 중개사 본인은 세지 않는다
+async function localTrackEvent({ p_property_id: propertyId, p_event: event } = {}) {
+  if (!EVENTS.includes(event)) return false;
+  const property = (await tableRows('properties')).find((row) => row.id === propertyId);
+  if (!property) return false;
+  const agentEmail = lowerEmail(property.agent?.email) || null;
+  const viewer = localViewer();
+  if (viewer && STAFF_ROLES.includes(viewer.role)) return false;
+  if (viewer && agentEmail && lowerEmail(viewer.email) === agentEmail) return false;
+
+  const day = kstDay();
+  const rows = LS(K_STATS, []);
+  let row = rows.find((item) => item.property_id === propertyId && item.day === day);
+  if (!row) {
+    row = { property_id: propertyId, day, agent_email: agentEmail, views: 0, inquiry_tel: 0, inquiry_email: 0 };
+    rows.push(row);
+  }
+  if (event === 'view') row.views += 1;
+  else row[event] += 1;
+  if (agentEmail) row.agent_email = agentEmail;
+  setLS(K_STATS, rows);
+  return true;
+}
+
+// DB 함수 property_stats 와 같은 규칙: 운영진은 전체, 중개사는 자기 매물만, 그 밖은 빈 결과
+function localPropertyStats({ p_from: from = null, p_to: to = null } = {}) {
+  const viewer = localViewer();
+  const all = Boolean(viewer) && STAFF_ROLES.includes(viewer.role);
+  const own = Boolean(viewer) && viewer.role === 'agent' && lowerEmail(viewer.email) !== '';
+  if (!all && !own) return { scope: 'none', listings: [], daily: [] };
+  const mine = lowerEmail(viewer.email);
+  const rows = LS(K_STATS, []).filter((row) => (!from || row.day >= from) && (!to || row.day <= to) && (all || row.agent_email === mine));
+
+  const listings = new Map();
+  const daily = new Map();
+  for (const row of rows) {
+    if (!listings.has(row.property_id)) {
+      listings.set(row.property_id, { property_id: row.property_id, agent_email: row.agent_email ?? null, views: 0, inquiry_tel: 0, inquiry_email: 0, first_day: row.day, last_day: row.day });
+    }
+    const item = listings.get(row.property_id);
+    item.views += row.views;
+    item.inquiry_tel += row.inquiry_tel;
+    item.inquiry_email += row.inquiry_email;
+    if (row.day < item.first_day) item.first_day = row.day;
+    if (row.day > item.last_day) item.last_day = row.day;
+    if (!daily.has(row.day)) daily.set(row.day, { day: row.day, views: 0, inquiries: 0 });
+    daily.get(row.day).views += row.views;
+    daily.get(row.day).inquiries += row.inquiry_tel + row.inquiry_email;
+  }
+  return {
+    scope: all ? 'all' : 'own',
+    listings: [...listings.values()],
+    daily: [...daily.values()].sort((a, b) => (a.day < b.day ? -1 : 1)),
+  };
 }
 
 export const db = { from, auth, storage, functions, rpc };

@@ -208,7 +208,7 @@ python scripts/rehearsal/rehearse.py
 
 ## E. 이미 끝난 것 (참고)
 
-- Supabase 마이그레이션은 노트북에서 라이브에 적용됨(2026-09-29): `property_360_bucket`, `complex_trades_table`, `properties_discount_rate_nullable`, `property_photos_bucket_limits_owner`, `complex_alerts`, `pipeline_data_bucket`. 데스크톱에서 `npx supabase db push` 를 다시 돌릴 필요 없음 — 돌리더라도 `if not exists`/`drop policy if exists` 라 안전.
+- Supabase 마이그레이션은 노트북에서 라이브에 적용됨(2026-09-29): `property_360_bucket`, `complex_trades_table`, `properties_discount_rate_nullable`, `property_photos_bucket_limits_owner`, `complex_alerts`, `pipeline_data_bucket`, `pilot_metrics`. 데스크톱에서 `npx supabase db push` 를 다시 돌릴 필요 없음 — 돌리더라도 `if not exists`/`drop policy if exists` 라 안전.
 - Vercel 은 `main` 푸시마다 자동 배포. 환경변수만 A 에서 추가.
 
 ---
@@ -302,6 +302,17 @@ node scripts/backtest-price-basis.mjs --md docs/BACKTEST.md
 
 - [ ] `/admin` 에 알림 통계(신청 수·상위 단지)가 보임
 - [ ] 대기 매물을 검증하면 목록·지도에 나타남
+
+파일럿 지표 (2026-09-29 구현, 라이브 DB 적용됨 — 권한은 DB 에서 직접 확인했고 화면은 로컬 데모로만 확인)
+
+- [ ] 로그아웃한 브라우저로 중개사 등록 매물의 상세를 연다 → 관리자 "파일럿 지표"에서 그 매물의 조회가 1. 새로고침해도 1
+- [ ] 같은 화면에서 전화 버튼을 누른다 → 문의 1. 이메일 버튼을 더 눌러도 1 (한 사람은 하루 한 번)
+- [ ] 중개사 계정으로 **자기 매물**을 연다 → 조회가 늘지 않는다. 관리자 계정으로 열어도 늘지 않는다
+- [ ] 중개사 대시보드: "최근 30일 매수자 반응"에 위 숫자가 보인다. "내 등록 매물" 표의 조회·문의 열도 같다
+- [ ] 중개사 대시보드: 설문에 답하고 저장 → "답변 완료" → "답변 수정"으로 고친다
+- [ ] 관리자: 기간(7일·30일·90일·전체)을 바꿔 본다. CSV 두 개를 내려받아 엑셀에서 한글이 깨지지 않는지 본다
+- [ ] 파일럿을 시작하기 전에 설문의 **월 요금 구간**을 정한다 — 지금 값(1만원 미만 ~ 10만원 이상)은 임시다.
+      바꾸려면 노트북 세션에 알려주기 (`src/utils/pilotMetrics.js` 의 `PRICE_BANDS` 와 DB 제약을 같이 바꿔야 한다)
 
 뒷정리
 

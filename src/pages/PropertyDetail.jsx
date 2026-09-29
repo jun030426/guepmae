@@ -30,6 +30,8 @@ import ComplexAlertCard from '../components/ComplexAlertCard.jsx';
 import { isHeld } from '../utils/priceBasis.js';
 import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
+import { useAuth } from '../context/AuthContext.jsx';
+import { trackPropertyEvent } from '../services/pilotMetrics.js';
 import { formatArea, formatPrice } from '../utils/priceUtils.js';
 import { getPropertyPhotos } from '../utils/propertyMedia.js';
 import { isSaved, toggleSaved } from '../utils/savedProperties.js';
@@ -100,6 +102,18 @@ function PropertyDetail() {
     setActivePhoto(0);
     setSaved(isSaved(id));
   }, [id]);
+
+  // 파일럿 지표: 조회·문의 버튼 집계 (방문자를 식별하지 않는다 — 매물 id 와 종류만 보낸다).
+  // 로그인 상태를 확인한 뒤에 센다 — 운영진·담당 중개사 본인의 조회는 방문이 아니다.
+  const { isLoading: authLoading, session, profile } = useAuth();
+  const viewerReady = !authLoading && (!session?.user || Boolean(profile));
+  useEffect(() => {
+    if (!property || !viewerReady) return;
+    trackPropertyEvent(property, 'view', profile);
+  }, [property, viewerReady, profile]);
+  const trackInquiry = (channel) => {
+    if (property && viewerReady) trackPropertyEvent(property, channel, profile);
+  };
 
   // 앵커 탭 — React Router가 네이티브 해시 스크롤을 삼키므로 직접 스크롤한다.
   // (스크롤 오프셋은 CSS scroll-margin-top이 담당)
@@ -552,13 +566,13 @@ function PropertyDetail() {
               {property.agent.verified ? '인증 중개사' : '인증 확인 중'}
             </p>
             {phoneHref && (
-              <a className="agent-phone" href={`tel:${phoneHref}`}>
+              <a className="agent-phone" href={`tel:${phoneHref}`} onClick={() => trackInquiry('inquiry_tel')}>
                 <Phone size={17} />
                 {property.agent.phone}
               </a>
             )}
             {agentEmail && (
-              <a className="agent-phone" href={`mailto:${agentEmail}`}>
+              <a className="agent-phone" href={`mailto:${agentEmail}`} onClick={() => trackInquiry('inquiry_email')}>
                 <Mail size={17} />
                 {agentEmail}
               </a>
@@ -568,12 +582,12 @@ function PropertyDetail() {
               최근 매물 확인일 {formatKoreanDate(property.lastVerifiedAt)}
             </p>
             {phoneHref ? (
-              <a className="tour-button" href={`tel:${phoneHref}`}>
+              <a className="tour-button" href={`tel:${phoneHref}`} onClick={() => trackInquiry('inquiry_tel')}>
                 전화로 방문 예약·문의
                 <span>방문 일정은 중개사와 협의</span>
               </a>
             ) : agentEmail ? (
-              <a className="tour-button" href={`mailto:${agentEmail}`}>
+              <a className="tour-button" href={`mailto:${agentEmail}`} onClick={() => trackInquiry('inquiry_email')}>
                 이메일로 방문 예약·문의
                 <span>방문 일정은 중개사와 협의</span>
               </a>

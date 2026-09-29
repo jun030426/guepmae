@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -6,6 +6,8 @@ import { useProperties } from '../hooks/useProperties.js';
 import { db } from '../lib/dataClient.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import { discountLabel } from '../utils/priceBasis.js';
+import { fetchPropertyStats } from '../services/pilotMetrics.js';
+import { statsByProperty } from '../utils/pilotMetrics.js';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 
 function formatDate(iso) {
@@ -24,6 +26,15 @@ function AgentMyProperties() {
     const list = properties.filter((p) => myEmail && p.agent?.email === myEmail);
     return [...list].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   }, [properties, myEmail]);
+
+  // 매물별 최근 30일 조회·문의
+  const [statsById, setStatsById] = useState(null);
+  useEffect(() => {
+    let active = true;
+    if (!myEmail) return undefined;
+    fetchPropertyStats(30).then((stats) => active && setStatsById(statsByProperty(stats.listings)));
+    return () => { active = false; };
+  }, [myEmail]);
 
   const handleDelete = (property) => {
     setConfirm({
@@ -92,6 +103,7 @@ function AgentMyProperties() {
                   <th>매도가</th>
                   <th>할인율</th>
                   <th>상태</th>
+                  <th>조회 · 문의 (30일)</th>
                   <th>등록일</th>
                   <th>관리</th>
                 </tr>
@@ -114,6 +126,11 @@ function AgentMyProperties() {
                       ) : (
                         <span className="status-badge wait">승인 대기</span>
                       )}
+                    </td>
+                    <td>
+                      {statsById
+                        ? `${statsById.get(property.id)?.views ?? 0}회 · ${statsById.get(property.id)?.inquiries ?? 0}건`
+                        : '...'}
                     </td>
                     <td>{formatDate(property.createdAt)}</td>
                     <td className="my-property-actions">

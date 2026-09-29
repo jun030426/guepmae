@@ -41,6 +41,9 @@ function Footer() {
           <p className="footer-disclaimer">
             모든 분석은 과거 실거래 데이터의 패턴 설명이며, 투자 권유나 미래 가격 예측이 아닙니다.
           </p>
+          <p className="footer-disclaimer">
+            매물 조회와 문의 버튼을 누른 횟수를 방문자를 식별하지 않고 매물별 합계로만 집계합니다.
+          </p>
         </div>
 
         <div className="footer-menu">

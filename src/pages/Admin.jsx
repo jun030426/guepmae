@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, FileText, Lock, Users, X, XCircle } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
+import PilotMetricsPanel from '../components/PilotMetricsPanel.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
@@ -416,6 +417,8 @@ function Admin() {
           description={alertStats.complexes > 0 ? `관심 단지 ${alertStats.complexes}곳` : '관심 단지 알림 구독'}
         />
       </section>
+
+      <PilotMetricsPanel properties={properties} />
 
       {alertStats.top.length > 0 && (
         <section className="container admin-grid">

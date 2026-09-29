@@ -18,8 +18,8 @@ const firstRunSteps = [
   },
   {
     Icon: Sparkles,
-    title: 'AI 리포트 생성 · 즉시 노출',
-    detail: '가격 · 입지 분석 리포트가 자동으로 붙고, 매물은 바로 메인 사이트에 노출됩니다.',
+    title: '실거래가 검증 · 승인 후 노출',
+    detail: '할인율 산출 근거(표본 수 · 기간 · 실거래 내역)가 자동으로 붙고, 운영팀 검증을 거쳐 메인 사이트에 노출됩니다.',
   },
 ];
 
@@ -46,7 +46,7 @@ function AgentDashboard() {
             <h1>안녕하세요, {profile?.full_name || '중개사'}님</h1>
             <p className="agent-dashboard-subtitle">
               {isFirstRun
-                ? '첫 매물을 등록하면 검증과 AI 리포트가 자동으로 시작됩니다.'
+                ? '첫 매물을 등록하면 실거래가 기준 할인율이 자동 계산되고, 운영팀 검증 후 노출됩니다.'
                 : `등록 매물 ${mine.length}건을 관리하고 있습니다.`}
             </p>
           </div>
@@ -60,7 +60,7 @@ function AgentDashboard() {
           <section className="agent-first-run" aria-labelledby="agent-first-run-title">
             <h2 id="agent-first-run-title">첫 매물을 등록해보세요</h2>
             <p className="agent-first-run-lead">
-              등록과 동시에 실거래가 검증 배지와 AI 리포트가 붙어, 매수자에게 &ldquo;진짜 급매&rdquo;로 전달됩니다.
+              등록과 동시에 실거래가 기준 할인율과 산출 근거가 붙고, 운영팀 검증을 거쳐 매수자에게 &ldquo;검증된 급매&rdquo;로 전달됩니다.
             </p>
             <ol className="agent-first-run-steps">
               {firstRunSteps.map(({ Icon, title, detail }) => (
@@ -101,7 +101,7 @@ function AgentDashboard() {
           <Link to="/agent/properties/new" className="agent-action-tile primary">
             <div className="agent-action-icon"><Plus size={22} /></div>
             <h3>새 매물 등록</h3>
-            <p>단지·가격·매도 사유를 입력하면 AI가 리포트를 자동 생성합니다.</p>
+            <p>단지·면적·가격을 입력하면 실거래가 기준 할인율이 자동 산출됩니다.</p>
             <span className="agent-action-link">시작하기 <ArrowRight size={15} /></span>
           </Link>
           <Link to="/agent/properties" className="agent-action-tile">

@@ -76,6 +76,7 @@ function AgentRegisterProperty() {
     resolveReferencePrice({
       complexName: form.complexName,
       gu: form.complexGu,
+      areaM2: Math.floor(areaSqm), // 등록 시(registerProperty)와 동일한 매칭 키
       areaBucket: getAreaBucket(areaSqm),
     }).then((result) => {
       if (active) setReference(result);
@@ -152,7 +153,7 @@ function AgentRegisterProperty() {
         },
         profile,
       );
-      // 등록 직후 매물 상세 페이지로 (AI 리포트는 백그라운드 생성 중)
+      // 등록 직후 매물 상세 페이지로
       navigate(`/properties/${id}?just_registered=1`, { replace: true });
     } catch (err) {
       console.error(err);
@@ -166,7 +167,7 @@ function AgentRegisterProperty() {
       <section className="container agent-register-hero">
         <p className="section-eyebrow">새 매물 등록</p>
         <h1>매물 정보 입력</h1>
-        <p>입력하신 정보로 매물이 등록되며, AI가 자동으로 매물 리포트를 생성합니다.</p>
+        <p>입력하신 정보로 매물이 등록되고, 국토부 실거래가 기준 할인율과 산출 근거가 자동으로 계산됩니다.</p>
       </section>
 
       <form className="container agent-register-form" onSubmit={handleSubmit}>
@@ -369,9 +370,9 @@ function AgentRegisterProperty() {
           )}
         </fieldset>
 
-        {/* Section 7: 매도 사유 + 매물 설명 (둘 다 AI 리포트 입력) */}
+        {/* Section 7: 매도 사유 + 매물 설명 (매도 사유는 설명문에 합쳐져 매수자에게 표시) */}
         <fieldset className="register-section">
-          <legend>매도 사유 <small>(AI 리포트에 반영)</small></legend>
+          <legend>매도 사유 <small>(매물 설명에 함께 표시)</small></legend>
           <textarea
             name="saleReason"
             value={form.saleReason}
@@ -391,7 +392,7 @@ function AgentRegisterProperty() {
             name="description"
             value={form.description}
             onChange={update('description')}
-            placeholder="단지의 특징, 매물의 강점, 매수자가 알아야 할 정보를 자유롭게 입력해주세요. AI 리포트에 반영됩니다."
+            placeholder="단지의 특징, 매물의 강점, 매수자가 알아야 할 정보를 자유롭게 입력해주세요."
             rows={5}
             required
           />
@@ -425,7 +426,7 @@ function AgentRegisterProperty() {
         <div className="register-submit-row">
           <div className="register-ai-note">
             <Sparkles size={16} />
-            <span>등록 즉시 AI가 매물 리포트를 자동으로 생성합니다 (10~20초 소요)</span>
+            <span>등록 즉시 실거래가 기준 할인율과 산출 근거가 자동으로 계산됩니다</span>
           </div>
           <button type="submit" className="primary-link-button" disabled={submitting}>
             {submitting ? '등록 중...' : '매물 등록 완료'}

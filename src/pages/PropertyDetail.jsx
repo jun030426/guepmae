@@ -262,7 +262,7 @@ function PropertyDetail() {
             <CheckCircle2 size={20} aria-hidden="true" />
             <div className="just-registered-copy">
               <strong>매물이 등록되었습니다 — 지금 매수자에게 보이는 화면입니다.</strong>
-              <span>실거래가 검증과 AI 매물 리포트는 자동으로 생성됩니다. 잠시 후 이 페이지에서 확인하세요.</span>
+              <span>실거래가 기준 할인율과 산출 근거가 계산되어 있습니다. 운영팀 검증이 끝나면 &ldquo;검증된 급매&rdquo;로 표시됩니다.</span>
             </div>
             <Link to="/agent/properties" className="just-registered-link">
               내 매물 관리

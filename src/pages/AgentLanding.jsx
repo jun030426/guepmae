@@ -72,7 +72,7 @@ function AgentLanding() {
     <div className="page-shell agent-landing">
       <section className="container agent-landing-hero">
         <p className="section-eyebrow">급매 PRO</p>
-        <h1>매물 등록부터 AI 리포트까지<br />한 번에 처리하세요</h1>
+        <h1>매물 등록부터 실거래가 검증까지<br />한 번에 처리하세요</h1>
         <p className="agent-landing-subtitle">
           국토부 실거래가 기반 검증 + AI 매물 리포트 자동 생성. 매물의 가치를 명확하게 전달합니다.
         </p>
@@ -178,12 +178,12 @@ function AgentLanding() {
         <div className="agent-feature">
           <div className="agent-feature-icon"><Building2 size={22} /></div>
           <h3>간편한 매물 등록</h3>
-          <p>기본 정보 입력 후 제출하면 즉시 메인 사이트에 노출됩니다.</p>
+          <p>기본 정보 입력 후 제출하면 할인율이 자동 계산되고, 운영팀 검증 후 메인 사이트에 노출됩니다.</p>
         </div>
         <div className="agent-feature">
           <div className="agent-feature-icon"><Sparkles size={22} /></div>
-          <h3>AI 매물 리포트 자동 생성</h3>
-          <p>등록한 매물의 가격 분석, 입지, 종합 의견을 AI가 작성해 매수자에게 신뢰감을 전달합니다.</p>
+          <h3>산출 근거 투명 공개</h3>
+          <p>할인율뿐 아니라 비교에 쓴 실거래 내역(계약일·층·가격·표본 수·기간)을 매수자에게 그대로 공개해 신뢰를 전달합니다.</p>
         </div>
         <div className="agent-feature">
           <div className="agent-feature-icon"><ShieldCheck size={22} /></div>

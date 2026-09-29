@@ -96,7 +96,6 @@ function PropertyReportPanel({ property }) {
       <div className="property-report loading">
         <Sparkles size={28} />
         <p>AI 리포트를 불러오는 중입니다...</p>
-        <small>첫 생성 시 10~20초 소요됩니다.</small>
       </div>
     );
   }
@@ -111,7 +110,18 @@ function PropertyReportPanel({ property }) {
     );
   }
 
-  if (state.error || !state.report) {
+  // 리포트가 없는 것은 오류가 아니다 — 대표 매물에 한해 사전 생성해 번들하므로 대부분의 매물은 없다.
+  if (!state.error && !state.report) {
+    return (
+      <div className="property-report loading">
+        <Sparkles size={28} />
+        <p>이 매물의 AI 리포트는 아직 준비되지 않았습니다.</p>
+        <small>AI 매물 리포트는 대표 매물에 한해 미리 생성해 제공합니다. 가격 검증 근거는 가격 리포트에서 확인할 수 있습니다.</small>
+      </div>
+    );
+  }
+
+  if (state.error) {
     return (
       <div className="property-report error">
         <AlertTriangle size={28} />

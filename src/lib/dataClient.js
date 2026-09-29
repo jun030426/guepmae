@@ -208,7 +208,16 @@ function localFrom(table) {
 
   async function exec() {
     try {
-      if (_mutation) return await execMutation();
+      if (_mutation) {
+        const result = await execMutation();
+        // supabase-js 와 같이 .single()/.maybeSingle() 이 붙은 mutation 은 행 하나를 돌려준다.
+        // (배열을 돌려주면 registerProperty 의 data.id 가 undefined 가 되어 /properties/undefined 로 이동했음)
+        if (_single && Array.isArray(result.data)) {
+          const row = result.data[0] ?? null;
+          return { data: row, error: result.error ?? (_single === 1 && !row ? { message: 'No rows' } : null) };
+        }
+        return result;
+      }
       let rows = (await tableRows(table)).filter((r) => filters.every((f) => f(r)));
       if (_order) {
         rows = [...rows].sort((a, b) => {

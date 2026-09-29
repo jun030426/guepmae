@@ -85,7 +85,8 @@ React SPA (Vite)
 4. **AI 매물 리포트** — `generate-reports.mjs` 로 대표 매물 리포트를 Gemini 로 사전 생성 → `public/data/property_reports.json` 로 번들.
 5. **AI 시장 리포트** — `generate-market-report.mjs` 로 `market_snapshots` 를 입력 삼아 시장 인사이트 3~5개를 사전 생성 → `public/data/ai_market_reports.json` 로 번들.
 6. **매일 증분 수집 (GitHub Actions)** — `.github/workflows/daily-trades-refresh.yml` 이 지난달까지 최근 3개월을 다시 받아 집계하고 Supabase `complex_trades` 를 갱신한다. 원본 CSV 는 비공개 버킷에 시도별 gzip 으로 보관(`pipeline-data-sync.mjs`). API 장애(정상 응답·0건)로는 기존 이력을 지우지 않고, 행 수가 2% 넘게 줄면 아무것도 올리지 않고 멈춘다. 시크릿 등록·첫 실행 절차는 `docs/DESKTOP_TODO.md` C.
-7. **워크플로 리허설** — `python scripts/rehearsal/rehearse.py` : 실제 키 없이 가짜 국토부 API·가짜 Supabase·임시 git 저장소로 워크플로 단계를 처음부터 끝까지 돌려 본다(정상·장애·한도 초과·행 감소·키 오류·번들 갱신 등 15개 상황). 파이프라인을 고친 뒤 푸시 전에 실행.
+7. **판정 규칙 백테스트** — `node scripts/backtest-price-basis.mjs` : 과거 실거래 한 건을 "그 달에 그 가격으로 나온 매물"로 보고, 그 달보다 앞선 거래만으로 기준가를 구해(운영 판정 함수를 그대로 호출) 실제 거래가와 비교한다. 급매로 판정된 거래가 이후 6개월 시세로 봐도 쌌는지(정밀도·재현율), 규칙의 각 요소(기간 창·층 구간·직거래 제외)가 정확도를 얼마나 바꿨는지를 요약 문서로 낸다. 호가가 아니라 체결가로 채점한다는 한계를 리포트에 명시.
+8. **워크플로 리허설** — `python scripts/rehearsal/rehearse.py` : 실제 키 없이 가짜 국토부 API·가짜 Supabase·임시 git 저장소로 워크플로 단계를 처음부터 끝까지 돌려 본다(정상·장애·한도 초과·행 감소·키 오류·번들 갱신 등 15개 상황). 파이프라인을 고친 뒤 푸시 전에 실행.
 
 ---
 

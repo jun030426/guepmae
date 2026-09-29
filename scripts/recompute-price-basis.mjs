@@ -19,6 +19,8 @@
  *   node scripts/recompute-price-basis.mjs 강원            # 미리보기
  *   node scripts/recompute-price-basis.mjs 강원 --write    # public/data/properties.json 갱신
  *   node scripts/recompute-price-basis.mjs --all --write   # 전 지역
+ *   node scripts/recompute-price-basis.mjs --all --write --max-drop 0.1
+ *       # 대상 매물의 10% 넘게 탈락하면 쓰지 않고 종료 코드 3 (자동 실행의 안전장치 — 데이터 이상 시 매물이 통째로 빠지는 것 방지)
  */
 
 import fs from 'node:fs';
@@ -341,9 +343,29 @@ export function recomputeBasis(property, index, today, tradesIndex = new Map()) 
   return recomputeDecision(property, index, today, tradesIndex).result;
 }
 
+// 자동 실행 안전장치: 탈락 비율이 허용치를 넘는지. maxDrop 이 없으면 제한 없음.
+export function exceedsDropLimit(dropped, total, maxDrop) {
+  if (maxDrop == null || !Number.isFinite(maxDrop)) return false;
+  if (!total) return false;
+  return dropped / total > maxDrop;
+}
+
+// --max-drop 값 읽기. 옵션이 없으면 null, 값이 빠졌거나 0~1 밖이면 오류 —
+// 잘못 쓴 옵션이 조용히 "제한 없음"이 되면 안전장치가 꺼진 줄 모르고 돌게 된다.
+export function parseMaxDrop(argv) {
+  const index = argv.indexOf('--max-drop');
+  if (index < 0) return null;
+  const value = Number(argv[index + 1]);
+  if (argv[index + 1] == null || !Number.isFinite(value) || value <= 0 || value > 1) {
+    throw new Error(`--max-drop 뒤에는 0 보다 크고 1 이하인 비율이 와야 합니다 (예: 0.1). 받은 값: ${argv[index + 1] ?? '없음'}`);
+  }
+  return value;
+}
+
 async function main() {
   const prefix = process.argv[2];
   const write = process.argv.includes('--write');
+  const maxDrop = parseMaxDrop(process.argv);
   if (!prefix) {
     console.error('사용: node scripts/recompute-price-basis.mjs <지역접두사|--all> [--write]');
     process.exit(1);
@@ -392,6 +414,11 @@ async function main() {
   console.log('-'.repeat(40));
   console.log(`[재계산] ${everyRegion ? '전체' : prefix}: 갱신 ${touched}건 / 제외 ${droppedTotal}건 / 전체 ${all.length} → ${kept.length}건`);
   for (const [reason, n] of dropped) console.log(`  - ${reason}: ${n}건`);
+
+  if (exceedsDropLimit(droppedTotal, candidates.length, maxDrop)) {
+    console.error(`[재계산] ⛔ 탈락 ${droppedTotal}/${candidates.length}건이 허용치(${(maxDrop * 100).toFixed(0)}%)를 넘습니다 — 기록하지 않고 중단합니다. 데이터를 확인한 뒤 --max-drop 없이 다시 실행하세요.`);
+    process.exit(3);
+  }
   if (!write) {
     console.log('[재계산] 미리보기입니다. 반영하려면 --write 를 붙이세요.');
     return;

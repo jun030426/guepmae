@@ -42,7 +42,7 @@ scripts/_foreground.ps1
 .impeccable/
 
 # Python 테스트 캐시
-scripts/__pycache__/
+__pycache__/
 
 # 로컬 브라우저 검증용 임시 파일 (샘플 .insp 등)
 public/_dev/

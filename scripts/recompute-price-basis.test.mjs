@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  exceedsDropLimit,
+  parseMaxDrop,
   normalizeComplex,
   buildComplexIndex,
   resolveComplex,
@@ -41,6 +43,24 @@ const prop = (over = {}) => ({
   price: 320000000, area: 84,
   price_basis: { source: 'complex', coordSource: 'places' },
   ...over,
+});
+
+test('exceedsDropLimit — 허용치를 넘을 때만, 제한이 없으면 항상 통과', () => {
+  assert.equal(exceedsDropLimit(38, 387, 0.1), false); // 9.8%
+  assert.equal(exceedsDropLimit(40, 387, 0.1), true); // 10.3%
+  assert.equal(exceedsDropLimit(387, 387, null), false);
+  assert.equal(exceedsDropLimit(0, 0, 0.1), false);
+  assert.equal(exceedsDropLimit(5, 10, Number.NaN), false);
+});
+
+test('parseMaxDrop — 없으면 null, 잘못된 값은 오류 (조용히 제한 없음이 되지 않게)', () => {
+  assert.equal(parseMaxDrop(['node', 'x', '--all', '--write']), null);
+  assert.equal(parseMaxDrop(['node', 'x', '--all', '--write', '--max-drop', '0.1']), 0.1);
+  assert.equal(parseMaxDrop(['node', 'x', '--all', '--max-drop', '1']), 1);
+  assert.throws(() => parseMaxDrop(['node', 'x', '--all', '--max-drop']), /비율/);
+  assert.throws(() => parseMaxDrop(['node', 'x', '--all', '--max-drop', '--write']), /비율/);
+  assert.throws(() => parseMaxDrop(['node', 'x', '--all', '--max-drop', '10']), /비율/);
+  assert.throws(() => parseMaxDrop(['node', 'x', '--all', '--max-drop', '0']), /비율/);
 });
 
 test('normalizeComplex strips spaces and the 아파트 suffix', () => {

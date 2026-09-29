@@ -1,0 +1,230 @@
+# 실거래 매일 증분 수집 → 집계 → Supabase complex_trades 갱신.
+#
+# 상태: 2026-09-29 작성. 가짜 API·가짜 Supabase 로 단계 전체를 리허설했지만(scripts/rehearsal/rehearse.py),
+#       **실제 러너·실제 키로는 아직 실행 전**이다 (노트북 세션에는 API 키가 없음).
+#       첫 실행은 Actions 탭에서 수동(workflow_dispatch)으로, dry_run 을 켜고 로그를 확인한다.
+#       절차: docs/DESKTOP_TODO.md C
+#
+# 필요한 시크릿 (Settings → Secrets and variables → Actions):
+#   MOLIT_API_KEY              국토교통부 실거래가 API 디코딩 키
+#   SUPABASE_URL               https://<project-ref>.supabase.co
+#   SUPABASE_SERVICE_ROLE_KEY  적재·원본 보관용 (publishable 키 아님, 절대 커밋 금지)
+# 매일 실행을 켜는 변수 (같은 화면의 Variables 탭):
+#   TRADES_REFRESH_ENABLED     true 일 때만 예약 실행이 동작한다. 수동 실행으로 검증한 뒤에 추가한다.
+#                              (검증 전에 예약 실행이 먼저 돌아 운영 DB 에 쓰는 일을 막는다)
+#
+# 동작:
+#   매일   원본 CSV 내려받기 → 지난달까지 최근 3개월 다시 수집(신고 지연·해제 반영) → 집계
+#          → complex_trades upsert → 원본 올리기
+#   수동   publish_bundles 를 켜면 번들 재생성 + 매물 재계산 + 커밋까지 (매물이 10% 넘게 탈락하면 중단)
+#
+# 이번 달 거래는 받지 않는다 — 수집기(fetch-trades.py --since)가 공개 지연 때문에 지난달까지만 받는다.
+# 시크릿이나 부트스트랩 원본이 없으면 실패하지 않고 안내만 남기고 끝난다 (매일 실패 메일 방지).
+# 중간에 실패하면 원본을 올리지 않으므로, 다음 실행은 버킷의 온전한 원본에서 다시 시작한다.
+
+name: daily-trades-refresh
+
+on:
+  schedule:
+    - cron: '30 18 * * *' # 매일 18:30 UTC = 한국 03:30
+  workflow_dispatch:
+    inputs:
+      months:
+        description: '다시 받을 최근 개월 수 (신고 지연 반영)'
+        default: '3'
+      dry_run:
+        description: '수집·집계만 하고 업로드·적재·커밋하지 않음'
+        type: boolean
+        default: true
+      publish_bundles:
+        description: '번들 재생성·매물 재계산·커밋까지 (dry_run 이 꺼져 있을 때만)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: trades-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      MONTHS: ${{ github.event.inputs.months || '3' }}
+      DRY_RUN: ${{ github.event.inputs.dry_run || 'false' }}
+      PUBLISH: ${{ github.event.inputs.publish_bundles || 'false' }}
+      EVENT_NAME: ${{ github.event_name }}
+      SCHEDULE_ENABLED: ${{ vars.TRADES_REFRESH_ENABLED }}
+    steps:
+      - name: 시크릿 확인
+        id: guard
+        run: |
+          if [ "$EVENT_NAME" = "schedule" ] && [ "$SCHEDULE_ENABLED" != "true" ]; then
+            echo "::notice::예약 실행이 꺼져 있습니다 — 수동 실행으로 검증한 뒤 저장소 변수 TRADES_REFRESH_ENABLED=true 를 추가하세요 (docs/DESKTOP_TODO.md C)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          missing=""
+          [ -z "$MOLIT_API_KEY" ] && missing="$missing MOLIT_API_KEY"
+          [ -z "$SUPABASE_URL" ] && missing="$missing SUPABASE_URL"
+          [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && missing="$missing SUPABASE_SERVICE_ROLE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::notice::시크릿이 없어 건너뜁니다:$missing (docs/DESKTOP_TODO.md C)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.guard.outputs.skip != 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v6
+        if: steps.guard.outputs.skip != 'true'
+        with:
+          python-version: '3.12'
+
+      - name: 의존성 설치
+        if: steps.guard.outputs.skip != 'true'
+        run: npm ci
+
+      - name: .env.local 작성 (스크립트들이 읽는 위치)
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          {
+            echo "MOLIT_API_KEY=$MOLIT_API_KEY"
+            echo "VITE_SUPABASE_URL=$SUPABASE_URL"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"
+          } > .env.local
+
+      - name: 원본 CSV 내려받기
+        id: download
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          set +e
+          node scripts/pipeline-data-sync.mjs download
+          code=$?
+          set -e
+          if [ "$code" -eq 3 ]; then
+            echo "::notice::버킷에 원본이 없습니다 — 데스크톱에서 한 번 올려야 합니다 (docs/DESKTOP_TODO.md C)"
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$code" -ne 0 ]; then exit "$code"; fi
+          count=$(ls scripts/data/api_*.csv 2>/dev/null | wc -l)
+          echo "시도 CSV $count 개"
+          if [ "$count" -lt 17 ]; then
+            echo "::error::시도 CSV 가 17개보다 적습니다($count). 증분 병합이 실패하므로 중단합니다."
+            exit 1
+          fi
+          echo "ready=true" >> "$GITHUB_OUTPUT"
+
+      - name: 증분 수집 (지난달까지 최근 N개월)
+        if: steps.guard.outputs.skip != 'true' && steps.download.outputs.ready == 'true'
+        run: |
+          case "$MONTHS" in
+            ''|*[!0-9]*) echo "::error::months 는 숫자여야 합니다: '$MONTHS'"; exit 1 ;;
+          esac
+          SINCE=$(date -u -d "$(date -u +%Y-%m-15) -${MONTHS} month" +%Y-%m)
+          echo "수집 시작 월: $SINCE"
+          set +e
+          python scripts/fetch-trades.py --since "$SINCE" 2>&1 | tee "$RUNNER_TEMP/fetch.log"
+          code=${PIPESTATUS[0]}
+          set -e
+          if [ "$code" -eq 0 ]; then exit 0; fi
+          # 종료 코드 1 은 "신규 0건 경고"와 그 밖의 실패가 같이 쓴다 — 로그 문구로 가른다
+          if [ "$code" -eq 2 ]; then
+            echo "::warning::국토부 API 일일 한도 도달 — 받은 시도까지만 반영합니다"
+          elif [ "$code" -eq 1 ] && grep -q "신규 0건 시도:" "$RUNNER_TEMP/fetch.log"; then
+            zero=$(grep "신규 0건 시도:" "$RUNNER_TEMP/fetch.log" | tail -1 | sed 's/.*신규 0건 시도: *//' | tr ',' '\n' | grep -c . || true)
+            if [ "$zero" -ge 17 ]; then
+              # 키 만료·전면 장애는 매일 "경고만 뜨는 초록불"로 묻히면 안 된다
+              echo "::error::모든 시도가 신규 0건입니다 — API 키 만료나 전면 장애를 확인하세요"
+              exit 1
+            fi
+            echo "::warning::신규 0건인 시도 ${zero}곳(API 장애 가능) — 그 시도의 기존 이력은 그대로 둡니다"
+          else
+            echo "::error::수집 실패 (exit $code)"
+            exit 1
+          fi
+
+      - name: 행 수 점검 (전체 또는 한 시도가 직전보다 2% 넘게 줄면 중단)
+        if: steps.guard.outputs.skip != 'true' && steps.download.outputs.ready == 'true'
+        run: |
+          set +e
+          node scripts/pipeline-data-sync.mjs check
+          code=$?
+          set -e
+          if [ "$code" -eq 4 ]; then
+            echo "::error::행 수가 줄었습니다 — 아무것도 올리지 않고 중단합니다. 버킷의 원본은 그대로입니다."
+          fi
+          exit "$code"
+
+      - name: 집계 (중앙값 · 개별 실거래 · 단지×면적 묶음)
+        if: steps.guard.outputs.skip != 'true' && steps.download.outputs.ready == 'true'
+        run: |
+          node scripts/build-complex-prices.mjs
+          node scripts/build-complex-trades.mjs
+          node scripts/build-complex-trades-rows.mjs
+
+      - name: Supabase complex_trades 갱신 (upsert)
+        if: steps.guard.outputs.skip != 'true' && steps.download.outputs.ready == 'true' && env.DRY_RUN != 'true'
+        run: node scripts/load-bundles-to-supabase.mjs complex_trades --upsert
+
+      - name: 원본 CSV 올리기
+        if: steps.guard.outputs.skip != 'true' && steps.download.outputs.ready == 'true' && env.DRY_RUN != 'true'
+        run: node scripts/pipeline-data-sync.mjs upload
+
+      # ── 아래는 수동 실행에서 publish_bundles 를 켰을 때만 ──────────────────────────
+      # 순서: 재계산 → Supabase 적재 → 번들 커밋. 커밋이 마지막이어야 중간에 실패해도 저장소의 번들이
+      # 그대로 남아, 다시 실행했을 때 같은 "이전 번들"에서 탈락 매물을 계산한다.
+      - name: 번들 재생성 + 매물 재계산
+        id: publish
+        if: steps.guard.outputs.skip != 'true' && steps.download.outputs.ready == 'true' && env.DRY_RUN != 'true' && env.PUBLISH == 'true'
+        run: |
+          cp public/data/properties.json "$RUNNER_TEMP/properties.prev.json"
+          node scripts/import-trades-csv.mjs
+          node scripts/build-price-trends.mjs
+          node scripts/build-public-bundles.mjs
+          node scripts/build-complex-trades-rows.mjs
+          node scripts/recompute-price-basis.mjs --all --write --max-drop 0.1
+          node scripts/load-bundles-to-supabase.mjs complex_prices
+          node scripts/load-bundles-to-supabase.mjs properties --upsert --prune-against "$RUNNER_TEMP/properties.prev.json"
+
+      - name: 번들 커밋
+        if: steps.publish.conclusion == 'success'
+        run: |
+          git add public/data
+          if git diff --cached --quiet; then
+            echo "번들 변경 없음"
+            exit 0
+          fi
+          count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('public/data/properties.json','utf8')).length)")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): 실거래 증분 수집 + 판정 재계산 — 매물 ${count}건"
+          # 실행 중에 main 이 앞서 갔을 수 있다 — 그 위에 얹어서 올린다
+          git pull --rebase origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
+
+      - name: 요약
+        if: always() && steps.guard.outputs.skip != 'true'
+        run: |
+          {
+            echo "### 실거래 증분 수집"
+            echo "- dry_run: $DRY_RUN / publish_bundles: $PUBLISH / months: $MONTHS"
+            if [ -f scripts/output/complex_trades_rows.json ]; then
+              node -e "const r=JSON.parse(require('fs').readFileSync('scripts/output/complex_trades_rows.json','utf8'));console.log('- 단지×면적 ' + r.length.toLocaleString('ko-KR') + '행 / 거래 ' + r.reduce((s,x)=>s+x.sample_size,0).toLocaleString('ko-KR') + '건')"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

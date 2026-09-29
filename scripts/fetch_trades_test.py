@@ -135,6 +135,21 @@ class MergeRows(unittest.TestCase):
         merged = ft.merge_rows(existing, fresh, {(self.GANGNAM, "202605")})
         self.assertEqual(merged, [existing[0]] + fresh)
 
+    def test_completed_pair_with_zero_fresh_rows_keeps_existing(self):
+        # API 장애는 '정상 응답 · 0건'으로 온다 — 완료로 기록돼도 0건으로는 기존 이력을 지우지 않는다.
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="15"),
+                    row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="16")]
+        done = {(self.GANGNAM, "202605"), (self.GANGNAM, "202606")}
+        self.assertEqual(ft.merge_rows(existing, [], done), existing)
+
+    def test_zero_fresh_pair_kept_while_other_pair_replaced(self):
+        # 같은 실행에서 5월은 0건(장애), 6월은 정상 — 6월만 교체된다.
+        existing = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202605", day="15"),
+                    row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="16")]
+        fresh = [row(sigungu=f"{self.GANGNAM} 역삼동", ym="202606", day="20")]
+        done = {(self.GANGNAM, "202605"), (self.GANGNAM, "202606")}
+        self.assertEqual(ft.merge_rows(existing, fresh, done), [existing[0], fresh[0]])
+
     def test_identical_looking_distinct_transactions_both_kept(self):
         # CSV 가 기록하는 모든 필드(시군구/단지명/전용면적/계약년월/일/층/거래금액)가
         # 같아도, 동(棟)이 달라 실제로는 별개인 거래 — 둘 다 살아남아야 한다.
@@ -231,6 +246,24 @@ class FetchSidoMergePath(unittest.TestCase):
         self.assertEqual(len(data_rows), 3)
         self.assertEqual(data_rows, existing)
         self.assertEqual(result_count, 3)
+
+    def test_merge_preserves_existing_rows_when_api_answers_zero(self):
+        # 실제 장애 모양: 응답 코드는 정상인데 totalCount=0. (구, 월) 은 '완료'로 기록된다.
+        existing = [row(day="15"), row(day="16"), row(ym="202605", day="17")]
+        self._write_existing_csv(existing)
+        empty = ("<response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header>"
+                 "<body><items/><totalCount>0</totalCount></body></response>")
+        original = ft.fetch_page
+        ft.fetch_page = lambda *args, **kwargs: empty
+        try:
+            zero_yield = []
+            ft.fetch_sido(FAKE_SIDO, ["11680"], ["202605", "202606"], [0], merge=True,
+                          zero_yield=zero_yield)
+        finally:
+            ft.fetch_page = original
+
+        self.assertEqual(self._read_data_rows(), existing)
+        self.assertEqual(zero_yield, [FAKE_SIDO])
 
     def test_non_merge_overwrites_existing_rows(self):
         existing = [row(day="15"), row(day="16"), row(day="17")]

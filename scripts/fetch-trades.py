@@ -80,11 +80,18 @@ def merge_rows(existing, fresh, done):
     행 단위 중복 제거는 쓰지 않는다 — CSV 에 동(棟) 컬럼이 없어서
     같은 단지·면적·계약일·층·금액의 서로 다른 거래가 구분되지 않는다.
     실측 충돌률 대전 4.33% / 광주 3.78% (전부 실제 별개 거래).
+
+    완료된 쌍이라도 fresh 가 0건이면 교체하지 않는다 — API 장애는 오류가 아니라
+    '정상 응답 · 0건'으로 온다(2026-08 광주·전남). 있던 거래가 통째로 사라지는 일은
+    없으므로(해제된 거래도 행으로 남는다) 0건으로 기존 이력을 지우는 쪽이 항상 더 위험하다.
+    매일 도는 자동 수집에서 장애 하루가 최근 몇 달을 지우지 않게 하는 안전장치다.
     """
     bases = {b for b, _ in done}
-    # r[3]: 계약년월 (고정 9열 헤더 — 이 값이 어떤 (구, 월) 이 삭제 대상인지를 결정한다)
-    kept_existing = [r for r in existing if (district_of(r[0], bases), r[3]) not in done]
-    kept_fresh = [r for r in fresh if (district_of(r[0], bases), r[3]) in done]
+    # r[3]: 계약년월 (고정 헤더 — 이 값이 어떤 (구, 월) 이 교체 대상인지를 결정한다)
+    pair = lambda r: (district_of(r[0], bases), r[3])
+    replaced = done & {pair(r) for r in fresh}
+    kept_existing = [r for r in existing if pair(r) not in replaced]
+    kept_fresh = [r for r in fresh if pair(r) in replaced]
     return kept_existing + kept_fresh
 
 

@@ -1,9 +1,9 @@
 # 데스크톱에서 할 작업 (API 키·원본 데이터가 필요한 것)
 
 작성일: 2026-09-29 · 노트북 세션에서 코드는 끝났고, 키·데이터가 있는 데스크톱에서 실행만 남은 항목들이다.
-끝난 항목은 체크하고 날짜를 적는다. 순서대로 하면 되고, A 와 B 는 서로 독립이다.
+끝난 항목은 체크하고 날짜를 적는다. A·B·F 는 서로 독립이고, C 는 B 다음이다.
 
-전제: 데스크톱 저장소가 `main` 최신(`154d5ff` 이후)이어야 한다.
+전제: 데스크톱 저장소가 `main` 최신이어야 한다.
 
 ```bash
 git pull
@@ -48,6 +48,7 @@ python scripts/fetch-trades.py
 node scripts/build-complex-prices.mjs
 node scripts/build-complex-trades.mjs
 node scripts/build-price-trends.mjs
+node scripts/import-trades-csv.mjs
 node scripts/build-public-bundles.mjs
 node scripts/build-complex-trades-rows.mjs
 ```
@@ -55,15 +56,16 @@ node scripts/build-complex-trades-rows.mjs
   확인: `build-complex-prices` 로그의 `직거래 제외 N건` 이 0 보다 커야 한다.
   `public/data/complex_trades.json` 이 생기고 4,000행 전후, 4MB 안팎.
 
-- [ ] 매물 재계산 (미리보기 먼저 → 결과 보고 `--write`)
+- [ ] 매물 재계산 — **이전 번들을 먼저 복사해 둔다** (Supabase 정리에 쓴다)
 
 ```bash
+cp public/data/properties.json scripts/output/properties.prev.json
 node scripts/recompute-price-basis.mjs --all
 node scripts/recompute-price-basis.mjs --all --write
 ```
 
-  로그 끝의 제외 사유별 건수를 적어 둔다 — `판정 보류(…)`, `할인율 기준 미달`, `할인율 이상치`.
-  최근 12개월 중앙값이 3년 중앙값보다 낮은 단지는 할인율이 줄어 5% 밑으로 떨어질 수 있다(설계 §10 리스크). 탈락 수가 크면 여기서 멈추고 상의.
+  둘째 줄은 미리보기다. 로그 끝의 제외 사유별 건수를 적어 둔다 — `판정 보류(…)`, `할인율 기준 미달`, `할인율 이상치`.
+  최근 12개월 중앙값이 3년 중앙값보다 낮은 단지는 할인율이 줄어 5% 밑으로 떨어질 수 있다(설계 §10 리스크). 탈락 수가 크면 `--write` 전에 멈추고 상의.
 
 - [ ] 리포트 재생성 (선택, GEMINI_API_KEY) — 시장 리포트는 데이터 기준월이 바뀌었을 때만
 
@@ -74,10 +76,14 @@ node scripts/generate-market-report.mjs
 - [ ] Supabase 적재 (`.env.local` 에 `SUPABASE_SERVICE_ROLE_KEY` 필요)
 
 ```bash
-node scripts/load-bundles-to-supabase.mjs complex_trades
+node scripts/load-bundles-to-supabase.mjs complex_trades --upsert
 node scripts/load-bundles-to-supabase.mjs complex_prices
-node scripts/load-bundles-to-supabase.mjs properties
+node scripts/load-bundles-to-supabase.mjs properties --upsert --prune-against scripts/output/properties.prev.json
 ```
+
+  **⚠ `properties` 는 반드시 `--upsert` 로.** 통째로 교체하면 중개사가 포털에서 등록한 매물까지 사라진다.
+  그래서 옵션 없이 `properties` 를 돌리면 스크립트가 실행을 거부한다(2026-09-29 부터).
+  `--prune-against` 는 재계산에서 탈락한 수집 매물만 지운다.
 
   확인: Supabase 대시보드에서 `complex_trades` 행 수 ≈ `scripts/output/complex_trades_rows.json` 행 수(83k 전후).
   라이브 매물 상세의 "산출 근거"가 `최근 N개월 … 중앙값` 으로 바뀌고, 가격 리포트에 산출 조건 4줄(기간·층 구간·제외·참고)이 보이면 성공.
@@ -92,15 +98,59 @@ git add public/data && git commit -m "chore: 실거래 재수집(거래유형) +
 
 ---
 
-## C. 3단계 — 실거래 매일 증분 수집 자동화 (GitHub Actions 시크릿)
+## C. 실거래 매일 증분 수집 자동화 (GitHub Actions)
 
-노트북에서 워크플로 파일을 만들면, 데스크톱(또는 GitHub 웹)에서 시크릿만 넣으면 된다.
+워크플로 `.github/workflows/daily-trades-refresh.yml` 과 동기화 스크립트는 작성돼 있다(2026-09-29).
+노트북에서 가짜 API·가짜 Supabase 로 하는 리허설(`python scripts/rehearsal/rehearse.py`)은 통과했다.
+**실제 키·실제 러너로는 아직 한 번도 실행해 보지 않았다** — 아래 순서로 처음 돌리면서 검증한다.
+리허설이 확인하지 못하는 것: `checkout`·`setup-*` 액션, `npm ci`, Ubuntu 러너, 실제 API·Supabase 의 응답.
+B 를 먼저 끝내야 한다(재수집된 CSV 가 부트스트랩 원본).
 
-- [ ] GitHub → 저장소 → Settings → Secrets and variables → Actions 에 추가
+동작 요약: 매일 03:30(한국) — 원본 CSV 내려받기 → 지난달까지 최근 3개월 다시 수집(신고 지연·해제 반영) → 행 수 점검 → 집계 → `complex_trades` upsert → 원본 올리기.
+이번 달 거래는 받지 않는다(수집기가 공개 지연 때문에 지난달까지만 받는다) — 새 달의 거래는 다음 달 1일부터 들어온다.
+번들 재생성·매물 재계산·커밋은 매일 하지 않는다(매일 3MB 번들을 커밋하면 저장소가 1년에 수백 MB 늘어난다). 수동 실행에서 `publish_bundles` 를 켰을 때만 한다.
+시크릿이나 원본이 없으면 실패하지 않고 안내만 남기고 끝난다.
+**매일 실행은 저장소 변수 `TRADES_REFRESH_ENABLED=true` 를 넣어야 켜진다** — 수동 실행으로 검증하기 전에 예약 실행이 먼저 운영 DB 에 쓰지 않게 하려는 것이다.
+
+실패로 끝나는 경우(메일이 온다)와 뜻:
+- `행 수가 줄었습니다` — 전체 또는 한 시도의 행이 직전보다 2% 넘게 줄었다. 아무것도 올리지 않았고 버킷 원본은 그대로다. 다음 날 실행이 정상이면 넘어가도 된다.
+- `모든 시도가 신규 0건입니다` — API 키 만료·전면 장애. 공공데이터포털에서 키 상태를 확인한다.
+- `탈락 N/M건이 허용치(10%)를 넘습니다` — `publish_bundles` 실행에서 매물이 너무 많이 빠진다. 데스크톱에서 B 절차로 미리보기를 보고 판단한다.
+
+경고(노란색)만 뜨고 성공하는 경우: 일부 시도 신규 0건(그 시도의 기존 이력은 그대로 둔다), API 일일 한도 도달(받은 시도까지만 반영).
+
+- [ ] GitHub → 저장소 → Settings → Secrets and variables → Actions → New repository secret
   - `MOLIT_API_KEY` — 국토부 디코딩 키
   - `SUPABASE_URL` — `https://oormfipegcfbhvctikfl.supabase.co`
-  - `SUPABASE_SERVICE_ROLE_KEY` — 적재용 (publishable 키가 아님, 절대 커밋 금지)
-- [ ] 워크플로가 생기면 Actions 탭에서 수동 실행(workflow_dispatch) 1회 → 로그에서 병합 건수·적재 건수 확인
+  - `SUPABASE_SERVICE_ROLE_KEY` — 적재·원본 보관용 (publishable 키가 아님, 절대 커밋 금지)
+- [ ] 원본 부트스트랩 — 데스크톱의 `scripts/data/api_*.csv` 17개를 비공개 버킷(`pipeline-data`, 라이브에 생성됨)에 올린다
+
+```bash
+node scripts/pipeline-data-sync.mjs upload
+node scripts/pipeline-data-sync.mjs list
+```
+
+  확인: `trades/api_11.csv.gz` … 17개 + `trades/_meta.json`. 시도명은 법정동코드 앞 2자리로 바뀐다(서울 11, 경기 41 …).
+
+- [ ] 첫 실행 — Actions 탭 → daily-trades-refresh → Run workflow → **dry_run 켠 채로** 실행
+  - 로그 확인: `시도 CSV 17 개`, 수집 월 범위, `행 수: 직전 N → 현재 M`(줄지 않아야 함), 집계 3단계 완료, 요약의 단지×면적 행 수
+  - dry_run 에서는 Supabase 적재·원본 올리기를 하지 않는다
+- [ ] 두 번째 실행 — dry_run 끄고 실행 → `complex_trades` upsert 와 원본 올리기 확인
+  - Supabase 대시보드 `complex_trades` 의 `latest_year_month` 최댓값이 지난달인지
+- [ ] (선택) 번들 갱신 — dry_run 끄고 `publish_bundles` 켜서 실행
+  - 매물이 10% 넘게 탈락하면 자동으로 멈춘다(`--max-drop 0.1`). 멈추면 로그의 탈락 사유를 보고 데스크톱에서 B 절차로 수동 진행
+  - 성공하면 `chore(data): …` 커밋이 생긴다. Vercel 에 새 배포가 생겼는지 확인 — 봇이 올린 커밋이라 배포가 안 생기면 Vercel 대시보드에서 Redeploy
+- [ ] 매일 실행 켜기 — 두 번째 실행까지 확인한 뒤: Settings → Secrets and variables → Actions → **Variables** 탭 → New repository variable → `TRADES_REFRESH_ENABLED` = `true`
+- [ ] 며칠 뒤 Actions 탭에서 매일 실행이 초록인지 확인. 경고(노란색) 주석: API 일일 한도·신규 0건 시도
+- [ ] 파이프라인 스크립트나 워크플로를 고쳤으면 푸시 전에 리허설 (Git Bash, 1~2분, PyYAML 필요: `pip install pyyaml`)
+
+```bash
+python scripts/rehearsal/rehearse.py
+```
+
+알려진 제약: 1회 실행은 수집 762회 호출(254 시군구 × 3개월) + 집계로 20~30분 예상. 국토부 API 일 한도 10,000회 안.
+비용: 저장소가 공개(public)라 Actions 실행 시간은 무료·무제한이다. 비공개로 바꾸면 무료 한도(월 2,000분) 중 600~900분을 쓴다.
+공개 저장소는 실행 로그도 공개된다 — 시크릿 값은 GitHub 이 가려 주지만, 스크립트에 키나 요청 URL 을 출력하는 코드를 넣지 않는다.
 
 ---
 
@@ -109,13 +159,13 @@ git add public/data && git commit -m "chore: 실거래 재수집(거래유형) +
 - [ ] Insta360 앱(폰) 또는 Insta360 Studio(PC)에서 상위 폴더의 `IMG_20260501_*.insp` 중 3~5장을 **360 사진(JPG)** 으로 내보내기
 - [ ] 저장소 밖 폴더(예: `창동/360-samples/`)에 두고, 노트북 세션에 알려주기 → 실사진으로 투어·처리 시간(6080×3040) 재검증
 - [ ] .insp 자동 변환은 2026-09-29 구현됨 — 원본 .insp 를 그대로 올려 변환 화질을 앱 내보내기 JPG 와 나란히 비교 (이음새·색 차이)
-
+- [ ] 갈래 편집기(2026-09-29 구현): 실제 집 구조로 화살표를 이어 보고, 파노라마 **클릭**으로 방향이 잘 잡히는지 확인 (노트북 세션에서는 브라우저 화면이 숨겨져 각도 입력으로만 검증했다)
 
 ---
 
 ## E. 이미 끝난 것 (참고)
 
-- Supabase 마이그레이션은 노트북에서 MCP 로 라이브에 적용됨: `property_360_bucket`, `complex_trades_table`, `properties_discount_rate_nullable` (2026-09-29). 데스크톱에서 `npx supabase db push` 를 다시 돌릴 필요 없음 — 돌리더라도 `if not exists`/`drop policy if exists` 라 안전.
+- Supabase 마이그레이션은 노트북에서 라이브에 적용됨(2026-09-29): `property_360_bucket`, `complex_trades_table`, `properties_discount_rate_nullable`, `property_photos_bucket_limits_owner`, `complex_alerts`, `pipeline_data_bucket`. 데스크톱에서 `npx supabase db push` 를 다시 돌릴 필요 없음 — 돌리더라도 `if not exists`/`drop policy if exists` 라 안전.
 - Vercel 은 `main` 푸시마다 자동 배포. 환경변수만 A 에서 추가.
 
 ---

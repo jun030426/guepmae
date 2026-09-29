@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { convertInspToPanorama, validatePanoramaFile } from '../utils/panoramaImage.js';
 import { isInspFile } from '../utils/inspStitch.js';
-import { PANORAMA_MAX_COUNT } from '../utils/panoramaTour.js';
+import { effectiveLinks, hasExplicitLinks, PANORAMA_MAX_COUNT, pruneLinks } from '../utils/panoramaTour.js';
 import { resolveMediaUrl } from '../utils/mediaUrl.js';
+import TourLinkEditor from './TourLinkEditor.jsx';
 
 /*
  * PanoramaUploadField — 360 투어 사진 선택·순서·라벨 편집 (등록·수정 폼 공용).
  *
- * items: [{ id, label, file?, src?, previewUrl? }]
+ * items: [{ id, label, file?, src?, previewUrl?, links?, linksExplicit? }]
  *   - file 이 있으면 새로 올릴 항목, src 만 있으면 이미 저장된 항목(수정 폼).
  *   - 배열 순서 = 찍은 순서 = 투어 이동 순서. 저장 시 order 로 기록된다.
+ *   - 화살표는 기본이 자동(앞·뒤). "화살표 편집"에서 갈래를 직접 이으면 links 로 저장된다.
  * onChange(nextItems)
  *
  * 선택 즉시 2:1 비율을 검사해 360 사진이 아닌 파일은 이유와 함께 거른다.
@@ -43,6 +45,7 @@ function ExistingPreview({ src, alt }) {
 export default function PanoramaUploadField({ items, onChange, disabled = false, idPrefix = 'pano' }) {
   const [rejected, setRejected] = useState([]); // [{ name, reason }]
   const [checking, setChecking] = useState(false);
+  const [editingId, setEditingId] = useState(null); // 화살표 편집 중인 지점
   const inputRef = useRef(null);
   const remaining = Math.max(0, PANORAMA_MAX_COUNT - items.length);
 
@@ -102,7 +105,9 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
   const remove = (index) => {
     const item = items[index];
     if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
-    onChange(items.filter((_, i) => i !== index));
+    if (editingId === item.id) setEditingId(null);
+    // 지운 지점을 가리키던 화살표도 함께 정리
+    onChange(pruneLinks(items.filter((_, i) => i !== index)));
   };
 
   const setLabel = (index, label) => {
@@ -115,7 +120,7 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
         360 투어 사진 <small>(선택 — 360 JPG 또는 Insta360 원본 .insp, 최대 {PANORAMA_MAX_COUNT}장)</small>
       </label>
       <ul className="pano-guide" aria-label="촬영 안내">
-        <li>카메라 앞면을 진행 방향으로 향하게 세워 들고, 한 걸음씩 이동하며 찍으세요. 올린 순서대로 앞·뒤 화살표가 자동으로 이어집니다.</li>
+        <li>카메라 앞면을 진행 방향으로 향하게 세워 들고, 한 걸음씩 이동하며 찍으세요. 올린 순서대로 앞·뒤 화살표가 자동으로 이어집니다. 거실에서 여러 방으로 갈리는 곳은 “화살표 편집”에서 직접 이을 수 있습니다.</li>
         <li>Insta360 앱에서 내보낸 360 JPG 가 화질이 가장 좋습니다. 카메라 원본(.insp)을 그대로 올리면 브라우저에서 자동 변환되지만, 두 렌즈가 만나는 자리에서 가까운 물체가 살짝 어긋날 수 있습니다.</li>
         <li>서류·사진·얼굴이 찍히지 않게 정리한 뒤 촬영하세요. 360 사진은 방 전체가 담깁니다.</li>
       </ul>
@@ -176,6 +181,25 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
                 <button type="button" disabled={disabled || index === items.length - 1} aria-label="뒤로" onClick={() => move(index, 1)}>↓</button>
                 <button type="button" className="pano-remove" disabled={disabled} aria-label="삭제" onClick={() => remove(index)}>×</button>
               </div>
+              {items.length > 1 && (
+                <div className="pano-links-row">
+                  <span>
+                    화살표 {effectiveLinks(items, index).length}개 · {hasExplicitLinks(item) ? '직접 연결' : '자동(앞·뒤)'}
+                  </span>
+                  <button
+                    type="button"
+                    className="pano-links-toggle"
+                    disabled={disabled}
+                    aria-expanded={editingId === item.id}
+                    onClick={() => setEditingId(editingId === item.id ? null : item.id)}
+                  >
+                    {editingId === item.id ? '편집 닫기' : '화살표 편집'}
+                  </button>
+                </div>
+              )}
+              {editingId === item.id && (
+                <TourLinkEditor items={items} index={index} onChange={onChange} disabled={disabled} />
+              )}
             </li>
           ))}
         </ol>

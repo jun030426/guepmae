@@ -101,7 +101,7 @@ export async function uploadPropertyPanoramas(items, propertyId, { onProgress } 
     const order = media.length + 1;
     if (!item.file) {
       if (item.src) {
-        media.push(panoramaMediaItem({ id: item.id, src: item.src, label: item.label, order, yawOffset: item.yawOffset ?? 0, links: item.links, stitched: item.stitched }));
+        media.push(panoramaMediaItem({ id: item.id, src: item.src, label: item.label, order, yawOffset: item.yawOffset ?? 0, links: item.links, linksExplicit: item.linksExplicit, stitched: item.stitched }));
       }
       continue;
     }
@@ -115,7 +115,7 @@ export async function uploadPropertyPanoramas(items, propertyId, { onProgress } 
         .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
       if (error) throw new Error(error.message || '업로드 실패');
       const { data: pub } = db.storage.from('property-360').getPublicUrl(data?.path ?? path);
-      media.push(panoramaMediaItem({ id: item.id, src: pub.publicUrl, label: item.label, order, stitched: item.stitched }));
+      media.push(panoramaMediaItem({ id: item.id, src: pub.publicUrl, label: item.label, order, links: item.links, linksExplicit: item.linksExplicit, stitched: item.stitched }));
     } catch (error) {
       failures.push({ label: item.label || item.file.name || `지점 ${i + 1}`, message: error.message || '처리 실패' });
     } finally {
@@ -123,6 +123,7 @@ export async function uploadPropertyPanoramas(items, propertyId, { onProgress } 
       onProgress?.({ done, total, label: item.label || item.file?.name || '' });
     }
   }
+  // 업로드에 실패한 지점을 가리키던 화살표는 뷰어에서 걸러진다(effectiveLinks) — 저장 데이터는 그대로 둔다
   return { media, failures };
 }
 

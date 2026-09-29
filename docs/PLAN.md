@@ -65,7 +65,7 @@
 | | AI 매물 리포트 | 부분 | 387건 중 15건 사전 생성. 실시간 생성 없음. 화면 문구는 사실대로 정리됨(2026-09-29) |
 | | AI 시장 리포트 | 완료 | 2026-07 실거래 기준 사전 생성 |
 | | AI 설비 점검 체크리스트(사진 → 8항목) | 완료(라이브) | Gemini 멀티모달 Edge Function. 로컬 데모에서는 생성 버튼 없음 |
-| | 360 실내 투어 (지점 이동) | 1단계 + .insp 자동 변환 | 합성 360 JPG 또는 Insta360 원본(.insp) 업로드 → 찍은 순서 기반 화살표 이동. .insp 는 브라우저 WebGL 로 즉시 변환(ONE X2 실샘플로 보정, 1초). 로컬 검증 완료(2026-09-29), 라이브 버킷 적용됨. 설계·검증: `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` |
+| | 360 실내 투어 (지점 이동) | 완료 (1·2단계) | 합성 360 JPG 또는 Insta360 원본(.insp) 업로드 → 찍은 순서 기반 화살표 이동 + 갈래 편집기(지점별 화살표 직접 연결). .insp 는 브라우저 WebGL 로 즉시 변환(ONE X2 실샘플로 보정, 1초). 로컬 검증 완료(2026-09-29), 라이브 버킷 적용됨. 설계·검증: `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` |
 | | 집 앞 로드뷰 자동 표시 | 구현(키 대기) | 카카오 로드뷰·지오코딩. `VITE_KAKAO_APP_KEY` 발급 후 검증 예정 |
 | | 3D 모델(.glb) 뷰어 | 실험 | 라이브 샘플 1건. 유지하되 우선순위 낮춤 |
 | | 관심 단지 급매 알림 | 구독 저장 완료 | 상세에서 신청 → 저장 → `/alerts` 관리·해지 → 관리자 통계(신청 수·상위 단지). 발송(메일)은 데스크톱 작업(`docs/DESKTOP_TODO.md` F) |
@@ -195,7 +195,8 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | 2 | 검증 기준 고도화 — **코드 완료 (2026-09-29)**. 데이터 반영은 데스크톱에서 재수집(거래유형)·집계·`complex_trades` 적재·`recompute --all --write` 후 | 사업계획서의 핵심 차별점 |
 | 3 | 실거래 매일 증분 수집 자동화 (GitHub Actions 크론 → 집계·번들 재생성) | "매일 증분 수집"을 사실로 |
 | 4 | 관심 단지 급매 알림 — 구독 저장·관리·지표 **완료 (2026-09-29)**, 발송은 메일 서비스 키 확보 후 | 파일럿 지표 "알림 신청 수"의 전제 |
-| 5 | 360 2단계 — .insp 자동 변환 **완료 (2026-09-29)**, 갈래 편집기 남음 · 백테스트 · 중개사 멤버십 | 파일럿 이후 |
+| 5 | 360 2단계 — .insp 자동 변환·갈래 편집기 **완료 (2026-09-29)** · 남은 것: 백테스트 · 중개사 멤버십 | 파일럿 이후 |
+
 
 
 ## 13. 알려진 문제 (2026-09-29 점검)
@@ -226,7 +227,6 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 |---|---|
 | `docs/DESKTOP_TODO.md` | **데스크톱에서 할 일** — 카카오 키, 실거래 재수집·재계산·Supabase 적재, GitHub 시크릿, 360 실사진. 키·원본 데이터가 필요한 항목만 |
 | `README.md` | 기능·스택·파이프라인·실행 방법 |
-
 | `PRODUCT.md` | 제품 정의·사용자·원칙 (impeccable 스키마) |
 | `SUPABASE_VERCEL_SETUP.md` | 환경변수·DB 적용·역할 운영·배포 설정 |
 | `docs/superpowers/specs/2026-08-26-hybrid-backend-design.md` | 하이브리드 모드 설계·검증 결과 |
@@ -235,7 +235,6 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` | 360 투어·로드뷰 설계 + .insp 자동 변환 + 검증 결과 |
 | `docs/superpowers/specs/2026-09-29-price-basis-judgment-design.md` | 급매 판정 규칙(시점·층·직거래·보류)과 개별 실거래 데이터 흐름 |
 | `docs/superpowers/specs/2026-09-29-complex-alerts-design.md` | 관심 단지 알림 구독 모델·권한·발송 규칙 |
-
 | `docs/superpowers/plans/` | 구현 계획(작업 단위) |
 | 상위 폴더 `모두의창업프로젝트_신청서_급매_제출용.md` | 사업계획서 최종본 (저장소 밖, 2026-09-10 제출) |
 | 상위 폴더 `[글로컬대학] 2026 Station C … 예산사용계획서(완성).hwp` | 지원사업 예산 계획 (저장소 밖) |

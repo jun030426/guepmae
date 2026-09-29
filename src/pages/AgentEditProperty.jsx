@@ -41,7 +41,7 @@ function AgentEditProperty() {
       media
         .filter((m) => m && m.type === '360' && m.src)
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        .map((m, i) => ({ id: m.id || `pano-${i + 1}`, label: m.label || '', src: m.src, yawOffset: m.yawOffset, links: m.links, stitched: m.stitched })),
+        .map((m, i) => ({ id: m.id || `pano-${i + 1}`, label: m.label || '', src: m.src, yawOffset: m.yawOffset, links: m.links, linksExplicit: m.linksExplicit, stitched: m.stitched })),
     );
   }, [property]);
 

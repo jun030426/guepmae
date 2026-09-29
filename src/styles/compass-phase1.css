@@ -5661,3 +5661,167 @@ input[type='file']::file-selector-button:hover {
   font-style: normal;
   font-weight: 700;
 }
+
+/* ══════════════════════════════════════════════════════════════════
+ * 360 투어 갈래 편집기 (TourLinkEditor) — 등록·수정 폼의 지점별 화살표 편집
+ * ══════════════════════════════════════════════════════════════════ */
+
+.pano-item {
+  grid-template-areas:
+    "thumb meta controls"
+    "links links links"
+    "editor editor editor";
+}
+.pano-item > .pano-thumb { grid-area: thumb; }
+.pano-item > .pano-meta { grid-area: meta; }
+.pano-item > .pano-controls { grid-area: controls; }
+.pano-links-row {
+  grid-area: links;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--color-border);
+  font-size: 13px;
+  color: var(--text-muted, var(--color-text-muted));
+}
+.pano-links-toggle {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--text-strong);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pano-links-toggle:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@media (max-width: 640px) {
+  .pano-item {
+    grid-template-areas:
+      "thumb meta"
+      "controls controls"
+      "links links"
+      "editor editor";
+  }
+}
+
+.tour-link-editor {
+  grid-area: editor;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--color-border) 30%, transparent);
+}
+.tour-link-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.tour-link-head span {
+  font-size: 13px;
+  color: var(--text-muted, var(--color-text-muted));
+}
+.tour-link-canvas-wrap {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+}
+.tour-link-canvas {
+  width: 100%;
+  height: 320px;
+}
+.tour-link-form {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1.4fr) minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: end;
+}
+.tour-link-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.tour-link-form input[type="number"],
+.tour-link-form select {
+  width: 100%;
+}
+.tour-link-form .tour-link-check {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.tour-link-add {
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--text-strong);
+  color: var(--color-bg);
+  font-weight: 700;
+  cursor: pointer;
+}
+.tour-link-add:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+@media (max-width: 860px) {
+  .tour-link-form {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.tour-link-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+.tour-link-list li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  font-size: 13px;
+}
+.tour-link-list li em {
+  font-style: normal;
+  color: var(--text-muted, var(--color-text-muted));
+}
+.tour-link-list .pano-remove {
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--price-up);
+  font-weight: 600;
+  cursor: pointer;
+}
+.tour-link-dir {
+  font-weight: 700;
+}
+
+/* 편집 중 선택한 방향 표시 */
+.tour-pick-marker {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: rgba(37, 99, 235, 0.9);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.35);
+}

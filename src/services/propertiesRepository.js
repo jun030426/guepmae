@@ -1,5 +1,17 @@
 import { db } from '../lib/dataClient.js';
 import { buildTourPanoramas } from '../utils/panoramaTour.js';
+import { isLocalMediaRef, resolveMediaUrl } from '../utils/mediaUrl.js';
+
+// 로컬 데모 저장소 참조(idb:)가 섞인 media 는 표시용 object URL 로 바꾼 사본(mediaDisplay)을 붙인다.
+// media 자체는 원본 참조를 유지한다 — 수정 폼이 저장할 때 blob: URL 이 행에 들어가면 안 되기 때문.
+async function withDisplayMedia(property) {
+  const media = Array.isArray(property.media) ? property.media : [];
+  if (!media.some((item) => item && isLocalMediaRef(item.src))) return { ...property, mediaDisplay: media };
+  const mediaDisplay = await Promise.all(
+    media.map(async (item) => (item && isLocalMediaRef(item.src) ? { ...item, src: await resolveMediaUrl(item.src) } : item)),
+  );
+  return { ...property, mediaDisplay };
+}
 
 function toNumber(value, fallback = 0) {
   const numericValue = Number(value);
@@ -88,7 +100,7 @@ export async function fetchProperties() {
     throw error;
   }
 
-  return (data ?? []).map(normalizeProperty);
+  return Promise.all((data ?? []).map((row) => withDisplayMedia(normalizeProperty(row))));
 }
 
 export async function fetchPropertyById(id) {
@@ -102,5 +114,5 @@ export async function fetchPropertyById(id) {
     throw error;
   }
 
-  return data ? normalizeProperty(data) : null;
+  return data ? withDisplayMedia(normalizeProperty(data)) : null;
 }

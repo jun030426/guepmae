@@ -5,6 +5,7 @@ import { useProperty } from '../hooks/useProperties.js';
 import { db } from '../lib/dataClient.js';
 import { canUpload3DModel, uploadProperty3DModel, uploadPropertyPanoramas, uploadPropertyPhotos } from '../services/propertyRegistration.js';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
+import LocalMediaImage from '../components/LocalMediaImage.jsx';
 import { formatPrice } from '../utils/priceUtils.js';
 
 function AgentEditProperty() {
@@ -238,7 +239,7 @@ function AgentEditProperty() {
                 .filter(({ m }) => !m.type || m.type === 'photo')
                 .map(({ m, i }, photoIndex) => (
                   <div key={m.src} className="edit-photo-item">
-                    <img src={m.src} alt={m.alt || `사진 ${photoIndex + 1}`} />
+                    <LocalMediaImage src={m.src} alt={m.alt || `사진 ${photoIndex + 1}`} />
                     {photoIndex === 0 && <span className="edit-photo-cover">대표</span>}
                     <button
                       type="button"

@@ -1,15 +1,16 @@
 /*
- * propertyRegistration.js — 중개사 매물 등록 + 사진 업로드.
+ * propertyRegistration.js — 중개사 매물 등록 + 사진·360·3D 업로드.
  *
- * 로컬 모드 Flow:
- *   1) 사진 파일들을 브라우저에서 data URL 로 읽어 media 배열 구성
- *   2) properties 에 INSERT (localStorage 오버레이에 저장)
+ * Flow:
+ *   1) 사진은 브라우저에서 긴 변 1600px JPEG 로 줄여 Storage(하이브리드) / IndexedDB(로컬)에 올리고 URL 만 media 에 담는다
+ *   2) 기준 실거래가·할인율을 판정 함수로 구하고 properties 에 INSERT (로컬은 localStorage 오버레이)
  *   3) 새 매물 id 반환
  */
 
 import { db, isHybrid } from '../lib/dataClient.js';
 import { geocodeAddress, hasKakaoKey } from '../utils/kakaoLoader.js';
 import { processPanoramaFile } from '../utils/panoramaImage.js';
+import { processPhotoFile } from '../utils/photoImage.js';
 import { panoramaMediaItem } from '../utils/panoramaTour.js';
 import {
   basisFromComplexRow,
@@ -25,16 +26,6 @@ function generatePropertyId() {
   return `gm-${ts}${rand}`;
 }
 
-// 로컬 모드: 사진은 Storage 대신 브라우저에서 data URL 로 읽어 매물에 그대로 저장.
-// (localStorage 에 들어가므로 새로고침 후에도 보임)
-function readAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 /*
  * 3D 모델(.glb/.gltf) 업로드 — Storage 전용 (하이브리드 모드에서만).
@@ -59,17 +50,34 @@ export async function uploadProperty3DModel(file, propertyId) {
   return { type: '3d', src: data.publicUrl, label: '3D 모델' };
 }
 
+/*
+ * 일반 사진 업로드 — 긴 변 1600px JPEG 로 줄여 property-photos 버킷(하이브리드) 또는
+ * IndexedDB(로컬, idb: 참조)에 저장하고 URL 만 돌려준다. 매물 행에 data URL 을 넣지 않는다.
+ * 한 장이 실패하면 그 장만 건너뛴다(등록 자체는 계속).
+ */
 export async function uploadPropertyPhotos(files, propertyId) {
   const photos = [];
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i];
-    // eslint-disable-next-line no-await-in-loop
-    const src = await readAsDataURL(file);
-    photos.push({
-      src,
-      label: i === 0 ? '대표 사진' : `사진 ${i + 1}`,
-      alt: `${propertyId} 사진 ${i + 1}`,
-    });
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const processed = await processPhotoFile(file);
+      const ext = processed.contentType === 'image/jpeg' ? 'jpg' : (file.name.split('.').pop() || 'bin').toLowerCase();
+      const path = `properties/${propertyId}/photo-${i + 1}-${Date.now()}.${ext}`;
+      // eslint-disable-next-line no-await-in-loop
+      const { data, error } = await db.storage
+        .from('property-photos')
+        .upload(path, processed.blob, { contentType: processed.contentType, upsert: true });
+      if (error) throw new Error(error.message || '업로드 실패');
+      const { data: pub } = db.storage.from('property-photos').getPublicUrl(data?.path ?? path);
+      photos.push({
+        src: pub.publicUrl,
+        label: photos.length === 0 ? '대표 사진' : `사진 ${photos.length + 1}`,
+        alt: `${propertyId} 사진 ${photos.length + 1}`,
+      });
+    } catch (error) {
+      console.warn(`[photos] ${file?.name ?? i} 업로드 건너뜀:`, error);
+    }
   }
   return photos;
 }

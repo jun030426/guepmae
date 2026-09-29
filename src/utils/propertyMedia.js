@@ -20,17 +20,19 @@ function getSeedFromProperty(property) {
 }
 
 function withImageParams(src, width, quality) {
-  // data URL(로컬 업로드 사진) 은 query 변환 안 하고 그대로 반환
-  if (src.startsWith('data:')) return src;
+  // data:/blob:(로컬 업로드·IndexedDB object URL)/idb: 는 query 를 붙이면 깨진다 — 그대로 반환
+  if (/^(data:|blob:|idb:)/.test(src)) return src;
+
   const separator = src.includes('?') ? '&' : '?';
   return `${src}${separator}auto=format&fit=crop&w=${width}&q=${quality}`;
 }
 
 export function getPropertyPhotos(property, count = 8) {
-  // 1순위: 매물에 등록된 실 사진 (property.media)
-  // media 에는 사진 외 항목(type: '3d' 등)도 섞일 수 있어 사진만 거른다.
-  const photoItems = Array.isArray(property?.media)
-    ? property.media.filter((item) => item && item.src && (!item.type || item.type === 'photo'))
+  // 1순위: 매물에 등록된 실 사진 (property.media — 로컬 idb: 참조는 repository 가 mediaDisplay 로 풀어 둔다)
+  // media 에는 사진 외 항목(type: '3d' / '360')도 섞일 수 있어 사진만 거른다.
+  const source = Array.isArray(property?.mediaDisplay) ? property.mediaDisplay : property?.media;
+  const photoItems = Array.isArray(source)
+    ? source.filter((item) => item && item.src && (!item.type || item.type === 'photo'))
     : [];
   if (photoItems.length > 0) {
     return photoItems.slice(0, count).map((item, index) => ({

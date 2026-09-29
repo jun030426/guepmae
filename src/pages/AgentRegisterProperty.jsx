@@ -363,7 +363,7 @@ function AgentRegisterProperty() {
               최대 10장까지 등록됩니다 — 초과한 {photoOverflow}장은 제외했습니다.
             </p>
           )}
-          <p className="register-hint">사진을 안 올려도 등록은 가능하지만, 사진이 있는 매물이 매수자 신뢰가 훨씬 높습니다.</p>
+          <p className="register-hint">사진을 안 올려도 등록은 가능하지만, 사진이 있는 매물이 매수자 신뢰가 훨씬 높습니다. 사진은 긴 변 1600px 로 줄여 저장됩니다.</p>
 
           <PanoramaUploadField
             items={form.panoramas}

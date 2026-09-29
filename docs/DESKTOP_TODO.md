@@ -117,3 +117,18 @@ git add public/data && git commit -m "chore: 실거래 재수집(거래유형) +
 
 - Supabase 마이그레이션은 노트북에서 MCP 로 라이브에 적용됨: `property_360_bucket`, `complex_trades_table`, `properties_discount_rate_nullable` (2026-09-29). 데스크톱에서 `npx supabase db push` 를 다시 돌릴 필요 없음 — 돌리더라도 `if not exists`/`drop policy if exists` 라 안전.
 - Vercel 은 `main` 푸시마다 자동 배포. 환경변수만 A 에서 추가.
+
+---
+
+## F. 관심 단지 급매 알림 — 발송 (메일 서비스 키)
+
+구독 저장·관리·지표는 끝났다(2026-09-29). 남은 것은 실제 발송이다.
+설계: `docs/superpowers/specs/2026-09-29-complex-alerts-design.md` §9
+
+- [ ] 메일 서비스 선택·가입 (예: Resend 무료 월 3,000통) → API 키 발급
+- [ ] 발신 도메인 인증(SPF/DKIM). 도메인이 없으면 서비스 기본 발신 주소로 시작
+- [ ] Supabase → Edge Functions → Secrets 에 메일 키 등록 (예: `RESEND_API_KEY`). 저장소·`.env` 에 커밋 금지
+- [ ] 발송 함수 구현 요청 (노트북/데스크톱 어느 세션이든): 매물 검증 시 또는 하루 1회, `matchAlerts` 규칙으로 대상 선정 → 발송 → 발송 로그
+- [ ] 이중 확인(double opt-in): 신청 직후 확인 메일 → 링크 클릭 시 `confirmed_at` 기록 → 확인된 구독에만 발송 (타인 이메일 도용 방지)
+- [ ] 메일 하단 해지 링크: `https://guepmae.vercel.app/alerts?token=<unsubscribe_token>` (해지 화면은 이미 동작)
+- [ ] 검증: 본인 이메일로 신청 → 테스트 매물 검증 → 메일 수신 → 해지 링크 클릭 → 관리자 화면 신청 수 감소

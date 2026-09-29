@@ -64,6 +64,7 @@ const K_PROPS = 'geupmae:properties';   // { created:[row], edits:{id:patch}, de
 const K_APPS = 'geupmae:applications';  // [application]
 const K_USERS = 'geupmae:users';        // [profile]
 const K_SESSION = 'geupmae:session';    // { user, ... } | null
+const K_ALERTS = 'geupmae:alerts';      // [complex_alerts row] — 관심 단지 급매 알림 구독
 
 const propsOverlay = () => LS(K_PROPS, { created: [], edits: {}, deleted: [] });
 
@@ -136,6 +137,7 @@ async function tableRows(table) {
       return Object.entries(obj).map(([key, data]) => ({ key, data }));
     }
     case 'agent_applications': return LS(K_APPS, []);
+    case 'complex_alerts': return LS(K_ALERTS, []);
     case 'profiles': return seedUsers();
     case 'price_trends': return []; // 시계열 미번들 (신규 등록 매물은 빈 추이)
     default: return [];
@@ -144,7 +146,7 @@ async function tableRows(table) {
 
 // 하이브리드에서 통째로 Supabase 에 위임하는 테이블 (인증·운영·동적 생성 데이터)
 // complex_trades 는 83k 행이라 번들에 다 못 싣는다 — 하이브리드에서는 Supabase 에서 (complex, gu) 로 읽는다.
-const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications', 'property_inspections', 'complex_trades']);
+const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications', 'property_inspections', 'complex_trades', 'complex_alerts']);
 
 // ───────────────────────── 쿼리 빌더 (thenable) ─────────────────────────
 const BUILDER_METHODS = [
@@ -278,6 +280,20 @@ function localFrom(table) {
       if (_mutation.type === 'update') {
         const next = users.map((u) => (filters.every((f) => f(u)) ? { ...u, ..._mutation.payload } : u));
         setLS(K_USERS, next); return { data: null, error: null };
+      }
+    }
+    if (table === 'complex_alerts') {
+      const alerts = LS(K_ALERTS, []);
+      if (_mutation.type === 'insert') {
+        // DB 의 부분 유니크 인덱스(활성 구독은 이메일·단지·구·평형당 하나)와 같은 규칙
+        const keyOf = (a) => `${String(a.email).toLowerCase()}|${a.complex}|${a.gu}|${a.area_m2 ?? 0}`;
+        const activeKeys = new Set(alerts.filter((a) => a.status === 'active').map(keyOf));
+        if (list.some((a) => activeKeys.has(keyOf(a)))) {
+          return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint' } };
+        }
+        list.forEach((a) => alerts.unshift({ id: Date.now() + alerts.length, created_at: new Date().toISOString(), status: 'active', ...a }));
+        setLS(K_ALERTS, alerts);
+        return { data: null, error: null };
       }
     }
     return { data: null, error: null };
@@ -504,4 +520,28 @@ const functions = {
   },
 };
 
-export const db = { from, auth, storage, functions };
+// ───────────────────────── RPC (DB 함수) ─────────────────────────
+// 로컬 모드는 앱이 쓰는 함수만 흉내낸다.
+async function rpc(name, args = {}) {
+  if (isHybrid) {
+    const c = await supa();
+    if (!c) return { data: null, error: CONNECT_FAIL };
+    return c.rpc(name, args);
+  }
+  if (name === 'unsubscribe_alert') {
+    const alerts = LS(K_ALERTS, []);
+    let found = false;
+    const next = alerts.map((a) => {
+      if (a.unsubscribe_token === args.p_token && a.status === 'active') {
+        found = true;
+        return { ...a, status: 'unsubscribed', unsubscribed_at: new Date().toISOString() };
+      }
+      return a;
+    });
+    setLS(K_ALERTS, next);
+    return { data: found, error: null };
+  }
+  return { data: null, error: { message: `로컬 데모 모드에서 지원하지 않는 함수입니다: ${name}` } };
+}
+
+export const db = { from, auth, storage, functions, rpc };

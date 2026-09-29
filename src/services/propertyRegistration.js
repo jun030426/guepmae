@@ -309,7 +309,8 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
 
   // ④ 할인율 산출 근거 스냅샷 (감사·표시용) — 판정 함수의 discountRate 는 행 컬럼과 중복이라 뺀다
   const { discountRate: _basisDiscount, ...basisRest } = reference.basis ?? heldBasis('no_data', { requestedAreaM2: areaM2, areaM2 });
-  const priceBasis = { ...basisRest, computedAt: now };
+  // 단지 정식명·구를 함께 남긴다 — 관심 단지 알림 매칭과 재계산의 키
+  const priceBasis = { ...basisRest, complexName: form.complexName || null, gu: gu || null, computedAt: now };
 
   // 2) 매물 INSERT
   const row = {

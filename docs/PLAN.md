@@ -68,7 +68,7 @@
 | | 360 실내 투어 (지점 이동) | 1단계 + .insp 자동 변환 | 합성 360 JPG 또는 Insta360 원본(.insp) 업로드 → 찍은 순서 기반 화살표 이동. .insp 는 브라우저 WebGL 로 즉시 변환(ONE X2 실샘플로 보정, 1초). 로컬 검증 완료(2026-09-29), 라이브 버킷 적용됨. 설계·검증: `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` |
 | | 집 앞 로드뷰 자동 표시 | 구현(키 대기) | 카카오 로드뷰·지오코딩. `VITE_KAKAO_APP_KEY` 발급 후 검증 예정 |
 | | 3D 모델(.glb) 뷰어 | 실험 | 라이브 샘플 1건. 유지하되 우선순위 낮춤 |
-| | 관심 단지 급매 알림 | 미착수 | 사업계획서의 핵심 재방문 장치 |
+| | 관심 단지 급매 알림 | 구독 저장 완료 | 상세에서 신청 → 저장 → `/alerts` 관리·해지 → 관리자 통계(신청 수·상위 단지). 발송(메일)은 데스크톱 작업(`docs/DESKTOP_TODO.md` F) |
 | 중개사 | 가입 신청(서류 첨부) → 운영 승인 → agent 권한 | 완료 | |
 | | 매물 등록(사진, 단지 자동완성, 기준가 자동 산출·미리보기) | 완료 | 2026-09-29 등록 직후 오류·미리보기 버그 수정 |
 | | 내 매물 수정·삭제 | 완료 | |
@@ -145,7 +145,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 |---|---|
 | Supabase 프로젝트 | `geupmae` (ref `oormfipegcfbhvctikfl`, ap-northeast-2). 구 프로젝트 `geupmae-platform`(다른 실험 공유), `cheongyak-platform`(일시정지) |
 | 적용된 마이그레이션 | 기본 스키마 7개 + `property_3d_bucket` + `property_inspections` (2026-09-28) |
-| 테이블 | properties · profiles · agent_applications · seller_verifications · complex_prices · complex_trades(신규, 적재 대기) · price_trends · market_snapshots · property_reports · ai_market_reports · property_inspections |
+| 테이블 | properties · profiles · agent_applications · seller_verifications · complex_prices · complex_trades(신규, 적재 대기) · complex_alerts(신규) · price_trends · market_snapshots · property_reports · ai_market_reports · property_inspections |
 | Storage 버킷 | agent-application-documents · property-3d · property-360 (마이그레이션 작성됨, 라이브 적용 대기) |
 | Edge Function | inspection-report (ACTIVE, JWT 검증, 시크릿 `GEMINI_API_KEY`) |
 | Vercel | guepmae.vercel.app · 모든 경로 → index.html rewrite(실제 파일 우선) |
@@ -194,7 +194,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | 1 | 360 실내 투어 + 로드뷰 1단계 — **구현 완료 (2026-09-29)**. 라이브 반영은 버킷 마이그레이션 적용 + 카카오 키 발급 후 | 사용자 결정 사항 |
 | 2 | 검증 기준 고도화 — **코드 완료 (2026-09-29)**. 데이터 반영은 데스크톱에서 재수집(거래유형)·집계·`complex_trades` 적재·`recompute --all --write` 후 | 사업계획서의 핵심 차별점 |
 | 3 | 실거래 매일 증분 수집 자동화 (GitHub Actions 크론 → 집계·번들 재생성) | "매일 증분 수집"을 사실로 |
-| 4 | 관심 단지 급매 알림 (구독 저장 → 발송) | 파일럿 지표 "알림 신청 수"의 전제 |
+| 4 | 관심 단지 급매 알림 — 구독 저장·관리·지표 **완료 (2026-09-29)**, 발송은 메일 서비스 키 확보 후 | 파일럿 지표 "알림 신청 수"의 전제 |
 | 5 | 360 2단계 — .insp 자동 변환 **완료 (2026-09-29)**, 갈래 편집기 남음 · 백테스트 · 중개사 멤버십 | 파일럿 이후 |
 
 
@@ -232,7 +232,10 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | `docs/superpowers/specs/2026-08-26-hybrid-backend-design.md` | 하이브리드 모드 설계·검증 결과 |
 | `docs/superpowers/specs/2026-08-26-seo-static-pages-design.md` | 정적 페이지·sitemap 설계·검증 결과 |
 | `docs/superpowers/specs/2026-08-27-data-refresh-listing-recrawl-design.md` | 데이터 최신화·재수집 설계·실행 기록·리스크 |
-| `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` | 360 투어·로드뷰 설계 |
+| `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` | 360 투어·로드뷰 설계 + .insp 자동 변환 + 검증 결과 |
+| `docs/superpowers/specs/2026-09-29-price-basis-judgment-design.md` | 급매 판정 규칙(시점·층·직거래·보류)과 개별 실거래 데이터 흐름 |
+| `docs/superpowers/specs/2026-09-29-complex-alerts-design.md` | 관심 단지 알림 구독 모델·권한·발송 규칙 |
+
 | `docs/superpowers/plans/` | 구현 계획(작업 단위) |
 | 상위 폴더 `모두의창업프로젝트_신청서_급매_제출용.md` | 사업계획서 최종본 (저장소 밖, 2026-09-10 제출) |
 | 상위 폴더 `[글로컬대학] 2026 Station C … 예산사용계획서(완성).hwp` | 지원사업 예산 계획 (저장소 밖) |

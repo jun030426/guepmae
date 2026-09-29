@@ -8,6 +8,7 @@ const footerGroups = [
       { label: '매물 보기', to: '/properties' },
       { label: '지도 검색', to: '/map' },
       { label: '급매 리포트', to: '/report' },
+      { label: '급매 알림 관리', to: '/alerts' },
     ],
   },
   {

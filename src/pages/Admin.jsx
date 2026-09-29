@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, FileText, Lock, Users, X, XCircle } from 'lucide-react';
+import { Bell, Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, FileText, Lock, Users, X, XCircle } from 'lucide-react';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import SectionTitle from '../components/SectionTitle.jsx';
 import StatCard from '../components/StatCard.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useProperties } from '../hooks/useProperties.js';
 import { setPropertyVerified } from '../services/propertyRegistration.js';
+import { fetchAlertStats } from '../services/complexAlerts.js';
 import {
   ROLE_LABEL,
   allowedNewRoles,
@@ -193,6 +194,16 @@ function Admin() {
       .then((data) => active && setApplications(data))
       .catch((err) => active && setError(`중개사 신청 목록 로드 실패: ${err.message}`))
       .finally(() => active && setAppsLoading(false));
+    return () => { active = false; };
+  }, []);
+
+  // 관심 단지 급매 알림 신청 현황 — 파일럿 지표 "알림 신청 수"
+  const [alertStats, setAlertStats] = useState({ total: 0, complexes: 0, top: [] });
+  useEffect(() => {
+    let active = true;
+    fetchAlertStats()
+      .then((stats) => active && setAlertStats(stats))
+      .catch(() => {});
     return () => { active = false; };
   }, []);
 
@@ -398,7 +409,33 @@ function Admin() {
           value={`${(groupedProfiles.agent ?? []).length}명`}
           description="매물 등록 권한 보유"
         />
+        <StatCard
+          icon={Bell}
+          label="급매 알림 신청"
+          value={`${alertStats.total}건`}
+          description={alertStats.complexes > 0 ? `관심 단지 ${alertStats.complexes}곳` : '관심 단지 알림 구독'}
+        />
       </section>
+
+      {alertStats.top.length > 0 && (
+        <section className="container admin-grid">
+          <div className="admin-panel wide">
+            <div className="admin-panel-header">
+              <h2>급매 알림 신청 상위 단지 ({alertStats.total})</h2>
+              <span>활성 신청 수 기준 — 매수 대기 수요가 모이는 단지</span>
+            </div>
+            <ol className="admin-alert-list">
+              {alertStats.top.map((row) => (
+                <li key={`${row.gu}|${row.complex}`}>
+                  <strong>{row.complex}</strong>
+                  <span>{row.gu}</span>
+                  <em>{row.count}건</em>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+      )}
 
       {error && (
         <section className="container">

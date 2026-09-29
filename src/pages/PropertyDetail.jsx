@@ -26,6 +26,7 @@ import PropertyMediaViewer from '../components/PropertyMediaViewer.jsx';
 import PropertyLocationMap from '../components/PropertyLocationMap.jsx';
 import PriceReport from '../components/PriceReport.jsx';
 import InspectionChecklist from '../components/InspectionChecklist.jsx';
+import ComplexAlertCard from '../components/ComplexAlertCard.jsx';
 import { isHeld } from '../utils/priceBasis.js';
 import UrgentBadge from '../components/UrgentBadge.jsx';
 import { useProperty } from '../hooks/useProperties.js';
@@ -595,6 +596,8 @@ function PropertyDetail() {
             <strong>{property.verified ? '검증 완료' : '검증 대기'}</strong>
             <span>가격, 등기, 중개사 정보를 기준으로 확인했습니다.</span>
           </section>
+
+          <ComplexAlertCard property={property} />
         </aside>
       </section>
 

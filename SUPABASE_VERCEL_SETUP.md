@@ -8,7 +8,11 @@
 VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxx
 VITE_NAVER_MAP_CLIENT_ID=your_naver_map_client_id
+VITE_KAKAO_APP_KEY=your_kakao_javascript_key
 ```
+
+`VITE_KAKAO_APP_KEY`는 선택입니다. 있으면 매물 등록 시 주소를 좌표로 바꾸고, 360 투어가 없는 매물 상세에서 집 앞 카카오 로드뷰를 보여줍니다.
+카카오 디벨로퍼스 → 앱 → 플랫폼 Web 에 `http://localhost:5173`, `https://guepmae.vercel.app` 을 등록하고 카카오맵 사용 설정을 켜야 합니다.
 
 구형 Supabase 프로젝트를 쓰는 경우 `VITE_SUPABASE_PUBLISHABLE_KEY` 대신 `VITE_SUPABASE_ANON_KEY`도 동작합니다.
 `service_role` 또는 `sb_secret_` 키는 브라우저 앱에 넣지 않습니다.
@@ -59,6 +63,7 @@ Vercel 프로젝트 환경변수에 로컬과 같은 값을 추가합니다.
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_PUBLISHABLE_KEY`
 - `VITE_NAVER_MAP_CLIENT_ID`
+- `VITE_KAKAO_APP_KEY` (선택)
 
 Vite 기본 설정:
 

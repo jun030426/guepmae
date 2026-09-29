@@ -5230,3 +5230,175 @@ input[type='file']::file-selector-button:hover {
     transition: none;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+ * 360 실내 투어 — 업로드 필드(등록·수정 폼) + 화살표 핫스팟(Pannellum cssClass)
+ * 설계: docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md
+ * ══════════════════════════════════════════════════════════════════ */
+
+.register-360-field {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.register-360-field > label {
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.register-360-field > label small {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.pano-guide {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.pano-rejected {
+  margin: 0;
+  padding: 10px 12px;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--price-up) 10%, transparent);
+  color: var(--price-up);
+  font-size: 13px;
+}
+.pano-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+.pano-item {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg);
+}
+.pano-thumb {
+  position: relative;
+  aspect-ratio: 2 / 1;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-surface, #f1f5f9);
+}
+.pano-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pano-thumb-empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.pano-order {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: rgba(15, 23, 42, 0.78);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.pano-meta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.pano-meta input {
+  width: 100%;
+}
+.pano-meta small {
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pano-controls {
+  display: flex;
+  gap: 6px;
+}
+.pano-controls button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--text-strong);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.pano-controls button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.pano-controls .pano-remove {
+  color: var(--price-up);
+}
+@media (max-width: 640px) {
+  .pano-item {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+  .pano-controls {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+/* 화살표 핫스팟 — Pannellum 이 .pnlm-hotspot-base 로 위치(transform)를 잡으므로
+ * 요소 자체에는 transform 을 쓰지 않고 ::before 아이콘만 회전시킨다. */
+.tour-arrow {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.62);
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.tour-arrow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 22px;
+  height: 22px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5'/%3E%3Cpath d='m5 12 7-7 7 7'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.tour-arrow:hover {
+  background: rgba(37, 99, 235, 0.88);
+}
+.tour-arrow-forward::before { transform: rotate(0deg); }
+.tour-arrow-right::before { transform: rotate(90deg); }
+.tour-arrow-back::before { transform: rotate(180deg); }
+.tour-arrow-left::before { transform: rotate(-90deg); }
+.tour-arrow span {
+  font-size: 12px;
+  line-height: 1.4;
+}

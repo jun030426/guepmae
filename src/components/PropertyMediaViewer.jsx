@@ -5,6 +5,9 @@ import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
 import L, { createOsmTileLayer, createSpotIcon } from '../utils/leafletLoader.js';
 import { MAP_PROVIDER } from '../utils/mapProvider.js';
 import { loadPannellum } from '../utils/pannellumLoader.js';
+import { hasKakaoKey, loadKakaoMaps } from '../utils/kakaoLoader.js';
+import { resolveMediaUrls } from '../utils/mediaUrl.js';
+import { bearing, directionOf } from '../utils/panoramaTour.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import PropertyReportPanel from './PropertyReportPanel.jsx';
 
@@ -14,7 +17,7 @@ const NAVER_MAP_CLIENT_ID = import.meta.env.VITE_NAVER_MAP_CLIENT_ID;
 const viewerModes = [
   { id: 'photos', label: '사진' },
   { id: 'map', label: '지도' },
-  { id: 'tour', label: '3D 투어' },
+  { id: 'tour', label: '360 투어' },
   { id: 'report', label: '매물 리포트' },
 ];
 
@@ -278,10 +281,15 @@ function Model3DPanel({ property, modelUrl, modelLabel }) {
   );
 }
 
+/* PropertyTourPanel — 우선순위: 360 파노라마 투어 → .glb 3D 모델 → 외부 임베드 → 집 앞 로드뷰/사진 폴백 */
 function PropertyTourPanel({ property, photos }) {
   const tour = property.tour ?? property.virtualTour ?? {};
   const embedUrl = tour.embedUrl;
   const panoramas = tour.panoramas ?? [];
+
+  if (panoramas.length > 0) {
+    return <IndoorTourPreview property={property} panoramas={panoramas} />;
+  }
 
   if (tour.modelUrl) {
     return <Model3DPanel property={property} modelUrl={tour.modelUrl} modelLabel={tour.modelLabel} />;
@@ -292,7 +300,7 @@ function PropertyTourPanel({ property, photos }) {
       <div className="viewer-tour-embed-shell">
         <iframe
           src={embedUrl}
-          title={`${property.title} 3D 투어`}
+          title={`${property.title} 360 투어`}
           allow="fullscreen; xr-spatial-tracking"
           allowFullScreen
         />
@@ -300,61 +308,98 @@ function PropertyTourPanel({ property, photos }) {
     );
   }
 
-  if (panoramas.length > 0) {
-    return <IndoorTourPreview property={property} panoramas={panoramas} />;
-  }
-
   return <StreetViewFallbackPanel property={property} photos={photos} />;
 }
 
-/* IndoorTourPreview — 실내 360 파노라마가 등록된 매물에서 활성화
- * panoramas: [{ id, src, label, initialYaw?, initialPitch? }]
+/* IndoorTourPreview — 360 파노라마 지점 이동 투어 (Pannellum 멀티 씬).
+ * panoramas: buildTourPanoramas() 결과 — [{ id, src, label, order, yawOffset, links: [{ to, yaw, pitch, targetYaw, label }] }]
+ * 링크는 로드뷰풍 화살표 핫스팟(cssClass tour-arrow-*)으로 그려지고, 클릭하면 해당 지점으로 이동한다.
+ * src 가 idb: 참조(로컬 데모)면 object URL 로 바꿔서 넘긴다.
  * src는 equirectangular 360 이미지 URL이어야 함 */
+const PANNELLUM_STRINGS = {
+  loadButtonLabel: '불러오기',
+  loadingLabel: '불러오는 중…',
+  bylineLabel: '',
+  noPanoramaError: '파노라마 이미지가 없습니다.',
+  fileAccessError: '파노라마 파일을 불러올 수 없습니다: %s',
+  malformedURLError: '파노라마 URL 이 올바르지 않습니다.',
+  iOS8WebGLError: '이 브라우저는 360 뷰어를 지원하지 않습니다.',
+  genericWebGLError: '이 브라우저는 WebGL 을 지원하지 않아 360 뷰어를 표시할 수 없습니다.',
+  textureSizeError: '파노라마가 너무 큽니다 (%spx). 이 기기의 한도는 %spx 입니다.',
+  unknownError: '알 수 없는 오류가 발생했습니다.',
+};
+
 function IndoorTourPreview({ property, panoramas }) {
-  const [activeSceneId, setActiveSceneId] = useState(panoramas[0]?.id);
   const containerRef = useRef(null);
   const viewerRef = useRef(null);
-  const [status, setStatus] = useState('idle');
-
-  const activeScene = panoramas.find((panorama) => panorama.id === activeSceneId) ?? panoramas[0];
+  const [activeSceneId, setActiveSceneId] = useState(panoramas[0]?.id);
+  const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
 
   useEffect(() => {
-    if (!containerRef.current || !activeScene) return undefined;
+    if (!containerRef.current || panoramas.length === 0) return undefined;
     let cancelled = false;
     setStatus('loading');
+    const container = containerRef.current;
 
-    loadPannellum()
-      .then((pannellum) => {
+    Promise.all([loadPannellum(), resolveMediaUrls(panoramas.map((pano) => pano.src))])
+      .then(([pannellum, urls]) => {
         if (cancelled || !containerRef.current) return;
 
-        // 이전 뷰어 정리
-        if (viewerRef.current) {
-          try {
-            viewerRef.current.destroy();
-          } catch {
-            // ignore — pannellum이 이미 컨테이너를 비웠을 수도 있음
-          }
-          viewerRef.current = null;
+        const ids = new Set(panoramas.map((pano) => pano.id));
+        const scenes = {};
+        panoramas.forEach((pano, index) => {
+          if (!urls[index]) return; // 로컬 저장소에서 사라진 사진은 건너뛴다
+          scenes[pano.id] = {
+            type: 'equirectangular',
+            panorama: urls[index],
+            title: pano.label,
+            yaw: pano.yawOffset ?? 0,
+            pitch: 0,
+            hotSpots: (pano.links ?? [])
+              .filter((link) => ids.has(link.to) && link.to !== pano.id)
+              .map((link) => ({
+                type: 'scene',
+                sceneId: link.to,
+                yaw: link.yaw,
+                pitch: link.pitch,
+                targetYaw: link.targetYaw ?? 0,
+                targetPitch: 0,
+                text: link.label || undefined,
+                cssClass: `tour-arrow tour-arrow-${directionOf(link.yaw)}`,
+              })),
+          };
+        });
+        const firstScene = panoramas.find((pano) => scenes[pano.id])?.id;
+        if (!firstScene) {
+          setStatus('error');
+          return;
         }
 
-        viewerRef.current = pannellum.viewer(containerRef.current, {
-          type: 'equirectangular',
-          panorama: activeScene.src,
-          autoLoad: true,
-          showControls: true,
-          showZoomCtrl: true,
-          showFullscreenCtrl: false,
-          compass: false,
-          hfov: 110,
-          yaw: activeScene.initialYaw ?? 0,
-          pitch: activeScene.initialPitch ?? 0,
-        });
+        viewerRef.current = pannellum.viewer(container, {
+          default: {
+            firstScene,
+            // 크로스페이드는 현재 화면 스냅샷을 쓰므로 컨테이너 폭이 0(숨김 상태)이면 빈 이미지에 걸려 전환이 멈춘다.
+            // 그 경우 페이드 없이 즉시 전환한다.
+            sceneFadeDuration: container.clientWidth > 0 ? 600 : 0,
 
-        setStatus('ready');
+            autoLoad: true,
+            hfov: 100,
+            showControls: true,
+            showZoomCtrl: true,
+            showFullscreenCtrl: false,
+            compass: false,
+          },
+          strings: PANNELLUM_STRINGS,
+          scenes,
+        });
+        viewerRef.current.on('scenechange', (sceneId) => setActiveSceneId(sceneId));
+        viewerRef.current.on('load', () => setStatus('ready'));
+        viewerRef.current.on('error', () => setStatus('error'));
+        setActiveSceneId(firstScene);
       })
       .catch((error) => {
         if (cancelled) return;
-        console.error('[indoor-tour] Pannellum 로드 실패:', error);
+        console.error('[indoor-tour] 360 뷰어 로드 실패:', error);
         setStatus('error');
       });
 
@@ -364,12 +409,22 @@ function IndoorTourPreview({ property, panoramas }) {
         try {
           viewerRef.current.destroy();
         } catch {
-          // ignore
+          // ignore — pannellum이 이미 컨테이너를 비웠을 수도 있음
         }
         viewerRef.current = null;
       }
     };
-  }, [activeScene]);
+  }, [panoramas]);
+
+  const activeScene = panoramas.find((pano) => pano.id === activeSceneId) ?? panoramas[0];
+  const goTo = (sceneId) => {
+    if (!viewerRef.current || sceneId === activeSceneId) return;
+    try {
+      viewerRef.current.loadScene(sceneId);
+    } catch {
+      // ignore — 아직 로드 전이면 무시
+    }
+  };
 
   if (!activeScene) {
     return null;
@@ -384,22 +439,26 @@ function IndoorTourPreview({ property, panoramas }) {
       />
       {status === 'loading' && <div className="viewer-status-overlay">360 투어를 불러오는 중입니다.</div>}
       {status === 'error' && (
-        <div className="viewer-status-overlay">360 뷰어 로드에 실패했습니다. 네트워크를 확인하세요.</div>
+        <div className="viewer-status-overlay">360 뷰어를 표시할 수 없습니다. 네트워크와 브라우저(WebGL) 지원을 확인하세요.</div>
       )}
       <div className="indoor-tour-copy">
         <strong>{activeScene.label ?? '실내 360 투어'}</strong>
-        <span>마우스 드래그로 둘러보기 · 휠로 줌</span>
+        <span>
+          {panoramas.length > 1
+            ? '화살표를 누르면 다음 지점으로 이동 · 드래그로 둘러보기 · 휠로 줌'
+            : '마우스 드래그로 둘러보기 · 휠로 줌'}
+        </span>
       </div>
       {panoramas.length > 1 && (
-        <div className="indoor-tour-scenes" aria-label="실내 투어 공간 선택">
-          {panoramas.map((panorama) => (
+        <div className="indoor-tour-scenes" aria-label="실내 투어 지점 선택">
+          {panoramas.map((pano) => (
             <button
               type="button"
-              key={panorama.id}
-              className={panorama.id === activeScene.id ? 'active' : ''}
-              onClick={() => setActiveSceneId(panorama.id)}
+              key={pano.id}
+              className={pano.id === activeScene.id ? 'active' : ''}
+              onClick={() => goTo(pano.id)}
             >
-              {panorama.label ?? '공간'}
+              {pano.label ?? '지점'}
             </button>
           ))}
         </div>
@@ -408,8 +467,8 @@ function IndoorTourPreview({ property, panoramas }) {
   );
 }
 
-/* StreetViewFallbackPanel — 우선순위: Google → Naver → 사진 fallback
- * 3D 투어 데이터가 없을 때 보이는 화면. 집 앞 거리뷰로 위치감을 전달. */
+/* StreetViewFallbackPanel — 우선순위: 카카오 로드뷰(키 있음) → Google → Naver → 사진 fallback
+ * 360 투어 데이터가 없을 때 보이는 화면. 집 앞 거리뷰로 위치감을 전달. */
 function StreetViewFallbackPanel({ property, photos }) {
   const coordinatesReady = hasCoordinates(property);
 
@@ -418,9 +477,13 @@ function StreetViewFallbackPanel({ property, photos }) {
       <TourFallbackPreview
         property={property}
         photos={photos}
-        note="실내 3D 투어가 아직 없고 좌표도 없어 등록 사진으로 위치감을 먼저 보여드립니다."
+        note="실내 360 투어가 아직 없고 좌표도 없어 등록 사진으로 위치감을 먼저 보여드립니다."
       />
     );
+  }
+
+  if (hasKakaoKey) {
+    return <KakaoRoadviewPanel property={property} photos={photos} />;
   }
 
   if (MAP_PROVIDER === 'google') {
@@ -435,12 +498,94 @@ function StreetViewFallbackPanel({ property, photos }) {
     <TourFallbackPreview
       property={property}
       photos={photos}
-      note="실내 3D 투어가 아직 없어 등록 사진으로 먼저 보여드립니다."
+      note="실내 360 투어가 아직 없어 등록 사진으로 먼저 보여드립니다."
     />
   );
 }
 
+/* KakaoRoadviewPanel — 집 앞 카카오 로드뷰 (VITE_KAKAO_APP_KEY 있을 때).
+ * 반경 50m → 150m 순으로 가장 가까운 로드뷰 지점을 찾고, 시선(pan)을 매물 좌표 쪽으로 맞춘다.
+ * 로드뷰가 없는 위치(단지 안쪽 도로 등)는 사진 폴백으로 정직하게 넘어간다. */
+function KakaoRoadviewPanel({ property, photos }) {
+  const roadviewElementRef = useRef(null);
+  const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'no-coverage' | 'error'
+
+  useEffect(() => {
+    if (!roadviewElementRef.current) return undefined;
+    let cancelled = false;
+    setStatus('loading');
+    const target = { lat: property.coordinates.lat, lng: property.coordinates.lng };
+
+    loadKakaoMaps()
+      .then((maps) => {
+        if (cancelled || !roadviewElementRef.current) return undefined;
+        const position = new maps.LatLng(target.lat, target.lng);
+        const client = new maps.RoadviewClient();
+        const nearest = (radius) =>
+          new Promise((resolve) => {
+            client.getNearestPanoId(position, radius, (panoId) => resolve(panoId || null));
+          });
+        return nearest(50)
+          .then((panoId) => panoId ?? nearest(150))
+          .then((panoId) => {
+            if (cancelled || !roadviewElementRef.current) return;
+            if (!panoId) {
+              setStatus('no-coverage');
+              return;
+            }
+            const roadview = new maps.Roadview(roadviewElementRef.current);
+            maps.event.addListener(roadview, 'init', () => {
+              if (cancelled) return;
+              try {
+                const at = roadview.getPosition();
+                const pan = bearing({ lat: at.getLat(), lng: at.getLng() }, target);
+                roadview.setViewpoint({ pan, tilt: 0, zoom: 0 });
+              } catch {
+                // 시선 보정 실패는 치명적이지 않다 — 기본 시선으로 둔다
+              }
+            });
+            roadview.setPanoId(panoId, position);
+            setStatus('ready');
+          });
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('[property-tour] 카카오 로드뷰 로드 실패:', error);
+        setStatus('error');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [property]);
+
+  if (status === 'no-coverage' || status === 'error') {
+    const note =
+      status === 'no-coverage'
+        ? '이 위치는 로드뷰가 없어 등록 사진으로 위치감을 먼저 보여드립니다. 단지 안쪽 도로는 로드뷰가 없는 경우가 많습니다.'
+        : '로드뷰를 불러오지 못해 등록 사진으로 위치감을 먼저 보여드립니다.';
+    return <TourFallbackPreview property={property} photos={photos} note={note} />;
+  }
+
+  return (
+    <div className="viewer-street-shell">
+      <div
+        ref={roadviewElementRef}
+        className="viewer-street-canvas"
+        aria-label={`${property.title} 집 앞 로드뷰`}
+      />
+      {status === 'loading' && <div className="viewer-status-overlay">집 앞 로드뷰를 불러오는 중입니다.</div>}
+      <div className="street-location-card">
+        <strong>{property.title}</strong>
+        <span>{property.address}</span>
+        <em>실내 360 투어가 아직 없어 집 앞 로드뷰를 보여드립니다 · 로드뷰 © Kakao</em>
+      </div>
+    </div>
+  );
+}
+
 function GoogleStreetViewPanel({ property, photos }) {
+
   const panoramaElementRef = useRef(null);
   const [status, setStatus] = useState('idle'); // 'idle' | 'loading' | 'ready' | 'no-coverage' | 'error'
 

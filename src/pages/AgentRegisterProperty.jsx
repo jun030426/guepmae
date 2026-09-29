@@ -4,6 +4,7 @@ import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { canUpload3DModel, getAreaBucket, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
+import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
@@ -32,6 +33,7 @@ const initialForm = {
   description: '',
   contactPhone: '', // 매수자가 실제로 연락할 번호 — 없으면 매물이 막다른 길이 된다
   photos: [], // File[] — 사진 업로드용
+  panoramas: [], // [{ id, label, file, previewUrl }] — 360 투어 사진 (배열 순서 = 이동 순서)
 };
 
 function AgentRegisterProperty() {
@@ -42,6 +44,7 @@ function AgentRegisterProperty() {
   const [error, setError] = useState('');
   const [attempted, setAttempted] = useState(false); // 제출 시도 여부 (필드별 빨간 안내용)
   const [photoOverflow, setPhotoOverflow] = useState(0); // 10장 초과 선택분 안내
+  const [panoProgress, setPanoProgress] = useState(null); // 360 사진 처리 진행률 { done, total }
   // 자동 산출된 기준 실거래가 미리보기 { price, source } | null
   const [reference, setReference] = useState(null);
 
@@ -145,20 +148,23 @@ function AgentRegisterProperty() {
 
     try {
       // 면적은 항상 ㎡로 환산해서 저장 (입력 단위가 평이어도)
-      const { id } = await registerProperty(
+      const { id, panoramaFailures = [] } = await registerProperty(
         {
           ...form,
           description: enrichedDescription,
           area: areaSqm, // 항상 ㎡로 환산 (공급면적은 서버에서 자동 추정)
         },
         profile,
+        { onPanoramaProgress: setPanoProgress },
       );
-      // 등록 직후 매물 상세 페이지로
-      navigate(`/properties/${id}?just_registered=1`, { replace: true });
+      // 등록 직후 매물 상세 페이지로 (처리하지 못한 360 사진이 있으면 배너로 알린다)
+      const failedParam = panoramaFailures.length > 0 ? `&pano_failed=${panoramaFailures.length}` : '';
+      navigate(`/properties/${id}?just_registered=1${failedParam}`, { replace: true });
     } catch (err) {
       console.error(err);
       setError(err.message || '등록 실패. 잠시 후 다시 시도해주세요.');
       setSubmitting(false);
+      setPanoProgress(null);
     }
   };
 
@@ -347,6 +353,13 @@ function AgentRegisterProperty() {
           )}
           <p className="register-hint">사진을 안 올려도 등록은 가능하지만, 사진이 있는 매물이 매수자 신뢰가 훨씬 높습니다.</p>
 
+          <PanoramaUploadField
+            items={form.panoramas}
+            onChange={(panoramas) => setForm((s) => ({ ...s, panoramas }))}
+            disabled={submitting}
+            idPrefix="register-pano"
+          />
+
           {canUpload3DModel && (
             <div className="register-3d-field">
               <label htmlFor="register-model3d">3D 모델 <small>(선택 — .glb/.gltf, 최대 50MB)</small></label>
@@ -362,7 +375,7 @@ function AgentRegisterProperty() {
               />
               {form.model3d && (
                 <p className="register-hint">
-                  <strong>{form.model3d.name}</strong> ({(form.model3d.size / 1024 / 1024).toFixed(1)}MB) — 등록하면 매물 상세의 “3D 투어” 탭에 바로 표시됩니다.
+                  <strong>{form.model3d.name}</strong> ({(form.model3d.size / 1024 / 1024).toFixed(1)}MB) — 등록하면 매물 상세의 “360 투어” 탭에 표시됩니다 (360 사진이 있으면 그쪽이 우선).
                 </p>
               )}
               <p className="register-hint">공간 스캔(.glb)을 올리면 매수자가 상세 페이지에서 집 구조를 회전·확대하며 볼 수 있습니다.</p>
@@ -429,7 +442,11 @@ function AgentRegisterProperty() {
             <span>등록 즉시 실거래가 기준 할인율과 산출 근거가 자동으로 계산됩니다</span>
           </div>
           <button type="submit" className="primary-link-button" disabled={submitting}>
-            {submitting ? '등록 중...' : '매물 등록 완료'}
+            {submitting
+              ? panoProgress && panoProgress.total > 0
+                ? `360 사진 처리 중 ${panoProgress.done}/${panoProgress.total}`
+                : '등록 중...'
+              : '매물 등록 완료'}
             {!submitting && <ArrowRight size={17} />}
           </button>
         </div>

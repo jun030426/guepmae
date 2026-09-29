@@ -14,6 +14,9 @@
  *   - Supabase 접속 실패(무료 티어 슬립 등): 읽기는 번들만으로 정상 동작, 쓰기는 오류 반환
  */
 
+import { putBlob } from '../utils/localMediaStore.js';
+import { IDB_PREFIX } from '../utils/mediaUrl.js';
+
 const SUPA_URL = String(import.meta.env.VITE_SUPABASE_URL || '').trim().replace(/\/$/, '');
 const SUPA_KEY = String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '').trim();
 export const isHybrid = Boolean(SUPA_URL && SUPA_KEY);
@@ -461,10 +464,22 @@ const hybridStorage = {
   },
 };
 
+// 로컬 모드: 파일 바이트는 IndexedDB(localMediaStore)에 두고 `idb:<bucket>/<path>` 참조를 돌려준다.
+// 360 파노라마처럼 localStorage 5MB 한도를 넘는 미디어를 새로고침 후에도 유지하기 위함.
 const localStorageMock = {
-  from() {
+  from(bucketName) {
     return {
-      async upload() { return { data: { path: '' }, error: null }; },
+      async upload(path, file) {
+        const key = `${bucketName}/${path}`;
+        try {
+          await putBlob(key, file);
+          return { data: { path: `${IDB_PREFIX}${key}` }, error: null };
+        } catch (error) {
+          console.warn('[storage-mock] IndexedDB 저장 실패', error);
+          return { data: null, error: { message: '브라우저 저장소에 파일을 저장하지 못했습니다.' } };
+        }
+      },
+      // idb: 참조는 그대로 돌려준다 — 표시 직전에 resolveMediaUrl 로 object URL 로 바꾼다.
       getPublicUrl(path) { return { data: { publicUrl: path } }; },
       // 로컬 모드: 서명 URL 개념 없음 — 신청서 첨부 문서 보기는 비활성(빈 URL).
       async createSignedUrl() { return { data: { signedUrl: '' }, error: null }; },

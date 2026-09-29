@@ -3,7 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
 import { db } from '../lib/dataClient.js';
-import { canUpload3DModel, uploadProperty3DModel, uploadPropertyPhotos } from '../services/propertyRegistration.js';
+import { canUpload3DModel, uploadProperty3DModel, uploadPropertyPanoramas, uploadPropertyPhotos } from '../services/propertyRegistration.js';
+import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import { formatPrice } from '../utils/priceUtils.js';
 
 function AgentEditProperty() {
@@ -14,6 +15,8 @@ function AgentEditProperty() {
   const [existingMedia, setExistingMedia] = useState([]); // 유지할 기존 사진
   const [newFiles, setNewFiles] = useState([]); // 추가 업로드할 파일
   const [model3dFile, setModel3dFile] = useState(null); // 새로/교체 업로드할 3D 모델(.glb)
+  const [panoramas, setPanoramas] = useState([]); // 360 투어 지점 [{ id, label, src?, file? }] — 순서 = 이동 순서
+  const [panoProgress, setPanoProgress] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [photoOverflow, setPhotoOverflow] = useState(0); // 10장 초과 선택분 안내
@@ -31,7 +34,14 @@ function AgentEditProperty() {
       parking: property.parking ?? '',
       description: property.description ?? '',
     });
-    setExistingMedia(Array.isArray(property.media) ? property.media : []);
+    const media = Array.isArray(property.media) ? property.media : [];
+    setExistingMedia(media);
+    setPanoramas(
+      media
+        .filter((m) => m && m.type === '360' && m.src)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+        .map((m, i) => ({ id: m.id || `pano-${i + 1}`, label: m.label || '', src: m.src, yawOffset: m.yawOffset, links: m.links })),
+    );
   }, [property]);
 
   // 로드가 끝났는데 매물이 없으면 not-found — "불러오는 중" 무한 표시 방지
@@ -79,6 +89,7 @@ function AgentEditProperty() {
     // 3D 모델 등 비사진 항목은 재라벨에서 제외하고 뒤에 붙인다.
     let photoMedia = existingMedia.filter((m) => !m.type || m.type === 'photo');
     let model3dItem = existingMedia.find((m) => m.type === '3d') ?? null;
+    let panoramaMedia = [];
     try {
       if (newFiles.length > 0) {
         const uploaded = await uploadPropertyPhotos(newFiles, id);
@@ -87,15 +98,29 @@ function AgentEditProperty() {
       if (model3dFile) {
         model3dItem = await uploadProperty3DModel(model3dFile, id);
       }
+      if (panoramas.length > 0) {
+        const result = await uploadPropertyPanoramas(panoramas, id, { onProgress: setPanoProgress });
+        panoramaMedia = result.media;
+        if (result.failures.length > 0) {
+          // 일부만 저장하면 투어 순서가 어긋난다 — 실패 원인을 보여주고 저장을 멈춘다.
+          throw new Error(
+            `360 사진 ${result.failures.length}장을 처리하지 못했습니다: ${result.failures
+              .map((f) => `${f.label} — ${f.message}`)
+              .join(' / ')}`,
+          );
+        }
+      }
     } catch (uploadErr) {
       setError(uploadErr.message || '사진 업로드 실패');
       setSaving(false);
+      setPanoProgress(null);
       return;
     }
     let media = photoMedia.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
     if (model3dItem) {
       media = [...media, model3dItem];
     }
+    media = [...media, ...panoramaMedia];
 
     let data;
     try {
@@ -248,6 +273,8 @@ function AgentEditProperty() {
           )}
           <p className="register-hint">첫 번째 사진이 대표 사진으로 표시됩니다. 기존 사진은 × 로 삭제할 수 있어요.</p>
 
+          <PanoramaUploadField items={panoramas} onChange={setPanoramas} disabled={saving} idPrefix="edit-pano" />
+
           {(canUpload3DModel || existingMedia.some((m) => m.type === '3d')) && (
             <div className="register-3d-field">
               <label htmlFor="edit-model3d">3D 모델 <small>(선택 — .glb/.gltf, 최대 50MB)</small></label>
@@ -293,7 +320,11 @@ function AgentEditProperty() {
             목록으로
           </button>
           <button type="submit" className="primary-link-button" disabled={saving}>
-            {saving ? '저장 중...' : '수정 저장'}
+            {saving
+              ? panoProgress && panoProgress.total > 0
+                ? `360 사진 처리 중 ${panoProgress.done}/${panoProgress.total}`
+                : '저장 중...'
+              : '수정 저장'}
             {!saving && <ArrowRight size={17} />}
           </button>
         </div>

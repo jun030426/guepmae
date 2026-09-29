@@ -76,10 +76,12 @@ function PropertyDetail() {
   // URL 파라미터 기반이라 재방문·새로고침(닫기 후)에는 다시 뜨지 않음.
   const [searchParams, setSearchParams] = useSearchParams();
   const justRegistered = searchParams.get('just_registered') === '1';
+  const panoFailed = Number(searchParams.get('pano_failed')) || 0; // 처리하지 못한 360 사진 수
 
   const dismissRegisteredBanner = () => {
     const next = new URLSearchParams(searchParams);
     next.delete('just_registered');
+    next.delete('pano_failed');
     setSearchParams(next, { replace: true });
   };
   const photos = useMemo(() => (property ? getPropertyPhotos(property, 12) : []), [property]);
@@ -262,7 +264,10 @@ function PropertyDetail() {
             <CheckCircle2 size={20} aria-hidden="true" />
             <div className="just-registered-copy">
               <strong>매물이 등록되었습니다 — 지금 매수자에게 보이는 화면입니다.</strong>
-              <span>실거래가 기준 할인율과 산출 근거가 계산되어 있습니다. 운영팀 검증이 끝나면 &ldquo;검증된 급매&rdquo;로 표시됩니다.</span>
+              <span>
+                실거래가 기준 할인율과 산출 근거가 계산되어 있습니다. 운영팀 검증이 끝나면 &ldquo;검증된 급매&rdquo;로 표시됩니다.
+                {panoFailed > 0 && ` 360 투어 사진 ${panoFailed}장은 처리하지 못했습니다 — 내 매물 관리 → 수정에서 다시 올려주세요.`}
+              </span>
             </div>
             <Link to="/agent/properties" className="just-registered-link">
               내 매물 관리
@@ -403,7 +408,7 @@ function PropertyDetail() {
                 </button>
                 <button type="button" className="gallery-action-tile" onClick={() => setViewerMode('tour')}>
                   <Camera size={19} />
-                  3D 투어
+                  360 투어
                 </button>
                 <button
                   type="button"

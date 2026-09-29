@@ -10,7 +10,7 @@
 # 사용 (Windows 는 Git Bash 에서):  python scripts/rehearsal/rehearse.py [--keep] [--verbose]
 # 필요: Python 3 + PyYAML(pip install pyyaml) · Node · git · bash
 # 확인하지 못하는 것: uses 단계(checkout·setup-*), npm ci, 실제 러너(Ubuntu), 실제 API·Supabase 의 응답.
-import argparse, io, json, os, re, shutil, subprocess, sys, tempfile, time, urllib.request
+import argparse, io, json, os, re, shutil, stat, subprocess, sys, tempfile, time, urllib.request
 
 import yaml
 
@@ -23,6 +23,19 @@ WORKFLOW = ".github/workflows/daily-trades-refresh.yml"
 KEY = "rehearsal-service-key"
 AGENT_ID = "gm-agent000001"
 fwd = lambda p: os.path.abspath(p).replace("\\", "/")
+
+
+def remove_tree(path):
+    """git 이 만든 읽기 전용 파일(.git/objects)은 Windows 에서 그냥은 지워지지 않는다 — 풀고 다시 지운다."""
+    def retry(func, target, _exc):
+        os.chmod(target, stat.S_IWRITE)
+        func(target)
+    if not os.path.exists(path):
+        return
+    if sys.version_info >= (3, 12):
+        shutil.rmtree(path, onexc=retry)
+    else:
+        shutil.rmtree(path, onerror=retry)
 
 
 # ───────────────────────── 워크플로 러너 (GitHub Actions 의 최소 흉내) ─────────────────────────
@@ -112,7 +125,7 @@ def run_workflow(repo, temp, *, event, inputs, secrets, variables, extra_env, sk
     ctx = {"secrets": secrets, "inputs": resolved, "vars": variables, "event": event}
     job = next(iter(wf["jobs"].values()))
 
-    shutil.rmtree(temp, ignore_errors=True)
+    remove_tree(temp)
     os.makedirs(temp)
     bash = find_bash()
     env = dict(os.environ)
@@ -243,7 +256,7 @@ def setup(work):
 def clean_runner(sim):
     """러너는 매번 빈 디스크에서 시작한다 — 이전 실행의 산출물을 지운다."""
     for rel in ("scripts/data", "scripts/output"):
-        shutil.rmtree(os.path.join(sim, rel), ignore_errors=True)
+        remove_tree(os.path.join(sim, rel))
     for rel in (".env.local", "src/data/marketData.json", "src/data/complexLookup.json"):
         if os.path.exists(os.path.join(sim, rel)):
             os.remove(os.path.join(sim, rel))
@@ -254,7 +267,7 @@ def clean_runner(sim):
 def bootstrap(sim, truth, server):
     """데스크톱에서 하는 일: 원본 CSV 를 버킷에 올린다."""
     data = os.path.join(sim, "scripts", "data")
-    shutil.rmtree(data, ignore_errors=True)
+    remove_tree(data)
     shutil.copytree(truth, data)
     env = dict(os.environ, SUPABASE_URL=server.url, SUPABASE_SERVICE_ROLE_KEY=KEY)
     sh(["node", "scripts/pipeline-data-sync.mjs", "upload"], sim, env=env)
@@ -458,7 +471,7 @@ def main():
         if args.keep:
             print(f"\n임시 폴더를 남겨 둡니다: {work}")
         else:
-            shutil.rmtree(work, ignore_errors=True)
+            remove_tree(work)
 
     failed = [r for r in results if not r[2]]
     print(f"\n리허설 결과: 확인 {len(results)}개 중 {len(results) - len(failed)}개 통과" + (f", {len(failed)}개 실패" if failed else ""))

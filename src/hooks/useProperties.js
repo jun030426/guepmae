@@ -5,7 +5,9 @@ import {
 } from '../services/propertiesRepository.js';
 const initialSource = 'loading';
 
-export function useProperties({ urgentOnly = false } = {}) {
+// verifiedOnly: 공개 화면(목록·지도)용 — 운영팀 검증 전 매물은 매수자에게 보이지 않는다.
+//   (PRODUCT 원칙: "검증된 급매만 노출". 중개사는 내 등록 매물, 운영은 /admin 에서 대기 매물을 본다)
+export function useProperties({ urgentOnly = false, verifiedOnly = false } = {}) {
   const [properties, setProperties] = useState([]);
   const [source, setSource] = useState(initialSource);
   const [error, setError] = useState(null);
@@ -42,9 +44,10 @@ export function useProperties({ urgentOnly = false } = {}) {
   }, []);
 
   const visibleProperties = useMemo(() => {
-    if (!urgentOnly) return properties;
-    return properties.filter((property) => property.discountRate >= 5);
-  }, [properties, urgentOnly]);
+    return properties.filter(
+      (property) => (!urgentOnly || property.discountRate >= 5) && (!verifiedOnly || property.verified),
+    );
+  }, [properties, urgentOnly, verifiedOnly]);
 
   return {
     properties: visibleProperties,

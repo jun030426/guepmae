@@ -352,7 +352,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 }
 
 function MapPage() {
-  const { properties: urgentProperties, isLoading: propertiesLoading } = useProperties({ urgentOnly: true });
+  const { properties: urgentProperties, isLoading: propertiesLoading } = useProperties({ urgentOnly: true, verifiedOnly: true });
   const [filters, setFilters] = useState(initialFilters);
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);

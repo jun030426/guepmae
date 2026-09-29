@@ -14,7 +14,6 @@ const initialFilters = {
   priceRange: 'all',
   areaRange: 'all',
   discountRate: '5',
-  verifiedOnly: false,
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -36,7 +35,7 @@ function matchesAreaRange(area, range) {
 }
 
 function Properties() {
-  const { properties: urgentProperties, isLoading } = useProperties({ urgentOnly: true });
+  const { properties: urgentProperties, isLoading } = useProperties({ urgentOnly: true, verifiedOnly: true });
   // 필터·정렬·페이지·검색어를 전부 URL에 둔다 — 뒤로가기로 되돌릴 수 있고 링크로 공유된다.
   // 기본값은 URL에 쓰지 않아 주소가 조건을 바꾼 만큼만 길어진다.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,7 +46,6 @@ function Properties() {
     priceRange: searchParams.get('price') ?? initialFilters.priceRange,
     areaRange: searchParams.get('area') ?? initialFilters.areaRange,
     discountRate: searchParams.get('discount') ?? initialFilters.discountRate,
-    verifiedOnly: searchParams.get('verified') === '1',
   }), [searchParams]);
   const sort = searchParams.get('sort') ?? 'discount-desc';
   const currentPage = Math.max(1, Number(searchParams.get('page')) || 1);
@@ -72,7 +70,6 @@ function Properties() {
       price: next.priceRange === initialFilters.priceRange ? null : next.priceRange,
       area: next.areaRange === initialFilters.areaRange ? null : next.areaRange,
       discount: next.discountRate === initialFilters.discountRate ? null : next.discountRate,
-      verified: next.verifiedOnly ? '1' : null,
     });
   };
 
@@ -92,8 +89,7 @@ function Properties() {
     filters.region !== initialFilters.region ||
     filters.priceRange !== initialFilters.priceRange ||
     filters.areaRange !== initialFilters.areaRange ||
-    filters.discountRate !== initialFilters.discountRate ||
-    filters.verifiedOnly;
+    filters.discountRate !== initialFilters.discountRate;
 
   const filteredProperties = useMemo(() => {
     const result = urgentProperties
@@ -106,8 +102,7 @@ function Properties() {
           (filters.region === '전체' || property.region.includes(filters.region)) &&
           matchesPriceRange(property.price, filters.priceRange) &&
           matchesAreaRange(property.area, filters.areaRange) &&
-          property.discountRate >= Number(filters.discountRate) &&
-          (!filters.verifiedOnly || property.verified)
+          property.discountRate >= Number(filters.discountRate)
         );
       })
       .sort((a, b) => {

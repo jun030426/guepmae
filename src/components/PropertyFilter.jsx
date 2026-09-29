@@ -116,16 +116,6 @@ function PropertyFilter({ filters, onFilterChange, sort, onSortChange }) {
           </select>
         </label>
       </div>
-
-      <label className="checkbox-filter">
-        <input
-          type="checkbox"
-          name="verifiedOnly"
-          checked={filters.verifiedOnly}
-          onChange={updateFilter}
-        />
-        검증 완료만 보기
-      </label>
     </aside>
   );
 }

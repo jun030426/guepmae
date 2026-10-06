@@ -158,7 +158,8 @@ pannellum.viewer(el, {
 ```
 좌표 없음 → 사진 폴백 (기존)
 좌표 있음 → RoadviewClient.getNearestPanoId(latlng, 50)
-             없으면 반경 150 재시도 → 그래도 없으면 사진 폴백 + "이 위치는 로드뷰가 없습니다"
+             없으면 반경 150 → 300 → 500 순으로 재시도 → 그래도 없으면 사진 폴백
+             (2026-10-06 변경: 150m 에서 500m 로 확장. 집 앞이 아니면 "약 Nm 떨어진 로드뷰"라고 거리를 밝힌다)
              있으면 Roadview.setPanoId(panoId, latlng)
                     setViewpoint({ pan: 파노라마 위치 → 매물 좌표 방위각, tilt: 0, zoom: 0 })
 ```

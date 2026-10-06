@@ -7,7 +7,13 @@ import { MAP_PROVIDER } from '../utils/mapProvider.js';
 import { loadPannellum } from '../utils/pannellumLoader.js';
 import { hasKakaoKey, loadKakaoMaps } from '../utils/kakaoLoader.js';
 import { resolveMediaUrls } from '../utils/mediaUrl.js';
-import { bearing, directionOf } from '../utils/panoramaTour.js';
+import {
+  bearing,
+  directionOf,
+  distanceMeters,
+  ROADVIEW_SEARCH_RADII,
+  roadviewDistanceNote,
+} from '../utils/panoramaTour.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import PropertyReportPanel from './PropertyReportPanel.jsx';
 
@@ -505,16 +511,18 @@ function StreetViewFallbackPanel({ property, photos }) {
 }
 
 /* KakaoRoadviewPanel — 집 앞 카카오 로드뷰 (VITE_KAKAO_APP_KEY 있을 때).
- * 반경 50m → 150m 순으로 가장 가까운 로드뷰 지점을 찾고, 시선(pan)을 매물 좌표 쪽으로 맞춘다.
- * 로드뷰가 없는 위치(단지 안쪽 도로 등)는 사진 폴백으로 정직하게 넘어간다. */
+ * 반경 50m → 150m → 300m → 500m 순으로 가장 가까운 로드뷰 지점을 찾고, 시선(pan)을 매물 좌표 쪽으로 맞춘다.
+ * 집 앞이 아니면(단지 안쪽 도로 등) 떨어진 거리를 밝히고, 500m 안에도 없으면 사진 폴백으로 넘어간다. */
 function KakaoRoadviewPanel({ property, photos }) {
   const roadviewElementRef = useRef(null);
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'no-coverage' | 'error'
+  const [panoDistance, setPanoDistance] = useState(null); // 로드뷰 지점 ↔ 매물 거리(m)
 
   useEffect(() => {
     if (!roadviewElementRef.current) return undefined;
     let cancelled = false;
     setStatus('loading');
+    setPanoDistance(null);
     const target = { lat: property.coordinates.lat, lng: property.coordinates.lng };
 
     loadKakaoMaps()
@@ -526,8 +534,11 @@ function KakaoRoadviewPanel({ property, photos }) {
           new Promise((resolve) => {
             client.getNearestPanoId(position, radius, (panoId) => resolve(panoId || null));
           });
-        return nearest(50)
-          .then((panoId) => panoId ?? nearest(150))
+        const searchOutward = ROADVIEW_SEARCH_RADII.reduce(
+          (found, radius) => found.then((panoId) => panoId ?? (cancelled ? null : nearest(radius))),
+          Promise.resolve(null),
+        );
+        return searchOutward
           .then((panoId) => {
             if (cancelled || !roadviewElementRef.current) return;
             if (!panoId) {
@@ -539,8 +550,9 @@ function KakaoRoadviewPanel({ property, photos }) {
               if (cancelled) return;
               try {
                 const at = roadview.getPosition();
-                const pan = bearing({ lat: at.getLat(), lng: at.getLng() }, target);
-                roadview.setViewpoint({ pan, tilt: 0, zoom: 0 });
+                const from = { lat: at.getLat(), lng: at.getLng() };
+                setPanoDistance(distanceMeters(from, target));
+                roadview.setViewpoint({ pan: bearing(from, target), tilt: 0, zoom: 0 });
               } catch {
                 // 시선 보정 실패는 치명적이지 않다 — 기본 시선으로 둔다
               }
@@ -563,7 +575,7 @@ function KakaoRoadviewPanel({ property, photos }) {
   if (status === 'no-coverage' || status === 'error') {
     const note =
       status === 'no-coverage'
-        ? '이 위치는 로드뷰가 없어 등록 사진으로 위치감을 먼저 보여드립니다. 단지 안쪽 도로는 로드뷰가 없는 경우가 많습니다.'
+        ? '매물 반경 500m 안에 로드뷰가 없어 등록 사진으로 위치감을 먼저 보여드립니다.'
         : '로드뷰를 불러오지 못해 등록 사진으로 위치감을 먼저 보여드립니다.';
     return <TourFallbackPreview property={property} photos={photos} note={note} />;
   }
@@ -579,7 +591,7 @@ function KakaoRoadviewPanel({ property, photos }) {
       <div className="street-location-card">
         <strong>{property.title}</strong>
         <span>{property.address}</span>
-        <em>실내 360 투어가 아직 없어 집 앞 로드뷰를 보여드립니다 · 로드뷰 © Kakao</em>
+        <em>{roadviewDistanceNote(panoDistance)} · 로드뷰 © Kakao</em>
       </div>
     </div>
   );

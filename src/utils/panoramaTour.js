@@ -245,3 +245,31 @@ export function bearing(from, to) {
   const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
   return normalizeYaw(toDeg(Math.atan2(y, x)));
 }
+
+/**
+ * 두 좌표 사이의 거리(m, 하버사인). 매물에서 떨어진 로드뷰 지점을 안내할 때 사용.
+ * from/to: { lat, lng }
+ */
+export function distanceMeters(from, to) {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(to.lat - from.lat);
+  const dLng = toRad(to.lng - from.lng);
+  const a =
+    Math.sin(dLat / 2) ** 2 + Math.cos(toRad(from.lat)) * Math.cos(toRad(to.lat)) * Math.sin(dLng / 2) ** 2;
+  return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
+/* 로드뷰 지점을 찾는 반경(m). 가까운 순으로 넓혀 가며, 마지막 반경에도 없으면 사진으로 넘어간다.
+ * 500m 를 넘으면 다른 동네 길이라 "근처"라고 부를 수 없다. */
+export const ROADVIEW_SEARCH_RADII = [50, 150, 300, 500];
+
+/* 이 거리 이내면 "집 앞"으로 부르고, 넘으면 떨어진 거리를 밝힌다. */
+export const ROADVIEW_NEAR_METERS = 60;
+
+/** 로드뷰 위치 안내 문구. 거리는 10m 단위로 반올림한다. */
+export function roadviewDistanceNote(meters) {
+  if (!Number.isFinite(meters)) return '실내 360 투어가 아직 없어 로드뷰를 보여드립니다';
+  if (meters <= ROADVIEW_NEAR_METERS) return '실내 360 투어가 아직 없어 집 앞 로드뷰를 보여드립니다';
+  const rounded = Math.max(10, Math.round(meters / 10) * 10);
+  return `매물 앞 도로에 로드뷰가 없어 약 ${rounded}m 떨어진 가장 가까운 로드뷰를 보여드립니다 · 화살표로 매물 쪽으로 이동해 보세요`;
+}

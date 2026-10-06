@@ -3302,34 +3302,6 @@ input[type='file']::file-selector-button:hover {
   box-shadow: 0 8px 24px rgba(26, 34, 51, 0.18);
 }
 
-/* 3D 모델 업로드 필드 (등록·수정 폼) */
-.register-3d-field {
-  display: grid;
-  gap: 8px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-border);
-}
-.register-3d-field > label {
-  font-weight: 600;
-  color: var(--text-strong);
-}
-.register-3d-field > label small {
-  font-weight: 400;
-  color: var(--text-muted);
-}
-.register-3d-remove {
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--price-up);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
 /* AI 점검 체크리스트 (매물 상세 · 설비 점검 섹션) */
 .inspection-panel {
   display: grid;
@@ -3457,43 +3429,6 @@ input[type='file']::file-selector-button:hover {
 .inspection-generate:disabled {
   opacity: 0.65;
   cursor: progress;
-}
-
-/* 3D 모델 뷰어 (매물 상세 · 3D 투어 탭) */
-.viewer-model-shell {
-  position: relative;
-  width: 100%;
-  min-height: calc(100dvh - 56px);
-  overflow: hidden;
-  background: var(--surface-warm);
-}
-.viewer-model-shell model-viewer {
-  display: block;
-  width: 100%;
-  height: calc(100dvh - 56px);
-  min-height: 560px;
-  background: var(--surface-warm);
-}
-.viewer-model-caption {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: rgba(26, 34, 51, 0.82);
-  color: #fff;
-  pointer-events: none;
-}
-.viewer-model-caption strong {
-  font-size: 13px;
-  font-weight: 600;
-}
-.viewer-model-caption span {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.72);
 }
 
 /* 단지명 자동완성 */

@@ -71,18 +71,13 @@ function normalizeProperty(row) {
     priceHistory,
     priceTable: row.price_table ?? null,
     media: Array.isArray(row.media) ? row.media : [],
-    // 투어 데이터는 media 항목에서 승격한다 — { type: '360' } 파노라마(순서·자동 링크 포함), { type: '3d' } 모델.
+    // 투어 데이터는 media 항목에서 승격한다 — { type: '360' } 파노라마(순서·자동 링크 포함).
     tour: (() => {
       const media = Array.isArray(row.media) ? row.media : [];
       const baseTour = row.tour && typeof row.tour === 'object' ? row.tour : {};
       const tour = { ...baseTour };
       const panoramas = buildTourPanoramas(media);
       if (panoramas.length > 0) tour.panoramas = panoramas;
-      const model3d = media.find((item) => item && item.type === '3d' && item.src);
-      if (model3d) {
-        tour.modelUrl = model3d.src;
-        tour.modelLabel = model3d.label ?? null;
-      }
       return tour;
     })(),
     createdAt: row.created_at ?? null,

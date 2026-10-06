@@ -95,15 +95,8 @@ function App() {
             }
           />
 
-          {/* ----------------------------- 옛 /admin — 운영팀(admin)만 ----------------------------- */}
-          <Route
-            path="/admin"
-            element={
-              <RequireRole allowedRoles={['admin']}>
-                <Admin />
-              </RequireRole>
-            }
-          />
+          {/* 옛 경로 호환 — 운영 관리 화면은 /agent/admin 하나로 합쳤다 (2026-10-06) */}
+          <Route path="/admin" element={<Navigate to="/agent/admin" replace />} />
 
           <Route path="*" element={<Home />} />
         </Routes>

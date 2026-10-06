@@ -150,7 +150,7 @@ async function tableRows(table) {
 
 // 하이브리드에서 통째로 Supabase 에 위임하는 테이블 (인증·운영·동적 생성 데이터)
 // complex_trades 는 83k 행이라 번들에 다 못 싣는다 — 하이브리드에서는 Supabase 에서 (complex, gu) 로 읽는다.
-const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'seller_verifications', 'property_inspections', 'complex_trades', 'complex_alerts', 'agent_pricing_intents']);
+const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'property_inspections', 'complex_trades', 'complex_alerts', 'agent_pricing_intents']);
 
 // ───────────────────────── 쿼리 빌더 (thenable) ─────────────────────────
 const BUILDER_METHODS = [

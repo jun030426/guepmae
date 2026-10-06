@@ -74,7 +74,7 @@
 | | 내 매물 수정·삭제 | 완료 | |
 | | 내 매물 조회·문의 수 (최근 30일) | 완료 | 대시보드 "매수자 반응" 카드 + 내 등록 매물 표. 본인·운영진 조회는 빠진 숫자 |
 | | 유료 의향 설문 | 완료 | 대시보드. 매물을 1건 이상 등록한 중개사에게만. "유료가 되어도 계속 쓰시겠습니까" + 월 요금 구간. **요금 구간은 파일럿 전에 확정**(`src/utils/pilotMetrics.js` + DB 제약) |
-| 운영 | 관리자: 중개사 승인/거부, 매물 검증/취소, 회원 정지 | 완료 | 역할 5단계 user·seller·agent·admin·owner |
+| 운영 | 관리자: 중개사 승인/거부, 매물 검증/취소, 회원 정지 | 완료 | 역할 4단계 user·agent·admin·owner (seller 는 2026-10-06 정리 — `20261006000000_remove_seller_role.sql`). 운영 관리 화면은 `/agent/admin` 하나 (`/admin` 은 이동) |
 | | 파일럿 지표 패널 | 완료 (2026-09-29) | 등록 매물 · 알림 신청 · 문의 전환율 · 유료 의향. 기간(7·30·90일·전체), 중개사별·매물별 표, CSV. 조회·문의는 방문자 식별 없이 일별 합계만. 라이브 DB 적용됨. 설계: `docs/superpowers/specs/2026-09-29-pilot-metrics-design.md` |
 | 유입 | 매물별 정적 HTML + sitemap + robots (SEO) | 완료 | 빌드 시 자동 생성, 검색결과 리치 스니펫용 JSON-LD |
 | 데이터 | 실거래 수집·집계·번들 파이프라인 | 완료(수동) | 매일 증분 자동화는 워크플로 작성 완료 · 실제 실행 전 (§12 과제 3) |
@@ -149,7 +149,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 |---|---|
 | Supabase 프로젝트 | `geupmae` (ref `oormfipegcfbhvctikfl`, ap-northeast-2). 구 프로젝트 `geupmae-platform`(다른 실험 공유), `cheongyak-platform`(일시정지) |
 | 적용된 마이그레이션 | 기본 스키마 7개 + `property_3d_bucket` + `property_inspections` (2026-09-28) |
-| 테이블 | properties · profiles · agent_applications · seller_verifications · complex_prices · complex_trades(신규, 적재 대기) · complex_alerts(신규) · price_trends · market_snapshots · property_reports · ai_market_reports · property_inspections |
+| 테이블 | properties · profiles · agent_applications · complex_prices · complex_trades(신규, 적재 대기) · complex_alerts(신규) · price_trends · market_snapshots · property_reports · ai_market_reports · property_inspections |
 | Storage 버킷 | agent-application-documents · property-photos · property-360 — 라이브 적용됨. property-3d 는 기능 제거로 미사용 |
 | Edge Function | inspection-report (ACTIVE, JWT 검증, 시크릿 `GEMINI_API_KEY`) |
 | Vercel | guepmae.vercel.app · 모든 경로 → index.html rewrite(실제 파일 우선) |
@@ -213,7 +213,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 
 3. ~~**등록 폼 기준가 미리보기 미표시** — 면적 값 미전달.~~ 수정됨 (2026-09-29).
 4. ~~**"등록 즉시 AI 리포트 생성" 문구가 사실과 다름** — 생성 백엔드 없음.~~ 등록 폼·상세 배너·중개사 대시보드/랜딩·리포트 패널 문구를 사실대로 정리 (2026-09-29).
-5. ~~**승인 전 매물이 공개 목록에 노출**~~ — 목록·지도는 검증 완료 매물만 노출하도록 변경. 중개사는 내 등록 매물, 운영은 /admin에서 대기 매물 확인 (2026-09-29).
+5. ~~**승인 전 매물이 공개 목록에 노출**~~ — 목록·지도는 검증 완료 매물만 노출하도록 변경. 중개사는 내 등록 매물, 운영은 /agent/admin(운영 관리)에서 대기 매물 확인 (2026-09-29).
 6. ~~**사진 저장 방식** — 압축 없이 base64로 매물 행에 저장.~~ 긴 변 1600px JPEG 로 줄여 Storage(`property-photos`)/IndexedDB 에 올리고 행에는 URL 만 저장하도록 변경 (2026-09-29). 버킷 한도 10MB·jpeg/png/webp, owner 역할 업로드 허용.
 
 7. **AI 점검이 대부분 "확인 불가"** — 현재 매물 사진이 외부 썸네일 1장. 로직은 정직하게 동작.

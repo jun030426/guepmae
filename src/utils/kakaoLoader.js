@@ -1,15 +1,15 @@
 /*
  * kakaoLoader.js — 카카오맵 JavaScript SDK 지연 로드 + 주소 지오코딩.
  *
- * 용도: 집 앞 로드뷰(Roadview / RoadviewClient) 와 등록 시 주소→좌표(services.Geocoder).
+ * 용도: 지도(Map · MarkerClusterer), 집 앞 로드뷰(Roadview / RoadviewClient), 등록 시 주소→좌표(services.Geocoder).
  * 키가 없으면(VITE_KAKAO_APP_KEY 미설정) 호출 측이 사진 폴백으로 가도록 KAKAO_KEY_MISSING 을 던진다.
- * SDK 는 투어 탭을 열거나 매물을 등록할 때만 로드한다 (초기 번들 불변).
+ * SDK 는 지도·투어 탭을 열거나 매물을 등록할 때만 로드한다 (초기 번들 불변).
  *
  * 콘솔 설정(사용자): 카카오 디벨로퍼스 → 앱 → 플랫폼 Web 에 localhost:5173, guepmae.vercel.app 등록,
  * 카카오맵 사용 설정 ON. 설정이 빠지면 SDK 가 조용히 실패하므로 콘솔 로그로 원인을 남긴다.
  */
 
-export const KAKAO_APP_KEY = String(import.meta.env.VITE_KAKAO_APP_KEY || '').trim();
+export const KAKAO_APP_KEY = String(import.meta.env?.VITE_KAKAO_APP_KEY || '').trim();
 export const hasKakaoKey = Boolean(KAKAO_APP_KEY);
 
 let loadPromise;
@@ -29,7 +29,7 @@ export function loadKakaoMaps() {
     const script = document.createElement('script');
     script.src =
       `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(KAKAO_APP_KEY)}` +
-      '&libraries=services&autoload=false';
+      '&libraries=services,clusterer&autoload=false';
     script.async = true;
     script.dataset.geupmaeKakao = 'true';
     script.onload = () => {

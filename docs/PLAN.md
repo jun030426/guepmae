@@ -60,14 +60,14 @@
 | 매수자 | 실거래 검증 할인율 + 근거 공개 | 완료 | §4. 2026-09-29 판정 규칙 고도화(시점·층·직거래·보류). 번들 매물 387건은 데스크톱 재계산 후 새 근거로 갱신 |
 | | 단지별 실거래 표 · 시세 추이 차트 | 완료 | 추정 없이 실거래만 |
 | | 매물 목록·필터·저장 | 완료 | 운영 검증 완료 매물만 노출 (2026-09-29 결정·적용) |
-| | 지도 검색(클러스터링) | 완료 | OpenStreetMap/Leaflet 기본, Google/Naver 옵션 |
+| | 지도 검색(클러스터링) | 완료 | 카카오맵 기본(2026-10-06, 키 있을 때) · 키 없거나 로드 실패 시 OpenStreetMap/Leaflet. "로드뷰 길" 토글. Google/Naver 는 명시 옵션 |
 | | 생활권(역·학교·마트 거리) | 부분 | 수집 매물만. 신규 등록 매물은 좌표·생활권 없음 |
 | | AI 매물 리포트 | 부분 | 387건 중 15건 사전 생성. 실시간 생성 없음. 화면 문구는 사실대로 정리됨(2026-09-29) |
 | | AI 시장 리포트 | 완료 | 2026-07 실거래 기준 사전 생성 |
 | | AI 설비 점검 체크리스트(사진 → 8항목) | 완료(라이브) | Gemini 멀티모달 Edge Function. 로컬 데모에서는 생성 버튼 없음 |
 | | 360 실내 투어 (지점 이동) | 완료 (1·2단계) | 합성 360 JPG 또는 Insta360 원본(.insp) 업로드 → 찍은 순서 기반 화살표 이동 + 갈래 편집기(지점별 화살표 직접 연결). .insp 는 브라우저 WebGL 로 즉시 변환(ONE X2 실샘플로 보정, 1초). 로컬 검증 완료(2026-09-29), 라이브 버킷 적용됨. 설계·검증: `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` |
-| | 집 앞 로드뷰 자동 표시 | 구현(키 대기) | 카카오 로드뷰·지오코딩. `VITE_KAKAO_APP_KEY` 발급 후 검증 예정 |
-| | 3D 모델(.glb) 뷰어 | 실험 | 라이브 샘플 1건. 유지하되 우선순위 낮춤 |
+| | 집 앞 로드뷰 자동 표시 | 완료(라이브) | 카카오 로드뷰·지오코딩. 키 발급·라이브 확인(2026-10-06). 집 앞에 없으면 반경 500m 안 가장 가까운 로드뷰 + 거리 안내 |
+| | 3D 모델(.glb) 뷰어 | 제거 (2026-10-06) | 실제 집이 아닌 샘플 모델만 있어 오해 소지. 360 사진 + 로드뷰로 일원화. 등록·수정·상세에서 모두 제거 |
 | | 관심 단지 급매 알림 | 구독 저장 완료 | 상세에서 신청 → 저장 → `/alerts` 관리·해지 → 관리자 통계(신청 수·상위 단지). 발송(메일)은 데스크톱 작업(`docs/DESKTOP_TODO.md` F) |
 | 중개사 | 가입 신청(서류 첨부) → 운영 승인 → agent 권한 | 완료 | |
 | | 매물 등록(사진, 단지 자동완성, 기준가 자동 산출·미리보기) | 완료 | 2026-09-29 등록 직후 오류·미리보기 버그 수정 |
@@ -86,8 +86,8 @@
 | 층 | 기술 | 버전/비고 |
 |---|---|---|
 | 프론트엔드 | React · Vite · React Router · Recharts · Lucide · Pretendard 웹폰트 | React 19.2 · Vite 8.0 · Router 7 · Recharts 3 |
-| 지도 | Leaflet + OpenStreetMap(기본) · Google Maps Platform · 네이버 지도 (옵션) · 카카오맵 SDK (로드뷰·지오코딩, 키 선택) | 키 없이 동작하는 것이 기본 |
-| 360/3D | Pannellum 2.5.6 (CDN 지연 로드) · `@google/model-viewer` 4.3 | 필요할 때만 로드 |
+| 지도 | 카카오맵 SDK(지도·로드뷰·지오코딩, 키 있으면 기본) · Leaflet + OpenStreetMap(키 없을 때·실패 시) · Google/네이버 (명시 옵션) | 키 없이도 동작 |
+| 360 | Pannellum 2.5.6 (CDN 지연 로드) | 필요할 때만 로드 |
 | 백엔드 | Supabase — Postgres(RLS) · Auth · Storage · Edge Functions(Deno) | 무료 티어, 하이브리드 모드 |
 | AI | Google Gemini 2.5 Flash (폴백 Flash-Lite) | 매물·시장 리포트 사전 생성(구조화 출력), 점검 체크리스트 실시간(Edge Function) |
 | 데이터 파이프라인 | Python(수집: 국토부 OpenAPI) · Node.js(집계·번들·리포트 생성) | `scripts/` |
@@ -111,7 +111,7 @@ public/data/*.json  ◄── import-listings.py (매물 엑셀 → 단지 매�
 React SPA (Vite)  ── src/lib/dataClient.js 가 모드를 결정, 서비스 코드는 모드를 모른다
    ├─ 읽기(매물·시세·리포트): 번들 JSON  (+ 하이브리드: Supabase 매물 오버레이, 2.5초 타임아웃)
    ├─ 인증·쓰기(가입·등록·신청·승인): 로컬 = localStorage  /  하이브리드 = Supabase
-   ├─ Storage: 신청 서류 · 3D 모델 · (예정) 360 파노라마
+   ├─ Storage: 신청 서류 · 매물 사진 · 360 파노라마
    └─ Edge Function: inspection-report (사진 → Gemini → property_inspections)
    ▼
 Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.txt
@@ -150,7 +150,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | Supabase 프로젝트 | `geupmae` (ref `oormfipegcfbhvctikfl`, ap-northeast-2). 구 프로젝트 `geupmae-platform`(다른 실험 공유), `cheongyak-platform`(일시정지) |
 | 적용된 마이그레이션 | 기본 스키마 7개 + `property_3d_bucket` + `property_inspections` (2026-09-28) |
 | 테이블 | properties · profiles · agent_applications · seller_verifications · complex_prices · complex_trades(신규, 적재 대기) · complex_alerts(신규) · price_trends · market_snapshots · property_reports · ai_market_reports · property_inspections |
-| Storage 버킷 | agent-application-documents · property-3d · property-360 (마이그레이션 작성됨, 라이브 적용 대기) |
+| Storage 버킷 | agent-application-documents · property-photos · property-360 — 라이브 적용됨. property-3d 는 기능 제거로 미사용 |
 | Edge Function | inspection-report (ACTIVE, JWT 검증, 시크릿 `GEMINI_API_KEY`) |
 | Vercel | guepmae.vercel.app · 모든 경로 → index.html rewrite(실제 파일 우선) |
 | GitHub Actions | keep-supabase-awake (월·목) |
@@ -161,7 +161,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 |---|---|---|
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | 하이브리드 모드 | 라이브만 |
 | `VITE_MAP_PROVIDER`, `VITE_GOOGLE_MAPS_API_KEY`, `VITE_NAVER_MAP_CLIENT_ID` | 지도 제공자 전환 | 선택 |
-| `VITE_KAKAO_APP_KEY` | 등록 시 주소→좌표, 집 앞 로드뷰 (없으면 사진 폴백) | 선택 |
+| `VITE_KAKAO_APP_KEY` | 지도(없으면 OSM), 등록 시 주소→좌표, 로드뷰 (없으면 사진 폴백) | 선택 · Vercel Production 에 등록됨 |
 | `MOLIT_API_KEY` | 실거래 수집 스크립트 | 파이프라인 |
 | `GEMINI_API_KEY` | 리포트 생성 스크립트 · Edge Function 시크릿 | 파이프라인/라이브 |
 
@@ -173,7 +173,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | 회원 프로필 | 5 (중개사 2) · 중개사 신청 1(승인) |
 | 포털 UI로 등록된 실제 매물 | 0건 (사진 업로드 매물 0건) |
 | AI 점검 리포트 | 2건 생성 |
-| 3D 모델 | 샘플 1건(7KB) |
+| 3D 모델 | 기능 제거 (2026-10-06). 남은 샘플 행·`property-3d` 버킷은 대시보드에서 정리 |
 | 사용자 수·후기·언론·수상 | **없음 — 날조 금지** |
 
 ## 11. 수익 모델 (사업계획서 요약)

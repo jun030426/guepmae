@@ -1,5 +1,5 @@
 /*
- * propertyRegistration.js — 중개사 매물 등록 + 사진·360·3D 업로드.
+ * propertyRegistration.js — 중개사 매물 등록 + 사진·360 업로드.
  *
  * Flow:
  *   1) 사진은 브라우저에서 긴 변 1600px JPEG 로 줄여 Storage(하이브리드) / IndexedDB(로컬)에 올리고 URL 만 media 에 담는다
@@ -7,7 +7,7 @@
  *   3) 새 매물 id 반환
  */
 
-import { db, isHybrid } from '../lib/dataClient.js';
+import { db } from '../lib/dataClient.js';
 import { geocodeAddress, hasKakaoKey } from '../utils/kakaoLoader.js';
 import { processPanoramaFile } from '../utils/panoramaImage.js';
 import { processPhotoFile } from '../utils/photoImage.js';
@@ -26,29 +26,6 @@ function generatePropertyId() {
   return `gm-${ts}${rand}`;
 }
 
-
-/*
- * 3D 모델(.glb/.gltf) 업로드 — Storage 전용 (하이브리드 모드에서만).
- * 사진과 달리 수 MB~수십 MB 라 data URL 로 매물 행에 넣을 수 없다.
- * 반환: media 항목 { type: '3d', src, label } 또는 null.
- */
-export const canUpload3DModel = isHybrid;
-
-export async function uploadProperty3DModel(file, propertyId) {
-  if (!isHybrid || !file) return null;
-  const isGltfJson = /\.gltf$/i.test(file.name);
-  const ext = isGltfJson ? 'gltf' : 'glb';
-  const path = `properties/${propertyId}/model-${Date.now()}.${ext}`;
-  const { error } = await db.storage.from('property-3d').upload(path, file, {
-    contentType: isGltfJson ? 'model/gltf+json' : 'model/gltf-binary',
-    upsert: true,
-  });
-  if (error) {
-    throw new Error(`3D 모델 업로드 실패: ${error.message}`);
-  }
-  const { data } = db.storage.from('property-3d').getPublicUrl(path);
-  return { type: '3d', src: data.publicUrl, label: '3D 모델' };
-}
 
 /*
  * 일반 사진 업로드 — 긴 변 1600px JPEG 로 줄여 property-photos 버킷(하이브리드) 또는
@@ -268,18 +245,17 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
   const id = generatePropertyId();
   const now = new Date().toISOString().slice(0, 10);
 
-  // 1) 사진·3D·360 파노라마 업로드 + 주소로 좌표 자동 조회 (병렬)
+  // 1) 사진·360 파노라마 업로드 + 주소로 좌표 자동 조회 (병렬)
   const photoFiles = Array.isArray(form.photos) ? form.photos.filter(Boolean) : [];
   const panoramaItems = Array.isArray(form.panoramas) ? form.panoramas.filter(Boolean) : [];
-  const [photoMedia, model3d, lookupResult, panoramaResult] = await Promise.all([
+  const [photoMedia, lookupResult, panoramaResult] = await Promise.all([
     photoFiles.length > 0 ? uploadPropertyPhotos(photoFiles, id) : Promise.resolve([]),
-    form.model3d ? uploadProperty3DModel(form.model3d, id) : Promise.resolve(null),
     form.address ? fetchLifestyleAndCoords({ address: form.address }) : Promise.resolve({ lifestyle: null, coordinates: null }),
     panoramaItems.length > 0
       ? uploadPropertyPanoramas(panoramaItems, id, { onProgress: onPanoramaProgress })
       : Promise.resolve({ media: [], failures: [] }),
   ]);
-  const media = [...photoMedia, ...(model3d ? [model3d] : []), ...panoramaResult.media];
+  const media = [...photoMedia, ...panoramaResult.media];
 
   const lifestyle = lookupResult.lifestyle ?? {
     subway: '', school: '', mart: '', hospital: '', convenience: '', gym: '',

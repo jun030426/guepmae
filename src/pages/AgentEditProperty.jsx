@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
 import { db } from '../lib/dataClient.js';
-import { canUpload3DModel, uploadProperty3DModel, uploadPropertyPanoramas, uploadPropertyPhotos } from '../services/propertyRegistration.js';
+import { uploadPropertyPanoramas, uploadPropertyPhotos } from '../services/propertyRegistration.js';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import LocalMediaImage from '../components/LocalMediaImage.jsx';
 import { formatPrice } from '../utils/priceUtils.js';
@@ -15,7 +15,6 @@ function AgentEditProperty() {
   const [form, setForm] = useState(null);
   const [existingMedia, setExistingMedia] = useState([]); // 유지할 기존 사진
   const [newFiles, setNewFiles] = useState([]); // 추가 업로드할 파일
-  const [model3dFile, setModel3dFile] = useState(null); // 새로/교체 업로드할 3D 모델(.glb)
   const [panoramas, setPanoramas] = useState([]); // 360 투어 지점 [{ id, label, src?, file? }] — 순서 = 이동 순서
   const [panoProgress, setPanoProgress] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -87,17 +86,13 @@ function AgentEditProperty() {
     setError('');
 
     // 사진: 유지한 기존 + 새로 업로드, 첫 장을 대표 사진으로 재라벨.
-    // 3D 모델 등 비사진 항목은 재라벨에서 제외하고 뒤에 붙인다.
+    // 비사진 항목은 재라벨에서 제외한다. 예전 3D 모델(type: '3d') 항목은 저장 시 함께 정리된다.
     let photoMedia = existingMedia.filter((m) => !m.type || m.type === 'photo');
-    let model3dItem = existingMedia.find((m) => m.type === '3d') ?? null;
     let panoramaMedia = [];
     try {
       if (newFiles.length > 0) {
         const uploaded = await uploadPropertyPhotos(newFiles, id);
         photoMedia = [...photoMedia, ...uploaded];
-      }
-      if (model3dFile) {
-        model3dItem = await uploadProperty3DModel(model3dFile, id);
       }
       if (panoramas.length > 0) {
         const result = await uploadPropertyPanoramas(panoramas, id, { onProgress: setPanoProgress });
@@ -118,9 +113,6 @@ function AgentEditProperty() {
       return;
     }
     let media = photoMedia.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
-    if (model3dItem) {
-      media = [...media, model3dItem];
-    }
     media = [...media, ...panoramaMedia];
 
     let data;
@@ -275,38 +267,6 @@ function AgentEditProperty() {
           <p className="register-hint">첫 번째 사진이 대표 사진으로 표시됩니다. 기존 사진은 × 로 삭제할 수 있어요.</p>
 
           <PanoramaUploadField items={panoramas} onChange={setPanoramas} disabled={saving} idPrefix="edit-pano" />
-
-          {(canUpload3DModel || existingMedia.some((m) => m.type === '3d')) && (
-            <div className="register-3d-field">
-              <label htmlFor="edit-model3d">3D 모델 <small>(선택 — .glb/.gltf, 최대 50MB)</small></label>
-              {existingMedia.some((m) => m.type === '3d') && !model3dFile && (
-                <p className="register-hint">
-                  현재 3D 모델이 등록돼 있습니다. 새 파일을 올리면 교체됩니다.{' '}
-                  <button
-                    type="button"
-                    className="register-3d-remove"
-                    onClick={() => setExistingMedia((arr) => arr.filter((m) => m.type !== '3d'))}
-                  >
-                    3D 모델 제거
-                  </button>
-                </p>
-              )}
-              {canUpload3DModel && (
-                <input
-                  id="edit-model3d"
-                  type="file"
-                  accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
-                  aria-label="3D 모델 파일 선택"
-                  onChange={(event) => setModel3dFile(event.target.files?.[0] ?? null)}
-                />
-              )}
-              {model3dFile && (
-                <p className="register-hint">
-                  <strong>{model3dFile.name}</strong> ({(model3dFile.size / 1024 / 1024).toFixed(1)}MB) — 저장 시 반영됩니다.
-                </p>
-              )}
-            </div>
-          )}
         </fieldset>
 
         <fieldset className="register-section">

@@ -2,12 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Minus, Plus, X } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
-import L, { createOsmTileLayer, createSpotIcon } from '../utils/leafletLoader.js';
+import L, { createOsmTileLayer, createSpotIcon, SPOT_PIN_URL } from '../utils/leafletLoader.js';
 import { MAP_PROVIDER } from '../utils/mapProvider.js';
 import { loadPannellum } from '../utils/pannellumLoader.js';
 import { hasKakaoKey, loadKakaoMaps } from '../utils/kakaoLoader.js';
 import { resolveMediaUrls } from '../utils/mediaUrl.js';
-import { bearing, directionOf } from '../utils/panoramaTour.js';
+import {
+  bearing,
+  directionOf,
+  distanceMeters,
+  ROADVIEW_SEARCH_RADII,
+  roadviewDistanceNote,
+} from '../utils/panoramaTour.js';
 import { formatPrice } from '../utils/priceUtils.js';
 import PropertyReportPanel from './PropertyReportPanel.jsx';
 
@@ -39,9 +45,10 @@ function escapeHtml(value) {
   });
 }
 
-/* PropertyMapPanel — 우선순위: Google → Naver → 정적 fallback */
+/* PropertyMapPanel — 제공자는 mapProvider.js 가 정한다 (카카오 키 있으면 카카오, 없으면 OSM). 좌표 없으면 정적 fallback */
 function PropertyMapPanel({ property }) {
   const coordinatesReady = hasCoordinates(property);
+  const [kakaoFailed, setKakaoFailed] = useState(false);
 
   if (!coordinatesReady) {
     return <MapFallback property={property} note="좌표가 등록되면 이 위치에 지도가 표시됩니다." />;
@@ -55,7 +62,70 @@ function PropertyMapPanel({ property }) {
     return <NaverMapPanel property={property} />;
   }
 
+  if (MAP_PROVIDER === 'kakao' && !kakaoFailed) {
+    return <KakaoViewerMapPanel property={property} onFail={() => setKakaoFailed(true)} />;
+  }
+
   return <LeafletViewerMapPanel property={property} />;
+}
+
+/* 카카오맵 — 뷰어 지도 탭. SDK 로드가 실패하면 onFail 로 OSM 에 자리를 넘긴다. */
+function KakaoViewerMapPanel({ property, onFail }) {
+  const mapElementRef = useRef(null);
+  const onFailRef = useRef(onFail);
+  const [status, setStatus] = useState('loading');
+
+  useEffect(() => {
+    onFailRef.current = onFail;
+  }, [onFail]);
+
+  useEffect(() => {
+    const element = mapElementRef.current;
+    if (!element) return undefined;
+    let cancelled = false;
+    setStatus('loading');
+
+    loadKakaoMaps()
+      .then((maps) => {
+        if (cancelled || !mapElementRef.current) return;
+        const position = new maps.LatLng(property.coordinates.lat, property.coordinates.lng);
+        const map = new maps.Map(element, { center: position, level: 3 });
+        map.addControl(new maps.ZoomControl(), maps.ControlPosition.RIGHT);
+        new maps.Marker({
+          map,
+          position,
+          title: property.title,
+          image: new maps.MarkerImage(SPOT_PIN_URL, new maps.Size(34, 44), { offset: new maps.Point(17, 42) }),
+        });
+        new maps.CustomOverlay({
+          map,
+          position,
+          xAnchor: 0.5,
+          yAnchor: 1,
+          content: `<div class="kakao-info-window kakao-pin-popup"><div class="viewer-map-popup"><strong>${escapeHtml(
+            property.title,
+          )}</strong><span>${escapeHtml(property.address)}</span></div></div>`,
+        });
+        setStatus('ready');
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('[property-map] 카카오 지도 로드 실패 — OpenStreetMap 으로 전환합니다:', error);
+        onFailRef.current();
+      });
+
+    return () => {
+      cancelled = true;
+      element.innerHTML = '';
+    };
+  }, [property]);
+
+  return (
+    <div className="viewer-map-shell">
+      <div ref={mapElementRef} className="viewer-map-canvas" aria-label={`${property.title} 위치 지도`} />
+      {status === 'loading' && <div className="viewer-status-overlay">지도를 불러오는 중입니다.</div>}
+    </div>
+  );
 }
 
 /* OSM(Leaflet) — 뷰어 지도 탭 기본. 키·결제 불필요. */
@@ -234,54 +304,7 @@ function MapFallback({ property, note }) {
   );
 }
 
-/* Model3DPanel — 중개사가 올린 .glb/.gltf 를 <model-viewer> 로 렌더.
- * 뷰어 모듈은 탭을 열 때만 동적 로드 (기본 번들 불변). */
-function Model3DPanel({ property, modelUrl, modelLabel }) {
-  const [loaderStatus, setLoaderStatus] = useState('loading');
-
-  useEffect(() => {
-    let cancelled = false;
-    import('@google/model-viewer')
-      .then(() => { if (!cancelled) setLoaderStatus('ready'); })
-      .catch(() => { if (!cancelled) setLoaderStatus('error'); });
-    return () => { cancelled = true; };
-  }, []);
-
-  if (loaderStatus === 'error') {
-    return (
-      <TourFallbackPreview
-        property={property}
-        photos={[]}
-        note="3D 뷰어를 불러오지 못했습니다. 네트워크 상태를 확인한 뒤 다시 시도해주세요."
-      />
-    );
-  }
-
-  return (
-    <div className="viewer-model-shell">
-      {loaderStatus === 'ready' ? (
-        <model-viewer
-          src={modelUrl}
-          alt={`${property.title} 3D 모델`}
-          camera-controls
-          auto-rotate
-          auto-rotate-delay="1200"
-          interaction-prompt="auto"
-          shadow-intensity="1"
-          style={{ width: '100%', height: '100%' }}
-        />
-      ) : (
-        <div className="viewer-status-overlay">3D 모델을 불러오는 중입니다.</div>
-      )}
-      <div className="viewer-model-caption">
-        <strong>{modelLabel || '3D 모델'}</strong>
-        <span>드래그로 회전 · 휠로 확대</span>
-      </div>
-    </div>
-  );
-}
-
-/* PropertyTourPanel — 우선순위: 360 파노라마 투어 → .glb 3D 모델 → 외부 임베드 → 집 앞 로드뷰/사진 폴백 */
+/* PropertyTourPanel — 우선순위: 360 파노라마 투어 → 외부 임베드 → 집 앞 로드뷰/사진 폴백 */
 function PropertyTourPanel({ property, photos }) {
   const tour = property.tour ?? property.virtualTour ?? {};
   const embedUrl = tour.embedUrl;
@@ -289,10 +312,6 @@ function PropertyTourPanel({ property, photos }) {
 
   if (panoramas.length > 0) {
     return <IndoorTourPreview property={property} panoramas={panoramas} />;
-  }
-
-  if (tour.modelUrl) {
-    return <Model3DPanel property={property} modelUrl={tour.modelUrl} modelLabel={tour.modelLabel} />;
   }
 
   if (embedUrl) {
@@ -505,16 +524,18 @@ function StreetViewFallbackPanel({ property, photos }) {
 }
 
 /* KakaoRoadviewPanel — 집 앞 카카오 로드뷰 (VITE_KAKAO_APP_KEY 있을 때).
- * 반경 50m → 150m 순으로 가장 가까운 로드뷰 지점을 찾고, 시선(pan)을 매물 좌표 쪽으로 맞춘다.
- * 로드뷰가 없는 위치(단지 안쪽 도로 등)는 사진 폴백으로 정직하게 넘어간다. */
+ * 반경 50m → 150m → 300m → 500m 순으로 가장 가까운 로드뷰 지점을 찾고, 시선(pan)을 매물 좌표 쪽으로 맞춘다.
+ * 집 앞이 아니면(단지 안쪽 도로 등) 떨어진 거리를 밝히고, 500m 안에도 없으면 사진 폴백으로 넘어간다. */
 function KakaoRoadviewPanel({ property, photos }) {
   const roadviewElementRef = useRef(null);
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'no-coverage' | 'error'
+  const [panoDistance, setPanoDistance] = useState(null); // 로드뷰 지점 ↔ 매물 거리(m)
 
   useEffect(() => {
     if (!roadviewElementRef.current) return undefined;
     let cancelled = false;
     setStatus('loading');
+    setPanoDistance(null);
     const target = { lat: property.coordinates.lat, lng: property.coordinates.lng };
 
     loadKakaoMaps()
@@ -526,8 +547,11 @@ function KakaoRoadviewPanel({ property, photos }) {
           new Promise((resolve) => {
             client.getNearestPanoId(position, radius, (panoId) => resolve(panoId || null));
           });
-        return nearest(50)
-          .then((panoId) => panoId ?? nearest(150))
+        const searchOutward = ROADVIEW_SEARCH_RADII.reduce(
+          (found, radius) => found.then((panoId) => panoId ?? (cancelled ? null : nearest(radius))),
+          Promise.resolve(null),
+        );
+        return searchOutward
           .then((panoId) => {
             if (cancelled || !roadviewElementRef.current) return;
             if (!panoId) {
@@ -539,8 +563,9 @@ function KakaoRoadviewPanel({ property, photos }) {
               if (cancelled) return;
               try {
                 const at = roadview.getPosition();
-                const pan = bearing({ lat: at.getLat(), lng: at.getLng() }, target);
-                roadview.setViewpoint({ pan, tilt: 0, zoom: 0 });
+                const from = { lat: at.getLat(), lng: at.getLng() };
+                setPanoDistance(distanceMeters(from, target));
+                roadview.setViewpoint({ pan: bearing(from, target), tilt: 0, zoom: 0 });
               } catch {
                 // 시선 보정 실패는 치명적이지 않다 — 기본 시선으로 둔다
               }
@@ -563,7 +588,7 @@ function KakaoRoadviewPanel({ property, photos }) {
   if (status === 'no-coverage' || status === 'error') {
     const note =
       status === 'no-coverage'
-        ? '이 위치는 로드뷰가 없어 등록 사진으로 위치감을 먼저 보여드립니다. 단지 안쪽 도로는 로드뷰가 없는 경우가 많습니다.'
+        ? '매물 반경 500m 안에 로드뷰가 없어 등록 사진으로 위치감을 먼저 보여드립니다.'
         : '로드뷰를 불러오지 못해 등록 사진으로 위치감을 먼저 보여드립니다.';
     return <TourFallbackPreview property={property} photos={photos} note={note} />;
   }
@@ -579,7 +604,7 @@ function KakaoRoadviewPanel({ property, photos }) {
       <div className="street-location-card">
         <strong>{property.title}</strong>
         <span>{property.address}</span>
-        <em>실내 360 투어가 아직 없어 집 앞 로드뷰를 보여드립니다 · 로드뷰 © Kakao</em>
+        <em>{roadviewDistanceNote(panoDistance)} · 로드뷰 © Kakao</em>
       </div>
     </div>
   );

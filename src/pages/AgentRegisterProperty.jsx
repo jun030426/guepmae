@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { canUpload3DModel, registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
+import { registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
 
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
@@ -371,28 +371,6 @@ function AgentRegisterProperty() {
             disabled={submitting}
             idPrefix="register-pano"
           />
-
-          {canUpload3DModel && (
-            <div className="register-3d-field">
-              <label htmlFor="register-model3d">3D 모델 <small>(선택 — .glb/.gltf, 최대 50MB)</small></label>
-              <input
-                id="register-model3d"
-                type="file"
-                accept=".glb,.gltf,model/gltf-binary,model/gltf+json"
-                aria-label="3D 모델 파일 선택"
-                onChange={(event) => {
-                  const file = event.target.files?.[0] ?? null;
-                  setForm((s) => ({ ...s, model3d: file }));
-                }}
-              />
-              {form.model3d && (
-                <p className="register-hint">
-                  <strong>{form.model3d.name}</strong> ({(form.model3d.size / 1024 / 1024).toFixed(1)}MB) — 등록하면 매물 상세의 “360 투어” 탭에 표시됩니다 (360 사진이 있으면 그쪽이 우선).
-                </p>
-              )}
-              <p className="register-hint">공간 스캔(.glb)을 올리면 매수자가 상세 페이지에서 집 구조를 회전·확대하며 볼 수 있습니다.</p>
-            </div>
-          )}
         </fieldset>
 
         {/* Section 7: 매도 사유 + 매물 설명 (매도 사유는 설명문에 합쳐져 매수자에게 표시) */}

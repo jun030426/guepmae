@@ -4,10 +4,12 @@ import {
   bearing,
   buildTourPanoramas,
   directionOf,
+  distanceMeters,
   isEquirectangular,
   normalizePanoramaItems,
   normalizeYaw,
   panoramaMediaItem,
+  roadviewDistanceNote,
   withAutoLinks,
 } from './panoramaTour.js';
 
@@ -100,4 +102,17 @@ test('bearing — 북쪽 0°, 동쪽 90°', () => {
   assert.ok(Math.abs(bearing(origin, { lat: 37.5, lng: 127.1 }) - 90) < 0.1);
   assert.ok(Math.abs(bearing(origin, { lat: 37.4, lng: 127.0 }) - 180) < 0.01);
   assert.ok(Math.abs(bearing(origin, { lat: 37.5, lng: 126.9 }) - 270) < 0.1);
+});
+
+test('distanceMeters — 위도 0.001° ≈ 111m, 같은 점은 0', () => {
+  const origin = { lat: 37.5, lng: 127.0 };
+  assert.equal(distanceMeters(origin, origin), 0);
+  assert.ok(Math.abs(distanceMeters(origin, { lat: 37.501, lng: 127.0 }) - 111.2) < 0.5);
+});
+
+test('roadviewDistanceNote — 가까우면 집 앞, 멀면 10m 단위 거리', () => {
+  assert.match(roadviewDistanceNote(30), /집 앞 로드뷰/);
+  assert.doesNotMatch(roadviewDistanceNote(null), /집 앞|떨어진/);
+  assert.match(roadviewDistanceNote(234), /약 230m 떨어진/);
+  assert.match(roadviewDistanceNote(487), /약 490m 떨어진/);
 });

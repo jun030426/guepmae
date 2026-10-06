@@ -3302,34 +3302,6 @@ input[type='file']::file-selector-button:hover {
   box-shadow: 0 8px 24px rgba(26, 34, 51, 0.18);
 }
 
-/* 3D 모델 업로드 필드 (등록·수정 폼) */
-.register-3d-field {
-  display: grid;
-  gap: 8px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-border);
-}
-.register-3d-field > label {
-  font-weight: 600;
-  color: var(--text-strong);
-}
-.register-3d-field > label small {
-  font-weight: 400;
-  color: var(--text-muted);
-}
-.register-3d-remove {
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--price-up);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
 /* AI 점검 체크리스트 (매물 상세 · 설비 점검 섹션) */
 .inspection-panel {
   display: grid;
@@ -3457,43 +3429,6 @@ input[type='file']::file-selector-button:hover {
 .inspection-generate:disabled {
   opacity: 0.65;
   cursor: progress;
-}
-
-/* 3D 모델 뷰어 (매물 상세 · 3D 투어 탭) */
-.viewer-model-shell {
-  position: relative;
-  width: 100%;
-  min-height: calc(100dvh - 56px);
-  overflow: hidden;
-  background: var(--surface-warm);
-}
-.viewer-model-shell model-viewer {
-  display: block;
-  width: 100%;
-  height: calc(100dvh - 56px);
-  min-height: 560px;
-  background: var(--surface-warm);
-}
-.viewer-model-caption {
-  position: absolute;
-  left: 16px;
-  bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: rgba(26, 34, 51, 0.82);
-  color: #fff;
-  pointer-events: none;
-}
-.viewer-model-caption strong {
-  font-size: 13px;
-  font-weight: 600;
-}
-.viewer-model-caption span {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.72);
 }
 
 /* 단지명 자동완성 */
@@ -6106,4 +6041,57 @@ input[type="radio"] {
 }
 .pricing-intent-option {
   min-height: 32px;
+}
+
+/* ----------------------------- 카카오맵 (카카오 키가 있을 때 기본 지도) ----------------------------- */
+.kakao-map-canvas {
+  background: #eef1f5;
+}
+
+/* 지도 위 정보창 — CustomOverlay 는 기본 말풍선이 없어 직접 그린다. 아래 꼬리가 마커를 가리킨다 */
+.kakao-info-window {
+  position: relative;
+  width: max-content;
+  max-width: 280px;
+  margin-bottom: 24px; /* 알약 마커(활성 46px) 위로 띄움 */
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(26, 34, 51, 0.18);
+}
+.kakao-info-window::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  transform: translateX(-50%) rotate(45deg);
+}
+.kakao-info-window.kakao-pin-popup {
+  margin-bottom: 52px; /* 위치 핀(44px) 위로 띄움 */
+  padding: 0; /* 안쪽 .viewer-map-popup 이 여백·테두리를 가진다 */
+}
+
+/* "로드뷰 길 보기" 토글 — 지도 왼쪽 위 */
+.kakao-roadview-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 4;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(26, 34, 51, 0.12);
+  cursor: pointer;
+}
+.kakao-roadview-toggle.is-active {
+  border-color: #2f6fed;
+  color: #2f6fed;
 }

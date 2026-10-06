@@ -16,15 +16,17 @@ export function createOsmTileLayer() {
   });
 }
 
-// 매물 위치 단일 핀 — 네이비 원형 (디자인 토큰 --text-strong 계열)
+// 매물 위치 단일 핀 — 네이비 원형 (디자인 토큰 --text-strong 계열). 34×44, 끝점 (17, 42). 카카오 지도도 같은 핀을 쓴다.
+const SPOT_PIN_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="44" viewBox="0 0 34 44">' +
+  '<path d="M17 1C8.7 1 2 7.7 2 16c0 10.6 12.2 24.3 14.1 26.4a1.2 1.2 0 0 0 1.8 0C19.8 40.3 32 26.6 32 16 32 7.7 25.3 1 17 1z" fill="#1a2233" stroke="#ffffff" stroke-width="2"/>' +
+  '<circle cx="17" cy="16" r="5.5" fill="#ffffff"/>' +
+  '</svg>';
+export const SPOT_PIN_URL = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(SPOT_PIN_SVG)}`;
+
 export function createSpotIcon() {
-  const svg =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="34" height="44" viewBox="0 0 34 44">' +
-    '<path d="M17 1C8.7 1 2 7.7 2 16c0 10.6 12.2 24.3 14.1 26.4a1.2 1.2 0 0 0 1.8 0C19.8 40.3 32 26.6 32 16 32 7.7 25.3 1 17 1z" fill="#1a2233" stroke="#ffffff" stroke-width="2"/>' +
-    '<circle cx="17" cy="16" r="5.5" fill="#ffffff"/>' +
-    '</svg>';
   return L.icon({
-    iconUrl: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+    iconUrl: SPOT_PIN_URL,
     iconSize: [34, 44],
     iconAnchor: [17, 42],
     popupAnchor: [0, -40],

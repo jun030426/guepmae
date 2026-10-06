@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
-import L, { createOsmTileLayer, createSpotIcon } from '../utils/leafletLoader.js';
+import L, { createOsmTileLayer, createSpotIcon, SPOT_PIN_URL } from '../utils/leafletLoader.js';
+import { geocodeAddress as geocodeWithKakao, loadKakaoMaps } from '../utils/kakaoLoader.js';
 import { MAP_PROVIDER, GOOGLE_MAPS_API_KEY } from '../utils/mapProvider.js';
 
 function getStoredCoordinates(property) {
@@ -69,6 +70,60 @@ function LeafletLocationMap({ property, coordinates }) {
         className="detail-map-canvas leaflet-map-canvas"
         aria-label={`${property.title} 위치 지도`}
       />
+    </div>
+  );
+}
+
+/* 카카오맵 — 카카오 키가 있을 때 기본. 좌표가 없으면 주소로 위치를 찾는다(새로 등록한 매물 대응).
+ * SDK 로드가 실패하면 onFail 로 OSM 에 자리를 넘긴다. */
+function KakaoLocationMap({ property, storedCoords, onFail }) {
+  const mapElementRef = useRef(null);
+  const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'not-found'
+  const lat = storedCoords?.lat;
+  const lng = storedCoords?.lng;
+
+  useEffect(() => {
+    const element = mapElementRef.current;
+    if (!element) return undefined;
+    let cancelled = false;
+    setStatus('loading');
+
+    loadKakaoMaps()
+      .then(async (maps) => {
+        const position = Number.isFinite(lat) ? { lat, lng } : await geocodeWithKakao(property.address);
+        if (cancelled || !mapElementRef.current) return;
+        if (!position) {
+          setStatus('not-found');
+          return;
+        }
+        const center = new maps.LatLng(position.lat, position.lng);
+        const map = new maps.Map(element, { center, level: 4, scrollwheel: false }); // 페이지 스크롤과 충돌 방지
+        map.addControl(new maps.ZoomControl(), maps.ControlPosition.RIGHT);
+        new maps.Marker({
+          map,
+          position: center,
+          title: property.title,
+          image: new maps.MarkerImage(SPOT_PIN_URL, new maps.Size(34, 44), { offset: new maps.Point(17, 42) }),
+        });
+        setStatus('ready');
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('[detail-map] 카카오 지도 로드 실패 — OpenStreetMap 으로 전환합니다:', error);
+        onFail();
+      });
+
+    return () => {
+      cancelled = true;
+      element.innerHTML = '';
+    };
+  }, [property.id, property.address, property.title, lat, lng, onFail]);
+
+  return (
+    <div className="detail-map-wrapper">
+      <div ref={mapElementRef} className="detail-map-canvas" aria-label={`${property.title} 위치 지도`} />
+      {status === 'loading' && <div className="detail-map-overlay">지도를 불러오는 중...</div>}
+      {status === 'not-found' && <div className="detail-map-overlay">주소로 위치를 찾지 못했습니다.</div>}
     </div>
   );
 }
@@ -141,6 +196,12 @@ function GoogleLocationMap({ property, storedCoords }) {
 
 function PropertyLocationMap({ property }) {
   const storedCoords = getStoredCoordinates(property);
+  const [kakaoFailed, setKakaoFailed] = useState(false);
+  const handleKakaoFail = useCallback(() => setKakaoFailed(true), []);
+
+  if (MAP_PROVIDER === 'kakao' && !kakaoFailed && (storedCoords || property.address)) {
+    return <KakaoLocationMap property={property} storedCoords={storedCoords} onFail={handleKakaoFail} />;
+  }
 
   if (MAP_PROVIDER === 'google' && (storedCoords || property.address)) {
     return <GoogleLocationMap property={property} storedCoords={storedCoords} />;

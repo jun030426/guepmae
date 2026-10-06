@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, MapPin, Minus, Plus, X } from 'lucide-react';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
-import L, { createOsmTileLayer, createSpotIcon } from '../utils/leafletLoader.js';
+import L, { createOsmTileLayer, createSpotIcon, SPOT_PIN_URL } from '../utils/leafletLoader.js';
 import { MAP_PROVIDER } from '../utils/mapProvider.js';
 import { loadPannellum } from '../utils/pannellumLoader.js';
 import { hasKakaoKey, loadKakaoMaps } from '../utils/kakaoLoader.js';
@@ -45,9 +45,10 @@ function escapeHtml(value) {
   });
 }
 
-/* PropertyMapPanel — 우선순위: Google → Naver → 정적 fallback */
+/* PropertyMapPanel — 제공자는 mapProvider.js 가 정한다 (카카오 키 있으면 카카오, 없으면 OSM). 좌표 없으면 정적 fallback */
 function PropertyMapPanel({ property }) {
   const coordinatesReady = hasCoordinates(property);
+  const [kakaoFailed, setKakaoFailed] = useState(false);
 
   if (!coordinatesReady) {
     return <MapFallback property={property} note="좌표가 등록되면 이 위치에 지도가 표시됩니다." />;
@@ -61,7 +62,70 @@ function PropertyMapPanel({ property }) {
     return <NaverMapPanel property={property} />;
   }
 
+  if (MAP_PROVIDER === 'kakao' && !kakaoFailed) {
+    return <KakaoViewerMapPanel property={property} onFail={() => setKakaoFailed(true)} />;
+  }
+
   return <LeafletViewerMapPanel property={property} />;
+}
+
+/* 카카오맵 — 뷰어 지도 탭. SDK 로드가 실패하면 onFail 로 OSM 에 자리를 넘긴다. */
+function KakaoViewerMapPanel({ property, onFail }) {
+  const mapElementRef = useRef(null);
+  const onFailRef = useRef(onFail);
+  const [status, setStatus] = useState('loading');
+
+  useEffect(() => {
+    onFailRef.current = onFail;
+  }, [onFail]);
+
+  useEffect(() => {
+    const element = mapElementRef.current;
+    if (!element) return undefined;
+    let cancelled = false;
+    setStatus('loading');
+
+    loadKakaoMaps()
+      .then((maps) => {
+        if (cancelled || !mapElementRef.current) return;
+        const position = new maps.LatLng(property.coordinates.lat, property.coordinates.lng);
+        const map = new maps.Map(element, { center: position, level: 3 });
+        map.addControl(new maps.ZoomControl(), maps.ControlPosition.RIGHT);
+        new maps.Marker({
+          map,
+          position,
+          title: property.title,
+          image: new maps.MarkerImage(SPOT_PIN_URL, new maps.Size(34, 44), { offset: new maps.Point(17, 42) }),
+        });
+        new maps.CustomOverlay({
+          map,
+          position,
+          xAnchor: 0.5,
+          yAnchor: 1,
+          content: `<div class="kakao-info-window kakao-pin-popup"><div class="viewer-map-popup"><strong>${escapeHtml(
+            property.title,
+          )}</strong><span>${escapeHtml(property.address)}</span></div></div>`,
+        });
+        setStatus('ready');
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('[property-map] 카카오 지도 로드 실패 — OpenStreetMap 으로 전환합니다:', error);
+        onFailRef.current();
+      });
+
+    return () => {
+      cancelled = true;
+      element.innerHTML = '';
+    };
+  }, [property]);
+
+  return (
+    <div className="viewer-map-shell">
+      <div ref={mapElementRef} className="viewer-map-canvas" aria-label={`${property.title} 위치 지도`} />
+      {status === 'loading' && <div className="viewer-status-overlay">지도를 불러오는 중입니다.</div>}
+    </div>
+  );
 }
 
 /* OSM(Leaflet) — 뷰어 지도 탭 기본. 키·결제 불필요. */

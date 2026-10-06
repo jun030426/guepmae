@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { loadGoogleMapSdk } from '../utils/googleMapLoader.js';
 import { loadNaverMapSdk } from '../utils/naverMapLoader.js';
+import { loadKakaoMaps } from '../utils/kakaoLoader.js';
 import L, { createOsmTileLayer } from '../utils/leafletLoader.js';
 import { MAP_PROVIDER, GOOGLE_MAPS_API_KEY, NAVER_MAP_CLIENT_ID } from '../utils/mapProvider.js';
 import { formatPrice } from '../utils/priceUtils.js';
@@ -738,6 +739,204 @@ function NaverMap({ properties, selectedId, onSelect }) {
 }
 
 /* ============================================================
+ * KakaoMap — 카카오맵 (VITE_KAKAO_APP_KEY 가 있을 때 기본 제공자)
+ * 한국 지도 표기(단지명·동)가 정확하고 결제 등록 없이 무료 쿼터 안에서 동작.
+ * 마커·클러스터·선택 정보창은 OSM 구현과 같은 동작. "로드뷰 길" 토글로 로드뷰가 있는 도로를 표시.
+ * SDK 로드가 실패하면(도메인 미등록 등) onFail 로 OSM 에 자리를 넘긴다.
+ * 카카오 level 은 작을수록 확대 — 대략 level ≈ 20 − (Leaflet zoom).
+ * ============================================================ */
+const KAKAO_OVERVIEW_LEVEL = 8; // 전체 보기에서 이보다 더 확대하지 않는다 (Leaflet zoom 12 상한과 같은 역할)
+const KAKAO_FOCUS_LEVEL = 4; // 매물 선택 시 — 클러스터가 풀리는 높이 (minLevel 보다 작게)
+const KAKAO_CLUSTER_MIN_LEVEL = 6;
+
+const KAKAO_CLUSTER_STYLE = {
+  width: '44px',
+  height: '44px',
+  lineHeight: '40px',
+  borderRadius: '50%',
+  border: '2px solid #ffffff',
+  background: MARKER_WARM,
+  color: '#ffffff',
+  textAlign: 'center',
+  fontFamily: 'Pretendard, -apple-system, system-ui, sans-serif',
+  fontSize: '12px',
+  fontWeight: '600',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.25)',
+};
+
+function buildKakaoPillImage(maps, property, active) {
+  const tone = getMarkerTone(property.discountRate);
+  const src = buildPillIconDataUrl(formatDiscount(property.discountRate), MARKER_COLORS[tone], active);
+  return active
+    ? new maps.MarkerImage(src, new maps.Size(96, 46), { offset: new maps.Point(48, 23) })
+    : new maps.MarkerImage(src, new maps.Size(72, 30), { offset: new maps.Point(36, 15) });
+}
+
+function KakaoMap({ properties, selectedId, onSelect, onFail }) {
+  const mapElementRef = useRef(null);
+  const mapRef = useRef(null);
+  const clustererRef = useRef(null);
+  const overlayRef = useRef(null);
+  const markerRefs = useRef(new Map());
+  const selectedIdRef = useRef(selectedId);
+  const [status, setStatus] = useState('loading');
+  const [showRoadviewRoads, setShowRoadviewRoads] = useState(false);
+
+  const mappedProperties = useMemo(() => properties.filter(hasCoordinates), [properties]);
+  const propertyById = useMemo(
+    () => new Map(mappedProperties.map((property) => [property.id, property])),
+    [mappedProperties],
+  );
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
+
+  useEffect(() => {
+    const element = mapElementRef.current;
+    if (!element || !mappedProperties.length) return undefined;
+
+    let cancelled = false;
+    let resizeObserver;
+    setStatus('loading');
+
+    loadKakaoMaps()
+      .then((maps) => {
+        if (cancelled || !mapElementRef.current) return;
+
+        const initialId = selectedIdRef.current;
+        const centerProperty = propertyById.get(initialId) ?? mappedProperties[0];
+        const map = new maps.Map(element, {
+          center: new maps.LatLng(centerProperty.coordinates.lat, centerProperty.coordinates.lng),
+          level: KAKAO_OVERVIEW_LEVEL,
+        });
+        map.addControl(new maps.ZoomControl(), maps.ControlPosition.RIGHT);
+
+        const clusterer = new maps.MarkerClusterer({
+          map,
+          averageCenter: true,
+          minLevel: KAKAO_CLUSTER_MIN_LEVEL,
+          gridSize: 60,
+          styles: [KAKAO_CLUSTER_STYLE],
+        });
+
+        const bounds = new maps.LatLngBounds();
+        const markers = mappedProperties.map((property) => {
+          const position = new maps.LatLng(property.coordinates.lat, property.coordinates.lng);
+          const active = property.id === initialId;
+          const marker = new maps.Marker({
+            position,
+            title: property.title,
+            image: buildKakaoPillImage(maps, property, active),
+            zIndex: active ? 1500 : 0,
+          });
+          maps.event.addListener(marker, 'click', () => onSelect(property.id));
+          markerRefs.current.set(property.id, marker);
+          bounds.extend(position);
+          return marker;
+        });
+        clusterer.addMarkers(markers);
+
+        if (mappedProperties.length > 1) {
+          map.setBounds(bounds, 60, 60, 60, 60);
+          if (map.getLevel() < KAKAO_OVERVIEW_LEVEL) map.setLevel(KAKAO_OVERVIEW_LEVEL);
+        }
+
+        // 선택 매물 정보창 — 지도 빈 곳을 누르면 닫는다
+        const overlay = new maps.CustomOverlay({ clickable: true, xAnchor: 0.5, yAnchor: 1, zIndex: 3000 });
+        maps.event.addListener(map, 'click', () => overlay.setMap(null));
+
+        // 지도 영역 크기가 바뀌면(패널 접기·창 크기) 다시 그린다
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver(() => map.relayout());
+          resizeObserver.observe(element);
+        }
+
+        mapRef.current = map;
+        clustererRef.current = clusterer;
+        overlayRef.current = overlay;
+        setStatus('ready');
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        console.error('[map] 카카오 지도 로드 실패 — OpenStreetMap 으로 전환합니다:', error);
+        onFail?.();
+      });
+
+    return () => {
+      cancelled = true;
+      resizeObserver?.disconnect();
+      clustererRef.current?.clear();
+      overlayRef.current?.setMap(null);
+      markerRefs.current.clear();
+      clustererRef.current = null;
+      overlayRef.current = null;
+      mapRef.current = null;
+      element.innerHTML = ''; // 다음 마운트가 빈 컨테이너에서 시작하도록
+    };
+  }, [mappedProperties, propertyById, onSelect, onFail]);
+
+  // 선택 변경: 마커 아이콘 토글 + 확대·이동 + 정보창
+  useEffect(() => {
+    const maps = window.kakao?.maps;
+    if (status !== 'ready' || !selectedId || !maps) return;
+    const map = mapRef.current;
+    const overlay = overlayRef.current;
+    const property = propertyById.get(selectedId);
+    if (!map || !overlay || !property || !markerRefs.current.has(selectedId)) return;
+
+    markerRefs.current.forEach((marker, propertyId) => {
+      const target = propertyById.get(propertyId);
+      if (!target) return;
+      const isActive = propertyId === selectedId;
+      marker.setImage(buildKakaoPillImage(maps, target, isActive));
+      marker.setZIndex(isActive ? 1500 : 0);
+    });
+
+    const position = new maps.LatLng(property.coordinates.lat, property.coordinates.lng);
+    if (map.getLevel() > KAKAO_FOCUS_LEVEL) map.setLevel(KAKAO_FOCUS_LEVEL);
+    map.panTo(position);
+    overlay.setContent(`<div class="kakao-info-window">${getInfoWindowHtml(property)}</div>`);
+    overlay.setPosition(position);
+    overlay.setMap(map);
+  }, [status, selectedId, propertyById]);
+
+  // "로드뷰 길" 토글 — 로드뷰가 있는 도로를 파란 선으로 겹쳐 그린다
+  useEffect(() => {
+    const maps = window.kakao?.maps;
+    const map = mapRef.current;
+    if (status !== 'ready' || !maps || !map || !showRoadviewRoads) return undefined;
+    map.addOverlayMapTypeId(maps.MapTypeId.ROADVIEW);
+    return () => map.removeOverlayMapTypeId(maps.MapTypeId.ROADVIEW);
+  }, [status, showRoadviewRoads]);
+
+  if (!mappedProperties.length) {
+    return (
+      <div className="map-canvas map-empty">
+        <div className="map-status-overlay">좌표가 등록된 매물이 없습니다.</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="map-canvas-wrapper">
+      <div ref={mapElementRef} className="map-canvas kakao-map-canvas" aria-label="카카오맵 기반 급매 탐색" />
+      {status === 'loading' && <div className="map-status-overlay">카카오 지도를 불러오는 중입니다.</div>}
+      {status === 'ready' && (
+        <button
+          type="button"
+          className={`kakao-roadview-toggle${showRoadviewRoads ? ' is-active' : ''}`}
+          aria-pressed={showRoadviewRoads}
+          onClick={() => setShowRoadviewRoads((value) => !value)}
+        >
+          로드뷰 길 {showRoadviewRoads ? '숨기기' : '보기'}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
  * MapLegend — 하단 범례
  * ============================================================ */
 function MapLegend({ note }) {
@@ -758,9 +957,13 @@ function MapLegend({ note }) {
 /* ============================================================
  * MapView — controlled component
  *   selectedId와 onSelect를 부모(MapPage)가 관리
- *   우선순위: Google → Naver → Mock
+ *   제공자는 mapProvider.js 가 정한다 (카카오 키 있으면 카카오, 없으면 OSM).
+ *   카카오 로드가 실패하면 같은 화면에서 OSM 으로 바꿔 그린다.
  * ============================================================ */
 function MapView({ properties, selectedId, onSelect }) {
+  const [kakaoFailed, setKakaoFailed] = useState(false);
+  const handleKakaoFail = useCallback(() => setKakaoFailed(true), []);
+
   if (MAP_PROVIDER === 'google') {
     return (
       <div className="map-view">
@@ -775,6 +978,15 @@ function MapView({ properties, selectedId, onSelect }) {
       <div className="map-view">
         <NaverMap properties={properties} selectedId={selectedId} onSelect={onSelect} />
         <MapLegend note="Naver Maps Dynamic Map 연동" />
+      </div>
+    );
+  }
+
+  if (MAP_PROVIDER === 'kakao' && !kakaoFailed) {
+    return (
+      <div className="map-view">
+        <KakaoMap properties={properties} selectedId={selectedId} onSelect={onSelect} onFail={handleKakaoFail} />
+        <MapLegend note="카카오맵 연동" />
       </div>
     );
   }

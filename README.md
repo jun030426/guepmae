@@ -23,7 +23,7 @@
 | **실거래가 검증 할인율** | 동일 단지·전용면적의 국토부 실거래 중앙값 대비 할인율 자동 산출. 해제·직거래 제외 → 최근 12/24/36개월 → 같은 층 구간 순으로 비교 대상을 고르고, 표본 3건 미만이면 숫자 대신 **판정 보류**. 산출 조건(기간·층·제외·표본)까지 투명 공개 |
 | **단지별 실거래 표** | 매물 상세에 평형별 실거래 요약 + 최근 실거래 내역(계약일·층·거래가). **추정 없이 실거래만** |
 | **AI 매물 리포트** | 가격·입지·사진을 분석하는 LLM 리포트. 가격은 새로 만들지 않고 실데이터에 그라운딩, 중개사 주장은 교차검증 |
-| **지도 검색** | 매물 좌표 클러스터링, 생활권(편의시설·역세권 실도보 거리) 분석 |
+| **지도 검색** | 카카오맵(키 없으면 OpenStreetMap) 위 매물 클러스터링, "로드뷰 길" 표시, 생활권(편의시설·역세권 실도보 거리) 분석 |
 | **360 실내 투어** | 중개사가 올린 360 사진을 찍은 순서대로 화살표로 이동하며 둘러보는 투어. 360 사진이 없으면 집 앞 로드뷰(카카오) → 등록 사진 순으로 폴백 |
 | **시세 추이** | 단지·평형별 실거래 추이 차트 |
 | **중개사 포털** | 권한 계층(대표·관리자·중개사·회원) 기반 매물 등록·관리. 내 매물의 조회·문의 수(최근 30일) 표시 |
@@ -36,7 +36,7 @@
 - **Frontend** · React 18 · Vite (SPA) · React Router · Recharts · Lucide
 - **데이터 (로컬 데모 모드)** · 번들 JSON 스냅샷 + 브라우저 localStorage — 백엔드 없이 단독 실행
 - **AI** · Google Gemini (`generateObject` 구조화 출력 + Zod 스키마) — 대표 매물 리포트 사전 생성·번들
-- **지도** · Google Maps Platform (Maps · Places · Geocoding)
+- **지도** · 카카오맵 JavaScript SDK (지도 · 로드뷰 · 지오코딩) — 키가 없으면 Leaflet + OpenStreetMap
 - **데이터 파이프라인** · 국토교통부 OpenAPI · Node.js(집계) · Python(수집)
 
 > 원래 **Supabase**(PostgreSQL · RLS · Auth · Storage) + **Vercel 서버리스**로 구축했으나,
@@ -120,8 +120,7 @@ npm run build    # 프로덕션 빌드 (정적 SPA — 어디서나 호스팅 �
 `.env.local` (모두 선택 — 없어도 핵심 기능 동작):
 
 ```
-VITE_GOOGLE_MAPS_API_KEY=...        # 지도 검색 화면
-VITE_KAKAO_APP_KEY=...              # 매물 등록 시 주소→좌표, 360 투어 없는 매물의 집 앞 로드뷰 (없으면 사진 폴백)
+VITE_KAKAO_APP_KEY=...              # 지도(없으면 OpenStreetMap), 매물 등록 시 주소→좌표, 360 투어 없는 매물의 로드뷰 (없으면 사진 폴백)
 GOOGLE_GENERATIVE_AI_API_KEY=...    # AI 리포트 재생성 (generate-reports.mjs · generate-market-report.mjs)
 MOLIT_API_KEY=...                   # 국토부 실거래가 재수집 (fetch-trades.py)
 ```

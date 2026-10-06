@@ -55,15 +55,16 @@ python scripts/rehearsal/rehearse.py
 
 ---
 
-## A. 카카오 키 — 집 앞 로드뷰 · 등록 시 주소→좌표
+## A. 카카오 키 — 지도 · 집 앞 로드뷰 · 등록 시 주소→좌표
 
-- [ ] 카카오 디벨로퍼스(developers.kakao.com) → 내 애플리케이션 → 앱 추가 → **JavaScript 키** 복사
-- [ ] 앱 설정 → 플랫폼 → Web → 사이트 도메인에 `http://localhost:5173`, `https://guepmae.vercel.app` 등록
+- [x] 카카오 디벨로퍼스(developers.kakao.com) → 내 애플리케이션 → 앱 추가 → **JavaScript 키** 복사 (2026-10-06, 앱 "급매")
+- [x] (2026-10-06) 앱 설정 → 플랫폼 → Web → 사이트 도메인에 `http://localhost:5173`, `https://guepmae.vercel.app` 등록
 - [ ] 제품 설정 → 카카오맵 → **사용 설정 ON** (이걸 안 켜면 SDK 가 조용히 실패한다)
 - [ ] `.env.local` 에 `VITE_KAKAO_APP_KEY=발급키` 추가
-- [ ] Vercel → 프로젝트 → Settings → Environment Variables 에 같은 키 추가 → Redeploy
+- [x] Vercel → 프로젝트 → Settings → Environment Variables 에 같은 키 추가 → Redeploy (2026-10-06, Production 만. 새 화면에서는 Settings → Environments → Production 안에 있다)
 - [ ] 검증 (로컬): 중개사로 매물 등록 → 상세 지도 탭에 마커(좌표 저장됨) → "360 투어" 탭에 집 앞 로드뷰가 매물 쪽을 보며 열림. 단지 안쪽 주소는 "로드뷰 없음 → 사진" 폴백이 정상
-- [ ] 검증 (라이브): 같은 흐름. 브라우저 콘솔에 `[kakao]` 오류가 없어야 함
+- [ ] 검증 (라이브): 같은 흐름. 브라우저 콘솔에 `[kakao]` 오류가 없어야 함 — 매물 상세 로드뷰 표시는 확인(2026-10-06). 등록 시 좌표 저장은 미확인
+- [ ] 카카오 지도(2026-10-06 추가, 키가 있으면 기본 지도): 지도 검색에 카카오 지도·할인율 마커·묶음이 보이고, 마커를 누르면 정보창, "로드뷰 길 보기"를 누르면 파란 선. 매물 상세 위치 지도·뷰어 지도 탭도 카카오. 이 기능은 가짜 SDK 로만 검증했다
 
 키가 없어도 앱은 사진 폴백으로 동작하므로 급하지 않다.
 

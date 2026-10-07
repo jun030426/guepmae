@@ -149,8 +149,8 @@ function AgentEditProperty() {
       return;
     }
 
-    // 로컬 모드: AI 리포트는 사전 생성해 번들(public/data/property_reports.json)하므로
-    // 무효화할 서버 캐시가 없다. 수정 내용은 다음 번들 재생성 때 반영된다.
+    // AI 매물 리포트는 자동으로 무효화하지 않는다 — 상세의 "매물 리포트" 탭에서
+    // 담당 중개사·운영진이 "다시 생성"을 눌러 수정 내용을 반영한다 (Edge Function property-report).
 
     navigate(`/properties/${id}`, { replace: true });
   };

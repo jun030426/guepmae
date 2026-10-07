@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { registerProperty, resolveReferencePrice } from '../services/propertyRegistration.js';
+import { generatePropertyReport } from '../services/propertyReports.js';
 
 import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
@@ -159,6 +160,9 @@ function AgentRegisterProperty() {
         profile,
         { onPanoramaProgress: setPanoProgress },
       );
+      // AI 매물 리포트를 미리 만들어 둔다 — 기다리지 않고 상세로 이동, 실패(판정 보류·로컬 모드 등)는 조용히 무시.
+      // 상세의 "매물 리포트" 탭이 생성 중이면 폴링하고, 없으면 버튼으로 다시 만들 수 있다.
+      generatePropertyReport(id).catch(() => {});
       // 등록 직후 매물 상세 페이지로 (처리하지 못한 360 사진이 있으면 배너로 알린다)
       const failedParam = panoramaFailures.length > 0 ? `&pano_failed=${panoramaFailures.length}` : '';
       navigate(`/properties/${id}?just_registered=1${failedParam}`, { replace: true });

@@ -22,7 +22,7 @@
 |---|---|
 | **실거래가 검증 할인율** | 동일 단지·전용면적의 국토부 실거래 중앙값 대비 할인율 자동 산출. 해제·직거래 제외 → 최근 12/24/36개월 → 같은 층 구간 순으로 비교 대상을 고르고, 표본 3건 미만이면 숫자 대신 **판정 보류**. 산출 조건(기간·층·제외·표본)까지 투명 공개 |
 | **단지별 실거래 표** | 매물 상세에 평형별 실거래 요약 + 최근 실거래 내역(계약일·층·거래가). **추정 없이 실거래만** |
-| **AI 매물 리포트** | 가격·입지·사진을 분석하는 LLM 리포트. 가격은 새로 만들지 않고 실데이터에 그라운딩, 중개사 주장은 교차검증 |
+| **AI 매물 리포트** | 가격·입지를 분석하는 LLM 리포트. 가격은 새로 만들지 않고 실데이터에 그라운딩, 중개사 주장은 교차검증. 하이브리드 모드에서는 Edge Function `property-report` 가 실시간 생성(매물당 1회 캐시, 다시 생성은 중개사·운영진) |
 | **지도 검색** | 카카오맵(키 없으면 OpenStreetMap) 위 매물 클러스터링, "로드뷰 길" 표시, 생활권(편의시설·역세권 실도보 거리) 분석 |
 | **360 실내 투어** | 중개사가 올린 360 사진을 찍은 순서대로 화살표로 이동하며 둘러보는 투어. 360 사진이 없으면 집 앞 로드뷰(카카오) → 등록 사진 순으로 폴백 |
 | **시세 추이** | 단지·평형별 실거래 추이 차트 |
@@ -83,7 +83,7 @@ React SPA (Vite)
 2. **집계** — 단지+전용면적별 실거래 중앙값(`complex_prices`, 직거래 제외), 평형대×월 시세 추이(`price_trends`), 단지별 개별 실거래(`complex_trades`) 산출 → `build-complex-trades-rows.mjs` 로 단지×면적 거래 배열(`complex_trades_rows.json` 전체 + `public/data/complex_trades.json` 상위 4,000행).
 3. **매물 등록·번들** — `import-listings.py` 로 단지명 매칭 → 급매 선별 → 정밀 지오코딩 → 실거래 표를 매물에 베이크 → `recompute-price-basis.mjs --all --write` 로 판정 규칙(해제·직거래 제외 → 최근 12/24/36개월 → 층 구간 → 중앙값, 표본 부족은 보류 제외)을 적용해 `public/data/properties.json` 로 스냅샷.
 
-4. **AI 매물 리포트** — `generate-reports.mjs` 로 대표 매물 리포트를 Gemini 로 사전 생성 → `public/data/property_reports.json` 로 번들.
+4. **AI 매물 리포트** — 로컬 데모용으로 `generate-reports.mjs` 가 대표 매물 리포트를 Gemini 로 사전 생성 → `public/data/property_reports.json` 로 번들. 라이브(하이브리드)는 `supabase/functions/property-report` 가 같은 프롬프트로 실시간 생성.
 5. **AI 시장 리포트** — `generate-market-report.mjs` 로 `market_snapshots` 를 입력 삼아 시장 인사이트 3~5개를 사전 생성 → `public/data/ai_market_reports.json` 로 번들.
 6. **매일 증분 수집 (GitHub Actions)** — `.github/workflows/daily-trades-refresh.yml` 이 지난달까지 최근 3개월을 다시 받아 집계하고 Supabase `complex_trades` 를 갱신한다. 원본 CSV 는 비공개 버킷에 시도별 gzip 으로 보관(`pipeline-data-sync.mjs`). API 장애(정상 응답·0건)로는 기존 이력을 지우지 않고, 행 수가 2% 넘게 줄면 아무것도 올리지 않고 멈춘다. 시크릿 등록·첫 실행 절차는 `docs/DESKTOP_TODO.md` C.
 7. **판정 규칙 백테스트** — `node scripts/backtest-price-basis.mjs` : 과거 실거래 한 건을 "그 달에 그 가격으로 나온 매물"로 보고, 그 달보다 앞선 거래만으로 기준가를 구해(운영 판정 함수를 그대로 호출) 실제 거래가와 비교한다. 급매로 판정된 거래가 이후 6개월 시세로 봐도 쌌는지(정밀도·재현율), 규칙의 각 요소(기간 창·층 구간·직거래 제외)가 정확도를 얼마나 바꿨는지를 요약 문서로 낸다. 호가가 아니라 체결가로 채점한다는 한계를 리포트에 명시.

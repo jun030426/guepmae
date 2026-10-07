@@ -1877,6 +1877,9 @@ body {
 }
 
 .property-report .report-action-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: var(--space-2);
   padding: 10px 20px;
   border-radius: 999px;
@@ -2189,6 +2192,12 @@ body {
 
 .report-print-button:hover {
   opacity: 0.85;
+}
+
+.report-footer-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 /* 인쇄 / PDF 저장 — 실제 인쇄는 새 창에 리포트만 복제해서 처리(PropertyReportPanel.handlePrint).
@@ -3300,135 +3309,6 @@ input[type='file']::file-selector-button:hover {
 .leaflet-popup-content-wrapper {
   border-radius: var(--radius-sm);
   box-shadow: 0 8px 24px rgba(26, 34, 51, 0.18);
-}
-
-/* AI 점검 체크리스트 (매물 상세 · 설비 점검 섹션) */
-.inspection-panel {
-  display: grid;
-  gap: 18px;
-}
-.inspection-head {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-.inspection-grade {
-  flex-shrink: 0;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-}
-.inspection-summary {
-  margin: 2px 0 0;
-  color: var(--text-secondary);
-  line-height: 1.7;
-}
-.inspection-list {
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md, 12px);
-  background: var(--surface);
-  overflow: hidden;
-}
-.inspection-item {
-  padding: 14px 18px;
-}
-.inspection-item + .inspection-item {
-  border-top: 1px solid var(--border);
-}
-.inspection-item-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.inspection-item-head strong {
-  font-size: 15px;
-  color: var(--text-strong);
-}
-.inspection-status,
-.inspection-grade {
-  border: 1px solid transparent;
-}
-.inspection-status {
-  flex-shrink: 0;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.inspection-status.is-good,
-.inspection-grade.is-good {
-  background: var(--save-50);
-  border-color: var(--save-100);
-  color: var(--save-700);
-}
-.inspection-status.is-warn,
-.inspection-grade.is-warn {
-  background: #fdf3e0;
-  border-color: #f3ddb2;
-  color: #8a6114;
-}
-.inspection-status.is-unknown,
-.inspection-grade.is-unknown {
-  background: var(--surface-warm);
-  border-color: var(--border);
-  color: var(--text-muted);
-}
-.inspection-finding {
-  margin: 8px 0 0;
-  font-size: 14px;
-  line-height: 1.65;
-  color: var(--text-secondary);
-}
-.inspection-action {
-  margin: 6px 0 0;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-strong-soft);
-  font-weight: 500;
-}
-.inspection-meta {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--text-muted);
-}
-.inspection-empty {
-  margin: 0;
-  padding: 22px 20px;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius-md, 12px);
-  color: var(--text-muted);
-  background: var(--surface);
-}
-.inspection-actions {
-  display: grid;
-  gap: 8px;
-  justify-items: start;
-}
-.inspection-generate {
-  padding: 11px 20px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--text-strong-soft);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-.inspection-generate:hover:not(:disabled) {
-  background: var(--border-strong);
-}
-.inspection-generate:disabled {
-  opacity: 0.65;
-  cursor: progress;
 }
 
 /* 단지명 자동완성 */

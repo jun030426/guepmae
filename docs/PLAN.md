@@ -62,9 +62,8 @@
 | | 매물 목록·필터·저장 | 완료 | 운영 검증 완료 매물만 노출 (2026-09-29 결정·적용) |
 | | 지도 검색(클러스터링) | 완료 | 카카오맵 기본(2026-10-06, 키 있을 때) · 키 없거나 로드 실패 시 OpenStreetMap/Leaflet. "로드뷰 길" 토글. Google/Naver 는 명시 옵션 |
 | | 생활권(역·학교·마트 거리) | 부분 | 수집 매물만. 신규 등록 매물은 좌표·생활권 없음 |
-| | AI 매물 리포트 | 부분 | 387건 중 15건 사전 생성. 실시간 생성 없음. 화면 문구는 사실대로 정리됨(2026-09-29) |
+| | AI 매물 리포트 | 완료 | Edge Function `property-report` 로 실시간 생성(2026-10-07). 리포트 없는 매물은 누구나 1회 생성, 다시 생성은 중개사(자기 매물)·운영진. 등록 직후 자동 생성 시도. 판정 보류 매물은 생성 안 함 |
 | | AI 시장 리포트 | 완료 | 2026-07 실거래 기준 사전 생성 |
-| | AI 설비 점검 체크리스트(사진 → 8항목) | 완료(라이브) | Gemini 멀티모달 Edge Function. 로컬 데모에서는 생성 버튼 없음 |
 | | 360 실내 투어 (지점 이동) | 완료 (1·2단계) | 합성 360 JPG 또는 Insta360 원본(.insp) 업로드 → 찍은 순서 기반 화살표 이동 + 갈래 편집기(지점별 화살표 직접 연결). .insp 는 브라우저 WebGL 로 즉시 변환(ONE X2 실샘플로 보정, 1초). 로컬 검증 완료(2026-09-29), 라이브 버킷 적용됨. 설계·검증: `docs/superpowers/specs/2026-09-29-360-tour-roadview-design.md` |
 | | 집 앞 로드뷰 자동 표시 | 완료(라이브) | 카카오 로드뷰·지오코딩. 키 발급·라이브 확인(2026-10-06). 집 앞에 없으면 반경 500m 안 가장 가까운 로드뷰 + 거리 안내 |
 | | 3D 모델(.glb) 뷰어 | 제거 (2026-10-06) | 실제 집이 아닌 샘플 모델만 있어 오해 소지. 360 사진 + 로드뷰로 일원화. 등록·수정·상세에서 모두 제거 |
@@ -89,7 +88,7 @@
 | 지도 | 카카오맵 SDK(지도·로드뷰·지오코딩, 키 있으면 기본) · Leaflet + OpenStreetMap(키 없을 때·실패 시) · Google/네이버 (명시 옵션) | 키 없이도 동작 |
 | 360 | Pannellum 2.5.6 (CDN 지연 로드) | 필요할 때만 로드 |
 | 백엔드 | Supabase — Postgres(RLS) · Auth · Storage · Edge Functions(Deno) | 무료 티어, 하이브리드 모드 |
-| AI | Google Gemini 2.5 Flash (폴백 Flash-Lite) | 매물·시장 리포트 사전 생성(구조화 출력), 점검 체크리스트 실시간(Edge Function) |
+| AI | Google Gemini 2.5 Flash (폴백 Flash-Lite) | 시장 리포트 사전 생성(구조화 출력), 매물 리포트 실시간(Edge Function property-report) |
 | 데이터 파이프라인 | Python(수집: 국토부 OpenAPI) · Node.js(집계·번들·리포트 생성) | `scripts/` |
 | 배포 | Vercel 정적 SPA + 빌드 후 정적 페이지 생성기 | `npm run build` = vite build + generate-static-pages |
 | CI | GitHub Actions | Supabase 무료 티어 슬립 방지 핑(주 2회) · 실거래 매일 증분 수집(`daily-trades-refresh`, 로컬 리허설 통과 · 실제 실행 전) |
@@ -112,7 +111,7 @@ React SPA (Vite)  ── src/lib/dataClient.js 가 모드를 결정, 서비스 �
    ├─ 읽기(매물·시세·리포트): 번들 JSON  (+ 하이브리드: Supabase 매물 오버레이, 2.5초 타임아웃)
    ├─ 인증·쓰기(가입·등록·신청·승인): 로컬 = localStorage  /  하이브리드 = Supabase
    ├─ Storage: 신청 서류 · 매물 사진 · 360 파노라마
-   └─ Edge Function: inspection-report (사진 → Gemini → property_inspections)
+   └─ Edge Function: property-report (가격·생활권·비교 매물 → Gemini → property_reports)
    ▼
 Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.txt
 ```
@@ -148,10 +147,10 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | 항목 | 값 |
 |---|---|
 | Supabase 프로젝트 | `geupmae` (ref `oormfipegcfbhvctikfl`, ap-northeast-2). 구 프로젝트 `geupmae-platform`(다른 실험 공유), `cheongyak-platform`(일시정지) |
-| 적용된 마이그레이션 | 기본 스키마 7개 + `property_3d_bucket` + `property_inspections` (2026-09-28) |
-| 테이블 | properties · profiles · agent_applications · complex_prices · complex_trades(신규, 적재 대기) · complex_alerts(신규) · price_trends · market_snapshots · property_reports · ai_market_reports · property_inspections |
+| 적용된 마이그레이션 | 기본 스키마 7개 + `property_3d_bucket` + `property_inspections` (2026-09-28, 2026-10-07 에 drop) |
+| 테이블 | properties · profiles · agent_applications · complex_prices · complex_trades(신규, 적재 대기) · complex_alerts(신규) · price_trends · market_snapshots · property_reports · ai_market_reports |
 | Storage 버킷 | agent-application-documents · property-photos · property-360 — 라이브 적용됨. property-3d 는 기능 제거로 미사용 |
-| Edge Function | inspection-report (ACTIVE, JWT 검증, 시크릿 `GEMINI_API_KEY`) |
+| Edge Function | property-report (ACTIVE, 함수 안에서 역할 확인 — 익명 호출 허용, 시크릿 `GEMINI_API_KEY`). inspection-report 는 2026-10-07 폐기(AI 점검 체크리스트 기능 제거) |
 | Vercel | guepmae.vercel.app · 모든 경로 → index.html rewrite(실제 파일 우선) |
 | GitHub Actions | keep-supabase-awake (월·목) |
 

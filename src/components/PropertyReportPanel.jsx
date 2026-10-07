@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, AlertTriangle, Printer, Sparkles } from 'lucide-react';
-import { fetchPropertyReport, regeneratePropertyReport } from '../services/propertyReports.js';
+import { CheckCircle2, AlertTriangle, Printer, RefreshCw, Sparkles } from 'lucide-react';
+import { useAuth } from '../context/AuthContext.jsx';
+import { canGenerateReport, fetchPropertyReport, generatePropertyReport } from '../services/propertyReports.js';
 import { formatPrice } from '../utils/priceUtils.js';
 
 // document.write 로 들어가는 사용자 입력(매물 타이틀) 이스케이프
@@ -17,8 +18,14 @@ function GradePill({ grade, score }) {
 }
 
 function PropertyReportPanel({ property }) {
+  const { profile, isAdmin } = useAuth();
   const [state, setState] = useState({ loading: true, report: null, error: null, generating: false });
+  const [reloadKey, setReloadKey] = useState(0); // 생성 요청 후 폴링을 다시 시작할 때 올린다
   const reportRef = useRef(null);
+
+  // 다시 생성은 담당 중개사(자기 매물)·운영진만 — Edge Function 도 같은 규칙으로 막는다
+  const isOwnListing = profile?.role === 'agent' && Boolean(profile?.email) && property.agent?.email === profile.email;
+  const canRegenerate = canGenerateReport && (isAdmin || isOwnListing);
 
   // 인쇄/PDF — 모달 안이라 CSS 격리가 깨지므로, 새 창에 리포트만 복제해 인쇄
   const handlePrint = () => {
@@ -41,7 +48,7 @@ function PropertyReportPanel({ property }) {
     win.document.write(
       `<!doctype html><html lang="ko"><head><meta charset="utf-8">`
       + `<title>${escapeHtml(property.title)} — AI 매물 리포트</title>${cssLinks}${inlineStyles}`
-      + `<style>body{margin:0;padding:24px;background:#fff;}.report-print-button{display:none!important;}</style>`
+      + `<style>body{margin:0;padding:24px;background:#fff;}.report-print-button,.report-regenerate-button{display:none!important;}</style>`
       // 스타일 로드 후 인쇄, 인쇄/취소(afterprint) 시 새 창 자동 닫기
       + `<script>window.onafterprint=function(){window.close();};`
       + `window.onload=function(){setTimeout(function(){window.print();},400);};<\/script>`
@@ -79,12 +86,17 @@ function PropertyReportPanel({ property }) {
       active = false;
       if (timer) clearTimeout(timer);
     };
-  }, [property.id]);
+  }, [property.id, reloadKey]);
 
-  const handleRegenerate = async () => {
+  const handleGenerate = async ({ force = false } = {}) => {
     setState((s) => ({ ...s, generating: true, error: null }));
     try {
-      const fresh = await regeneratePropertyReport(property.id);
+      const fresh = await generatePropertyReport(property.id, { force });
+      if (fresh?.generating) {
+        // 다른 요청이 먼저 생성 중 — 폴링으로 완료를 기다린다
+        setReloadKey((k) => k + 1);
+        return;
+      }
       setState({ loading: false, report: fresh, error: null, generating: false });
     } catch (err) {
       setState((s) => ({ ...s, generating: false, error: err.message }));
@@ -110,13 +122,22 @@ function PropertyReportPanel({ property }) {
     );
   }
 
-  // 리포트가 없는 것은 오류가 아니다 — 대표 매물에 한해 사전 생성해 번들하므로 대부분의 매물은 없다.
+  // 리포트가 없는 것은 오류가 아니다 — 처음 보는 사람이 버튼을 눌러 만든다 (매물당 1회, 이후는 캐시).
   if (!state.error && !state.report) {
     return (
       <div className="property-report loading">
         <Sparkles size={28} />
-        <p>이 매물의 AI 리포트는 아직 준비되지 않았습니다.</p>
-        <small>AI 매물 리포트는 대표 매물에 한해 미리 생성해 제공합니다. 가격 검증 근거는 가격 리포트에서 확인할 수 있습니다.</small>
+        <p>이 매물의 AI 리포트는 아직 만들어지지 않았습니다.</p>
+        {canGenerateReport ? (
+          <>
+            <small>국토부 실거래가·생활권·같은 지역 비교 매물을 바탕으로 AI 가 5개 파트 분석을 작성합니다 (10~20초).</small>
+            <button type="button" className="report-action-button" onClick={() => handleGenerate()}>
+              <Sparkles size={15} /> AI 리포트 만들기
+            </button>
+          </>
+        ) : (
+          <small>로컬 데모 모드에서는 미리 생성한 대표 매물 리포트만 제공합니다. 가격 검증 근거는 가격 리포트에서 확인할 수 있습니다.</small>
+        )}
       </div>
     );
   }
@@ -125,11 +146,13 @@ function PropertyReportPanel({ property }) {
     return (
       <div className="property-report error">
         <AlertTriangle size={28} />
-        <p>리포트를 불러오지 못했습니다.</p>
+        <p>리포트를 만들지 못했습니다.</p>
         {state.error && <small>{state.error}</small>}
-        <button type="button" className="report-action-button" onClick={handleRegenerate} disabled={state.generating}>
-          {state.generating ? '재시도 중...' : '다시 시도'}
-        </button>
+        {canGenerateReport && (
+          <button type="button" className="report-action-button" onClick={() => handleGenerate()} disabled={state.generating}>
+            {state.generating ? '재시도 중...' : '다시 시도'}
+          </button>
+        )}
       </div>
     );
   }
@@ -309,9 +332,21 @@ function PropertyReportPanel({ property }) {
           이 리포트는 AI가 생성한 보조 분석으로, 실제 매수 의사결정 전 반드시 직접 확인이 필요합니다.
           {' · '}생성일: {new Date(state.report.generated_at).toLocaleString('ko-KR')}
         </small>
-        <button type="button" className="report-print-button" onClick={handlePrint}>
-          <Printer size={15} /> 인쇄 · PDF 저장
-        </button>
+        <div className="report-footer-actions">
+          {canRegenerate && (
+            <button
+              type="button"
+              className="report-print-button report-regenerate-button"
+              onClick={() => handleGenerate({ force: true })}
+              title="최신 실거래 데이터·수정된 매물 정보로 리포트를 새로 작성합니다"
+            >
+              <RefreshCw size={15} /> 다시 생성
+            </button>
+          )}
+          <button type="button" className="report-print-button" onClick={handlePrint}>
+            <Printer size={15} /> 인쇄 · PDF 저장
+          </button>
+        </div>
       </footer>
     </div>
   );

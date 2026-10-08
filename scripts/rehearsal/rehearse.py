@@ -1,16 +1,19 @@
 #!/usr/bin/env python
-# 자동 수집 워크플로 리허설 — .github/workflows/daily-trades-refresh.yml 의 run 단계를
+# 자동 수집 워크플로 리허설 — .github/workflows/trades-bootstrap.yml(전체 수집)과
+# daily-trades-refresh.yml(매일 증분)의 run 단계를
 # 실제 키·실제 API·실제 Supabase·실제 원격 저장소 없이 처음부터 끝까지 돌려 본다.
 #
 #   국토부 API   → pysite/sitecustomize.py (urllib 가로채기)
 #   Supabase     → fake-supabase.mjs (Storage·PostgREST 흉내, 메모리)
 #   원격 저장소   → 임시 폴더의 bare git 저장소
-#   실거래 원본   → gen-base.mjs 가 번들을 본떠 만든 가짜 CSV
+#   실거래 원본   → gen-base.mjs 가 번들을 본떠 만든 가짜 CSV ("API 가 알고 있는 거래")
+#   아티팩트      → 임시 폴더 (upload-artifact / download-artifact 흉내)
+#   gh CLI       → 호출 인자만 기록하는 가짜 gh
 #
 # 사용 (Windows 는 Git Bash 에서):  python scripts/rehearsal/rehearse.py [--keep] [--verbose]
 # 필요: Python 3 + PyYAML(pip install pyyaml) · Node · git · bash
 # 확인하지 못하는 것: uses 단계(checkout·setup-*), npm ci, 실제 러너(Ubuntu), 실제 API·Supabase 의 응답.
-import argparse, io, json, os, re, shutil, stat, subprocess, sys, tempfile, time, urllib.request
+import argparse, io, json, os, re, shlex, shutil, stat, subprocess, sys, tempfile, time, urllib.request
 
 import yaml
 
@@ -20,6 +23,7 @@ except Exception: pass
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 WORKFLOW = ".github/workflows/daily-trades-refresh.yml"
+BOOTSTRAP = ".github/workflows/trades-bootstrap.yml"
 KEY = "rehearsal-service-key"
 AGENT_ID = "gm-agent000001"
 fwd = lambda p: os.path.abspath(p).replace("\\", "/")
@@ -55,7 +59,8 @@ def find_bash():
 
 
 def render(expr, ctx):
-    """job env 의 ${{ a || 'b' }} — secrets.X, vars.X, github.event_name, github.event.inputs.X, 문자열 리터럴만."""
+    """env·with 의 ${{ a || 'b' }} — secrets.X, vars.X, matrix.X, github.event_name, github.event.inputs.X,
+    github.token, 문자열 리터럴만."""
     def value(token):
         token = token.strip()
         if token.startswith("'") and token.endswith("'"):
@@ -64,6 +69,10 @@ def render(expr, ctx):
             return ctx["secrets"].get(token[8:], "")
         if token.startswith("vars."):
             return ctx["vars"].get(token[5:], "")
+        if token.startswith("matrix."):
+            return str(ctx["matrix"].get(token[7:], ""))
+        if token == "github.token":
+            return "rehearsal-github-token"
         if token == "github.event_name":
             return "workflow_dispatch" if ctx["event"] == "dispatch" else ctx["event"]
         if token.startswith("github.event.inputs."):
@@ -113,8 +122,11 @@ class Run:
         raise KeyError(fragment)
 
 
-def run_workflow(repo, temp, *, event, inputs, secrets, variables, extra_env, skip=("의존성 설치",), verbose=False):
-    wf = yaml.safe_load(io.open(os.path.join(repo, WORKFLOW), encoding="utf-8"))
+def run_workflow(repo, temp, *, event, inputs, secrets, variables, extra_env, workflow=WORKFLOW, job_name=None,
+                 matrix=None, uses_hooks=None, skip=("의존성 설치",), verbose=False):
+    """job 하나를 돌린다. job_name 이 없으면 첫 job. matrix 는 그 job 의 행렬 한 칸.
+    uses_hooks: {"actions/upload-artifact": fn(with_dict, env) -> bool} — 흉내 낼 액션 (나머지 uses 는 성공으로 친다)."""
+    wf = yaml.safe_load(io.open(os.path.join(repo, workflow), encoding="utf-8"))
     triggers = wf.get(True, wf.get("on"))  # PyYAML 은 on: 을 True 로 읽는다
     resolved = {}
     if event == "dispatch":
@@ -122,8 +134,8 @@ def run_workflow(repo, temp, *, event, inputs, secrets, variables, extra_env, sk
             default = spec.get("default", "")
             resolved[name] = str(default).lower() if isinstance(default, bool) else str(default)
         resolved.update(inputs)
-    ctx = {"secrets": secrets, "inputs": resolved, "vars": variables, "event": event}
-    job = next(iter(wf["jobs"].values()))
+    ctx = {"secrets": secrets, "inputs": resolved, "vars": variables, "event": event, "matrix": matrix or {}}
+    job = wf["jobs"][job_name] if job_name else next(iter(wf["jobs"].values()))
 
     remove_tree(temp)
     os.makedirs(temp)
@@ -134,10 +146,13 @@ def run_workflow(repo, temp, *, event, inputs, secrets, variables, extra_env, sk
         git_root = os.path.dirname(os.path.dirname(bash))
         path_head += [os.path.join(git_root, "usr", "bin"), os.path.join(git_root, "mingw64", "bin")]
     env["PATH"] = os.pathsep.join(path_head + [env.get("PATH", "")])
+    env.update({k: render(v, ctx) for k, v in (wf.get("env") or {}).items()})
     env.update({k: render(v, ctx) for k, v in (job.get("env") or {}).items()})
     env.update({"RUNNER_TEMP": fwd(temp), "GITHUB_REF_NAME": "main",
                 "GITHUB_STEP_SUMMARY": fwd(os.path.join(temp, "summary.md")), "CI": "true"})
-    env.update(extra_env)
+    env.update({k: v for k, v in extra_env.items() if k != "PATH_PREPEND"})
+    if extra_env.get("PATH_PREPEND"):
+        env["PATH"] = extra_env["PATH_PREPEND"] + os.pathsep + env["PATH"]
     open(env["GITHUB_STEP_SUMMARY"], "w").close()
 
     run, steps, failed = Run(), {}, False
@@ -146,7 +161,12 @@ def run_workflow(repo, temp, *, event, inputs, secrets, variables, extra_env, sk
         sid = step.get("id")
         conclusion, outputs = "skipped", {}
         if evaluate(step.get("if"), steps, env, failed):
-            if "uses" in step or any(s in name for s in skip):
+            hook = next((fn for prefix, fn in (uses_hooks or {}).items() if str(step.get("uses", "")).startswith(prefix)), None)
+            if hook:
+                ok = hook({k: render(v, ctx) for k, v in (step.get("with") or {}).items()}, env)
+                conclusion = "success" if ok else "failure"
+                failed = failed or not ok
+            elif "uses" in step or any(s in name for s in skip):
                 conclusion = "success"  # 리허설에서는 하지 않는다
             else:
                 out_path = os.path.join(temp, f"output-{index}.txt")
@@ -154,8 +174,9 @@ def run_workflow(repo, temp, *, event, inputs, secrets, variables, extra_env, sk
                 script = os.path.join(temp, f"step-{index}.sh")
                 with io.open(script, "w", encoding="utf-8", newline="\n") as f:
                     f.write(step["run"])
+                step_env = {k: render(v, ctx) for k, v in (step.get("env") or {}).items()}
                 proc = subprocess.run([bash, "-e", fwd(script)], cwd=repo,
-                                      env=dict(env, GITHUB_OUTPUT=fwd(out_path)),
+                                      env=dict(env, GITHUB_OUTPUT=fwd(out_path), **step_env),
                                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
                 text = proc.stdout.decode("utf-8", "replace")
                 run.log += f"\n▶ {name}\n{text}"
@@ -249,7 +270,6 @@ def setup(work):
     git(sim, "remote", "add", "origin", fwd(origin))
     git(sim, "push", "-q", "origin", "main")
     print("  " + sh(["node", os.path.join(HERE, "gen-base.mjs"), sim, os.path.join(work, "truth")], REPO).strip())
-    sh(["node", os.path.join(HERE, "gen-base.mjs"), sim, os.path.join(work, "truth-flat"), "--flatten", "0.3"], REPO)
     return origin, sim
 
 
@@ -264,13 +284,48 @@ def clean_runner(sim):
     git(sim, "clean", "-qfd", "--", "public")
 
 
-def bootstrap(sim, truth, server):
-    """데스크톱에서 하는 일: 원본 CSV 를 버킷에 올린다."""
-    data = os.path.join(sim, "scripts", "data")
-    remove_tree(data)
-    shutil.copytree(truth, data)
-    env = dict(os.environ, SUPABASE_URL=server.url, SUPABASE_SERVICE_ROLE_KEY=KEY)
-    sh(["node", "scripts/pipeline-data-sync.mjs", "upload"], sim, env=env)
+def run_bootstrap(run_job, sim, work, *, inputs=None, fetch_mode=None):
+    """trades-bootstrap.yml 의 세 job(점검 → 시도별 수집 → 원본 저장)을 GitHub 처럼 이어서 돌린다.
+
+    수집 job 은 러너마다 빈 디스크에서 시작하고, 결과 CSV 는 아티팩트 폴더로만 넘어간다.
+    fetch_mode: {시도: 가짜 API 모드} — 그 시도의 수집 job 만 장애 상황으로 돌린다.
+    반환: {"plan": Run, "fetch": {시도: Run}, "save": Run | None, "matrix": [...]}"""
+    artifacts = os.path.join(work, "artifacts")
+    remove_tree(artifacts)
+    os.makedirs(artifacts)
+
+    def upload(with_, env):
+        src = os.path.join(sim, with_["path"])
+        if not os.path.isfile(src):
+            return with_.get("if-no-files-found") != "error"
+        dst = os.path.join(artifacts, with_["name"])
+        os.makedirs(dst, exist_ok=True)
+        shutil.copyfile(src, os.path.join(dst, os.path.basename(src)))
+        return True
+
+    def download(with_, env):
+        dest = os.path.join(sim, with_["path"])
+        os.makedirs(dest, exist_ok=True)
+        prefix = with_["pattern"].rstrip("*")
+        for name in sorted(os.listdir(artifacts)):
+            if name.startswith(prefix):
+                for f in os.listdir(os.path.join(artifacts, name)):
+                    shutil.copyfile(os.path.join(artifacts, name, f), os.path.join(dest, f))
+        return True
+
+    hooks = {"actions/upload-artifact": upload, "actions/download-artifact": download}
+    out = {"plan": None, "fetch": {}, "save": None, "matrix": []}
+    plan = run_job("plan", inputs=inputs, hooks=hooks)
+    out["plan"] = plan
+    if plan.job != "success":
+        return out
+    out["matrix"] = json.loads(plan.outputs["matrix"]["matrix"])
+    for cell in out["matrix"]:
+        mode = (fetch_mode or {}).get(cell["sido"], "normal")
+        out["fetch"][cell["sido"]] = run_job("fetch", inputs=inputs, matrix=cell, hooks=hooks, mode=mode, quiet=True)
+    if all(r.job == "success" for r in out["fetch"].values()):
+        out["save"] = run_job("save", inputs=inputs, hooks=hooks)
+    return out
 
 
 # ───────────────────────── 시나리오 ─────────────────────────
@@ -287,57 +342,88 @@ def main():
     server = FakeSupabase(work)
     secrets = {"MOLIT_API_KEY": "rehearsal+molit/key==", "SUPABASE_URL": server.url, "SUPABASE_SERVICE_ROLE_KEY": KEY}
     calls_log = os.path.join(work, "molit-calls.txt")
+    gh_log = os.path.join(work, "gh-calls.txt")
+    fake_bin = os.path.join(work, "bin")
+    os.makedirs(fake_bin)
+    with io.open(os.path.join(fake_bin, "gh"), "w", encoding="utf-8", newline="\n") as f:
+        f.write('#!/usr/bin/env bash\nprintf "%s\\n" "$*" >> "$FAKE_GH_LOG"\n')
+    os.chmod(os.path.join(fake_bin, "gh"), 0o755)
     results = []
 
     def check(scenario, name, passed, detail=""):
         results.append((scenario, name, bool(passed)))
         print(f"    {'✓' if passed else '✗'} {name}" + (f" — {detail}" if detail and not passed else ""))
 
-    def run(title, *, mode="normal", truth="truth", event="schedule", inputs=None, with_secrets=True, enabled=True):
-        print(f"\n{title}")
-        clean_runner(sim)
+    def fresh_logs():
         server.reset_log()
-        if os.path.exists(calls_log):
-            os.remove(calls_log)
+        for path in (calls_log, gh_log):
+            if os.path.exists(path):
+                os.remove(path)
+
+    def execute(*, workflow=WORKFLOW, job_name=None, matrix=None, hooks=None, mode="normal", truth="truth",
+                event="schedule", inputs=None, with_secrets=True, enabled=True, quiet=False, late=True):
+        clean_runner(sim)
         extra = {"PYTHONPATH": fwd(os.path.join(HERE, "pysite")), "FAKE_MOLIT_TRUTH": fwd(os.path.join(work, truth)),
                  "FAKE_MOLIT_CODES": fwd(os.path.join(sim, "scripts", "_sigungu_codes.json")),
-                 "FAKE_MOLIT_MODE": mode, "FAKE_MOLIT_LOG": fwd(calls_log)}
+                 "FAKE_MOLIT_MODE": mode, "FAKE_MOLIT_LOG": fwd(calls_log),
+                 "FAKE_MOLIT_LATE": "1" if late else "0", "FAKE_GH_LOG": fwd(gh_log), "PATH_PREPEND": fake_bin}
         result = run_workflow(sim, os.path.join(work, "rt"), event=event, inputs=inputs or {},
                               secrets=secrets if with_secrets else {},
                               variables={"TRADES_REFRESH_ENABLED": "true"} if enabled else {},
-                              extra_env=extra, verbose=args.verbose)
+                              extra_env=extra, workflow=workflow, job_name=job_name, matrix=matrix,
+                              uses_hooks=hooks, verbose=args.verbose)
         for line in result.log.splitlines():
-            if line.startswith("::"):
+            if line.startswith("::") and not (quiet and result.job == "success"):
                 print("    " + line)
         return result
+
+    def run(title, **kw):
+        print(f"\n{title}")
+        fresh_logs()
+        return execute(**kw)
+
+    def bootstrap_run(title, *, inputs=None, with_secrets=True, fetch_mode=None, mode="normal"):
+        print(f"\n{title}")
+        fresh_logs()
+        merged = {"months": "36", "sidos": "", "publish": "true", **(inputs or {})}
+
+        def run_job(job_name, *, inputs, hooks, matrix=None, mode=mode, quiet=False):
+            return execute(workflow=BOOTSTRAP, job_name=job_name, matrix=matrix, hooks=hooks, mode=mode,
+                           event="dispatch", inputs=inputs, with_secrets=with_secrets, enabled=False, quiet=quiet,
+                           late=False)  # 전체 수집 때는 아직 신고되지 않은 거래 — 뒤의 매일 수집(D)에서 나타난다
+        return run_bootstrap(run_job, sim, work, inputs=merged, fetch_mode=fetch_mode)
+
+    def gh_calls():
+        return io.open(gh_log, encoding="utf-8").read().splitlines() if os.path.exists(gh_log) else []
+
+    def molit_calls():
+        return [l.split("\t") for l in io.open(calls_log, encoding="utf-8").read().splitlines()] if os.path.exists(calls_log) else []
 
     def writes():
         return server.state()["log"]
 
     def seed_db():
-        """가짜 DB 를 운영 중 상태로: 현재 번들의 복제본 + 중개사가 포털에서 등록한 매물 1건."""
+        """가짜 DB 를 운영 중 상태로: 중개사가 포털에서 등록한 매물 1건. 번들 매물(수집 매물)은 없다(2026-10-08 부터)."""
         server.clear("properties")
         bundle = json.load(io.open(os.path.join(sim, "public", "data", "properties.json"), encoding="utf-8"))
-        server.seed("properties", bundle + [{"id": AGENT_ID, "title": "중개사 등록 매물 전용84㎡",
-                                             "region": "서울특별시 강남구", "price": 900000000, "discount_rate": None}])
+        server.seed("properties", [{"id": AGENT_ID, "title": "중개사 등록 매물 전용84㎡",
+                                    "region": "서울특별시 강남구", "price": 900000000, "discount_rate": None}])
         return bundle
 
-    def verify_db(scenario, before):
+    def verify_db(scenario, before, result):
         after = json.load(io.open(os.path.join(sim, "public", "data", "properties.json"), encoding="utf-8"))
-        db = {r["id"]: r for r in server.rows("properties")}
-        kept = {r["id"] for r in after}
-        dropped = [r["id"] for r in before if r["id"] not in kept]
-        print(f"    번들 {len(before)} → {len(after)}건 (탈락 {len(dropped)}) · DB {len(db)}행")
-        check(scenario, "중개사 등록 매물이 남아 있다", AGENT_ID in db)
-        check(scenario, "새 번들의 모든 매물이 DB 에 있다", all(i in db for i in kept))
-        check(scenario, "탈락한 매물은 DB 에서 지워졌다", not any(i in db for i in dropped))
-        check(scenario, "DB 행 수 = 새 번들 + 중개사 매물 1", len(db) == len(after) + 1)
-        check(scenario, "DB 의 판정 근거가 새 번들과 같다",
-              all(db[r["id"]].get("price_basis") == r.get("price_basis") for r in after if r["id"] in db))
+        db = {r["id"] for r in server.rows("properties")}
+        print(f"    번들 매물 {len(before)} → {len(after)}건 · DB {len(db)}행")
+        check(scenario, "번들 매물은 0건 그대로다", before == [] and after == [])
+        check(scenario, "매물 재계산·적재를 건너뛴다", "번들 매물 0건" in result.log, result.log[-800:])
+        check(scenario, "properties 에 아무것도 쓰지 않는다", not any(w["path"].startswith("properties") for w in writes()))
+        check(scenario, "중개사 등록 매물이 남아 있다", db == {AGENT_ID}, str(db))
+        check(scenario, "complex_prices 를 적재한다", any(w["path"].startswith("complex_prices") for w in writes()))
         return after
 
     origin_head = lambda: git(origin, "rev-parse", "main").strip()
     publish = {"dry_run": "false", "publish_bundles": "true"}
+    follow_up = {}
 
     try:
         s = "A"
@@ -356,10 +442,75 @@ def main():
         check(s, "실패하지 않는다", r.job == "success")
         check(s, "수집을 건너뛴다", r.outputs["download"].get("ready") == "false" and r.conclusion("증분 수집") == "skipped")
 
-        print("\n부트스트랩 (데스크톱에서 하는 일: 원본 올리기)")
-        bootstrap(sim, os.path.join(work, "truth"), server)
+        codes = json.load(io.open(os.path.join(sim, "scripts", "_sigungu_codes.json"), encoding="utf-8"))
+        bucket_objects = lambda: [o for o in server.state()["objects"] if o.startswith("pipeline-data/")]
+
+        s = "BA"
+        b = bootstrap_run("BA. 전체 수집 — 시크릿 없음", with_secrets=False)
+        check(s, "점검에서 실패로 멈춘다", b["plan"].job == "failure" and b["plan"].conclusion("시크릿 확인") == "failure")
+        check(s, "API 를 부르지 않고 수집·저장도 하지 않는다", not molit_calls() and not b["fetch"] and b["save"] is None)
+
+        s = "BK"
+        b = bootstrap_run("BK. 전체 수집 — API 키 오류", mode="keyerror")
+        check(s, "시험 호출에서 멈춘다", b["plan"].job == "failure" and b["plan"].conclusion("API 시험 호출") == "failure",
+              b["plan"].log[-600:])
+        check(s, "API 는 시험 호출 1회만", len(molit_calls()) == 1 and not b["fetch"])
+
+        s = "BM"
+        b = bootstrap_run("BM. 전체 수집 — months 입력이 숫자가 아님", inputs={"months": "abc"})
+        check(s, "점검에서 멈춘다", b["plan"].job == "failure" and not molit_calls())
+        b = bootstrap_run("BM2. 전체 수집 — 모르는 시도 이름", inputs={"sidos": "서울"})
+        check(s, "모르는 시도면 수집 전에 멈춘다", b["plan"].job == "failure" and b["plan"].conclusion("시도 목록") == "failure"
+              and not b["fetch"])
+
+        s = "BP"
+        b = bootstrap_run("BP. 세종만 다시 받기 — 그런데 버킷이 비어 있음", inputs={"sidos": "세종특별자치시"})
+        check(s, "세종 job 하나만 돈다", [c["sido"] for c in b["matrix"]] == ["세종특별자치시"]
+              and b["fetch"]["세종특별자치시"].job == "success", str(b["matrix"]))
+        check(s, "17개가 안 돼 저장에서 멈춘다", b["save"] is not None and b["save"].job == "failure"
+              and b["save"].conclusion("시도 17개 확인") == "failure")
+        check(s, "버킷에 아무것도 올리지 않고 매일 수집도 부르지 않는다", not bucket_objects() and not gh_calls())
+
+        s = "BF"
+        b = bootstrap_run("BF. 경기도 수집 중 HTTP 500 (몇 달을 못 받음)", inputs={"sidos": "경기도,세종특별자치시"},
+                          fetch_mode={"경기도": "http500"})
+        check(s, "경기도 job 만 실패한다", b["fetch"]["경기도"].job == "failure" and "못 받은" in b["fetch"]["경기도"].log
+              and b["fetch"]["세종특별자치시"].job == "success", b["fetch"]["경기도"].log[-600:])
+        check(s, "저장 단계를 돌리지 않는다", b["save"] is None and not bucket_objects() and not gh_calls())
+
+        s = "BL"
+        b = bootstrap_run("BL. 서울 수집 중 API 일일 한도", inputs={"sidos": "서울특별시,세종특별자치시"},
+                          fetch_mode={"서울특별시": "limit:50"})
+        check(s, "서울 job 이 한도 안내와 함께 실패한다", b["fetch"]["서울특별시"].job == "failure"
+              and "Re-run failed jobs" in b["fetch"]["서울특별시"].log, b["fetch"]["서울특별시"].log[-600:])
+        check(s, "저장 단계를 돌리지 않는다", b["save"] is None and not bucket_objects())
+
+        s = "BS"
+        b = bootstrap_run("BS. 전체 수집 — 전국 17개 시도 × 36개월")
+        calls = molit_calls()
+        months = sorted({c[1] for c in calls})
+        this_month = time.strftime("%Y%m", time.gmtime())
+        check(s, "시도 17개 job, 큰 시도(경기도)부터", len(b["matrix"]) == 17 and b["matrix"][0]["sido"] == "경기도",
+              str([c["sido"] for c in b["matrix"]][:3]))
+        check(s, "수집 job 이 모두 성공", len(b["fetch"]) == 17 and all(r.job == "success" for r in b["fetch"].values()))
+        check(s, "API 호출 = 시험 1회 + 시군구 수 × 36개월", len(calls) == 1 + len(codes) * 36,
+              f"{len(calls)}회 (기대 {1 + len(codes) * 36})")
+        check(s, "36개월 (이번 달 포함)", len(months) == 36 and months[-1] == this_month, f"{months[:1]}~{months[-1:]}")
+        check(s, "원본 저장 성공", b["save"] is not None and b["save"].job == "success",
+              b["save"].log[-800:] if b["save"] else "")
         meta0 = server.meta()
-        check("부트스트랩", "시도 17개 + 메타가 버킷에 있다", len(server.state()["objects"]) == 18 and len(meta0["perFile"]) == 17)
+        check(s, "시도 17개 + 메타가 버킷에 있다", len(bucket_objects()) == 18 and len(meta0["perFile"]) == 17)
+        with io.open(os.path.join(sim, "scripts", "data", "api_서울특별시.csv"), encoding="cp949") as f:
+            header = f.readline().strip().split(",")
+        check(s, "원본에 거래유형 열이 있다", len(header) == 10 and header[-1] == "거래유형", str(header))
+        gh = gh_calls()
+        check(s, "매일 수집을 한 번 이어서 부른다", len(gh) == 1 and gh[0].startswith("workflow run daily-trades-refresh.yml"), str(gh))
+        follow_up = {}
+        if gh:
+            parts = shlex.split(gh[0])
+            follow_up = dict(parts[i + 1].split("=", 1) for i, t in enumerate(parts) if t == "-f")
+        check(s, "이어서 부를 때 지난달만 다시 받고 적재·번들까지 한다",
+              follow_up == {"months": "1", "dry_run": "false", "publish_bundles": "true"}, str(follow_up))
 
         s = "C"
         r = run("C. 첫 수동 실행 — dry_run 켬 (예약 실행은 아직 꺼 둔 상태)", event="dispatch", enabled=False)
@@ -418,14 +569,12 @@ def main():
         start = git(sim, "rev-parse", "HEAD").strip()
         before = seed_db()
         head0 = origin_head()
-        r = run("F. 번들 갱신 (publish_bundles)", event="dispatch", inputs=publish)
+        r = run("F. 전체 수집이 이어서 부른 매일 수집 (지난달 · 적재 · 번들 갱신)", event="dispatch", inputs=follow_up)
         check(s, "성공", r.job == "success", r.log[-1500:])
-        verify_db(s, before)
+        verify_db(s, before, r)
         changed = git(origin, "show", "--name-only", "--format=%an", "main").split()
         check(s, "봇 커밋 1개가 원격에 올라갔다", origin_head() != head0 and changed[0] == "github-actions[bot]")
         check(s, "커밋은 public/data 만 건드린다", all(f.startswith("public/data/") for f in changed[1:]), str(changed))
-        check(s, "properties 를 통째로 지우지 않는다",
-              not any(w["method"] == "DELETE" and w["path"].startswith("properties?id=neq") for w in writes()))
 
         s = "N"
         before = json.load(io.open(os.path.join(sim, "public", "data", "properties.json"), encoding="utf-8"))
@@ -433,7 +582,7 @@ def main():
         r = run("N. 바로 다시 실행 — 바뀐 것이 없으면 커밋하지 않는다", event="dispatch", inputs=publish)
         check(s, "성공", r.job == "success", r.log[-1500:])
         check(s, "원격 main 그대로", origin_head() == head1)
-        verify_db(s, before)
+        verify_db(s, before, r)
 
         s = "I"
         git(sim, "reset", "-q", "--hard", start)
@@ -450,22 +599,8 @@ def main():
         check(s, "성공", r.job == "success", r.log[-1500:])
         check(s, "다른 곳의 커밋 위에 봇 커밋이 얹힌다", authors == ["github-actions[bot]", "dev"], str(authors))
         check(s, "다른 곳의 변경이 보존된다", "rehearsal change" in git(origin, "show", "main:README.md"))
-        verify_db(s, before)
+        verify_db(s, before, r)
 
-        s = "G"
-        git(sim, "fetch", "-q", "origin")
-        git(sim, "reset", "-q", "--hard", start)
-        git(sim, "push", "-q", "-f", "origin", "main")
-        bootstrap(sim, os.path.join(work, "truth-flat"), server)
-        before = seed_db()
-        head2 = origin_head()
-        r = run("G. 매물 30% 의 실거래가 호가 수준으로 내려옴 → 10% 넘게 탈락", truth="truth-flat",
-                event="dispatch", inputs=publish)
-        db = {row["id"] for row in server.rows("properties")}
-        check(s, "재계산에서 멈춘다", r.job == "failure" and r.conclusion("번들 재생성") == "failure"
-              and "허용치(10%)" in r.log, r.log[-1500:])
-        check(s, "번들을 커밋하지 않는다", r.conclusion("번들 커밋") == "skipped" and origin_head() == head2)
-        check(s, "DB 의 매물이 그대로다", db == {row["id"] for row in before} | {AGENT_ID})
     finally:
         server.stop()
         if args.keep:

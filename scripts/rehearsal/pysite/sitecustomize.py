@@ -6,6 +6,7 @@
 #   FAKE_MOLIT_CODES  scripts/_sigungu_codes.json 경로
 #   FAKE_MOLIT_MODE   normal | outage:<시도명> | limit:<N> | shrink:<시도명> | keyerror | http500
 #   FAKE_MOLIT_LOG    호출 기록 파일 (선택) — 한 줄에 "시군구코드<TAB>계약년월<TAB>쪽"
+#   FAKE_MOLIT_LATE   0 이면 신고 지연분을 아직 돌려주지 않는다 (전체 수집 시점 흉내, 기본 1)
 import csv, io, os, json, hashlib, time, urllib.request, urllib.parse, urllib.error
 
 _TRUTH = os.environ.get("FAKE_MOLIT_TRUTH")
@@ -49,6 +50,8 @@ if _TRUTH:
 
     def _late_reports(base, ymd):
         """신고 지연분 — (구, 월) 의 약 1/3 에 거래 1건이 새로 나타난다 (결정적)."""
+        if os.environ.get("FAKE_MOLIT_LATE", "1") == "0":
+            return []
         h = int(hashlib.md5(f"{base}|{ymd}".encode("utf-8")).hexdigest(), 16)
         if h % 3 != 0:
             return []

@@ -21,9 +21,9 @@ npm install
 | 1 | 0. 자동 테스트·리허설 | 5분 | 없음 |
 | 2 | G. 백테스트 (지금 있는 CSV 로) | 5분 | 원본 CSV |
 | 3 | A. 카카오 키 | 10분 | 카카오 계정 |
-| 4 | B. 실거래 재수집 → 재계산 → 적재 | 밤새(약 11시간) + 다음 날 30분 | MOLIT 키 · service_role 키 |
+| 4 | ~~B. 실거래 재수집 → 재계산 → 적재~~ → **C 의 전체 수집(GitHub Actions)으로 대체 (2026-10-08)** | – | – |
 | 5 | G. 백테스트 한 번 더 (직거래 제외 효과) | 5분 | B 의 결과 |
-| 6 | C. 매일 자동 수집 켜기 | 1시간 (실행 대기 포함) | GitHub 시크릿 · B 의 결과 |
+| 6 | C. GitHub Actions 전체 수집 → 매일 자동 수집 켜기 | 2~3시간 (대부분 대기) | GitHub 시크릿 3개 (어느 기기든 가능) |
 | 7 | H. 라이브에서 눈으로 확인 | 20분 | 중개사·관리자 계정 (어느 기기든 가능) |
 | – | D. 360 실사진 · F. 알림 메일 발송 | 따로 | 카메라 앱 · 메일 서비스 키 |
 
@@ -71,6 +71,10 @@ python scripts/rehearsal/rehearse.py
 ---
 
 ## B. 실거래 재수집 → 새 판정 규칙 반영 (MOLIT_API_KEY · 원본 CSV)
+
+> **2026-10-08: 데스크톱에서 할 필요 없음.** 전체 재수집·집계·적재·번들 커밋은 C 의 GitHub Actions
+> (`trades-bootstrap` → `daily-trades-refresh`)가 한다. 매물은 중개사 포털 직접 등록으로만 채우므로
+> 아래의 매물 재계산·`properties` 적재 단계도 해당 없음(번들 매물 0건). 아래는 수동으로 돌릴 때의 참고 기록이다.
 
 왜: 판정 규칙(직거래 제외·최근 12/24/36개월·층 구간)은 **개별 실거래**가 있어야 돌아간다.
 거래유형(중개/직거래) 열은 2026-09-29 에 수집기에 추가됐고, 기존 CSV 에는 없다 → 전량 재수집.
@@ -142,58 +146,50 @@ git add public/data && git commit -m "chore: 실거래 재수집(거래유형) +
 
 ---
 
-## C. 실거래 매일 증분 수집 자동화 (GitHub Actions)
+## C. 실거래 전체 수집 + 매일 증분 수집 (GitHub Actions — 어느 기기에서든, 노트북을 켜 둘 필요 없음)
 
-워크플로 `.github/workflows/daily-trades-refresh.yml` 과 동기화 스크립트는 작성돼 있다(2026-09-29).
-노트북에서 가짜 API·가짜 Supabase 로 하는 리허설(`python scripts/rehearsal/rehearse.py`)은 통과했다.
-**실제 키·실제 러너로는 아직 한 번도 실행해 보지 않았다** — 아래 순서로 처음 돌리면서 검증한다.
-리허설이 확인하지 못하는 것: `checkout`·`setup-*` 액션, `npm ci`, Ubuntu 러너, 실제 API·Supabase 의 응답.
-B 를 먼저 끝내야 한다(재수집된 CSV 가 부트스트랩 원본).
+워크플로 두 개가 있다.
 
-동작 요약: 매일 03:30(한국) — 원본 CSV 내려받기 → 지난달까지 최근 3개월 다시 수집(신고 지연·해제 반영) → 행 수 점검 → 집계 → `complex_trades` upsert → 원본 올리기.
-이번 달 거래는 받지 않는다(수집기가 공개 지연 때문에 지난달까지만 받는다) — 새 달의 거래는 다음 달 1일부터 들어온다.
-번들 재생성·매물 재계산·커밋은 매일 하지 않는다(매일 3MB 번들을 커밋하면 저장소가 1년에 수백 MB 늘어난다). 수동 실행에서 `publish_bundles` 를 켰을 때만 한다.
-시크릿이나 원본이 없으면 실패하지 않고 안내만 남기고 끝난다.
-**매일 실행은 저장소 변수 `TRADES_REFRESH_ENABLED=true` 를 넣어야 켜진다** — 수동 실행으로 검증하기 전에 예약 실행이 먼저 운영 DB 에 쓰지 않게 하려는 것이다.
+| 워크플로 | 언제 | 하는 일 |
+|---|---|---|
+| `trades-bootstrap` | 처음 한 번 (또는 전량을 다시 받아야 할 때) · 수동 실행만 | 전국 17개 시도 × 36개월을 시도별 job 으로 나눠 동시에 받는다 → 원본을 비공개 버킷(`pipeline-data`)에 올린다 → `daily-trades-refresh` 를 이어서 실행한다 |
+| `daily-trades-refresh` | 매일 03:30(한국) · 수동 실행 가능 | 버킷 원본 내려받기 → 지난달까지 최근 3개월 다시 수집(신고 지연·해제 반영) → 집계 → `complex_trades` upsert → 원본 올리기. 수동 실행에서 `publish_bundles` 를 켜면 번들 재생성 · `complex_prices` 적재 · 번들 커밋까지 |
 
-실패로 끝나는 경우(메일이 온다)와 뜻:
-- `행 수가 줄었습니다` — 전체 또는 한 시도의 행이 직전보다 2% 넘게 줄었다. 아무것도 올리지 않았고 버킷 원본은 그대로다. 다음 날 실행이 정상이면 넘어가도 된다.
-- `모든 시도가 신규 0건입니다` — API 키 만료·전면 장애. 공공데이터포털에서 키 상태를 확인한다.
-- `탈락 N/M건이 허용치(10%)를 넘습니다` — `publish_bundles` 실행에서 매물이 너무 많이 빠진다. 데스크톱에서 B 절차로 미리보기를 보고 판단한다.
+둘 다 가짜 API·가짜 Supabase 로 하는 리허설(`python scripts/rehearsal/rehearse.py`, 확인 73개)을 통과했다.
+**실제 키·실제 러너로는 아직 실행 전이다** — 리허설이 확인하지 못하는 것: `uses` 액션(checkout·setup·아티팩트), `npm ci`, 실제 API·Supabase 응답, GitHub 러너에서 국토부 API 접속.
+번들 매물이 0건이면(포털 직접 등록만 쓰는 지금) 매물 재계산·`properties` 적재는 건너뛴다 — 포털 매물은 DB 에만 있고 건드리지 않는다.
 
-경고(노란색)만 뜨고 성공하는 경우: 일부 시도 신규 0건(그 시도의 기존 이력은 그대로 둔다), API 일일 한도 도달(받은 시도까지만 반영).
-
-- [ ] GitHub → 저장소 → Settings → Secrets and variables → Actions → New repository secret
-  - `MOLIT_API_KEY` — 국토부 디코딩 키
+- [ ] **1. 시크릿 등록** — GitHub → 저장소 → Settings → Secrets and variables → Actions → New repository secret
+  - `MOLIT_API_KEY` — 국토부 **디코딩** 키
   - `SUPABASE_URL` — `https://oormfipegcfbhvctikfl.supabase.co`
   - `SUPABASE_SERVICE_ROLE_KEY` — 적재·원본 보관용 (publishable 키가 아님, 절대 커밋 금지)
-- [ ] 원본 부트스트랩 — 데스크톱의 `scripts/data/api_*.csv` 17개를 비공개 버킷(`pipeline-data`, 라이브에 생성됨)에 올린다
-
-```bash
-node scripts/pipeline-data-sync.mjs upload
-node scripts/pipeline-data-sync.mjs list
-```
-
-  확인: `trades/api_11.csv.gz` … 17개 + `trades/_meta.json`. 시도명은 법정동코드 앞 2자리로 바뀐다(서울 11, 경기 41 …).
-
-- [ ] 첫 실행 — Actions 탭 → daily-trades-refresh → Run workflow → **dry_run 켠 채로** 실행
-  - 로그 확인: `시도 CSV 17 개`, 수집 월 범위, `행 수: 직전 N → 현재 M`(줄지 않아야 함), 집계 3단계 완료, 요약의 단지×면적 행 수
-  - dry_run 에서는 Supabase 적재·원본 올리기를 하지 않는다
-- [ ] 두 번째 실행 — dry_run 끄고 실행 → `complex_trades` upsert 와 원본 올리기 확인
-  - Supabase 대시보드 `complex_trades` 의 `latest_year_month` 최댓값이 지난달인지
-- [ ] (선택) 번들 갱신 — dry_run 끄고 `publish_bundles` 켜서 실행
-  - 매물이 10% 넘게 탈락하면 자동으로 멈춘다(`--max-drop 0.1`). 멈추면 로그의 탈락 사유를 보고 데스크톱에서 B 절차로 수동 진행
-  - 성공하면 `chore(data): …` 커밋이 생긴다. Vercel 에 새 배포가 생겼는지 확인 — 봇이 올린 커밋이라 배포가 안 생기면 Vercel 대시보드에서 Redeploy
-- [ ] 매일 실행 켜기 — 두 번째 실행까지 확인한 뒤: Settings → Secrets and variables → Actions → **Variables** 탭 → New repository variable → `TRADES_REFRESH_ENABLED` = `true`
+- [ ] **2. 전체 수집** — Actions 탭 → `trades-bootstrap` → Run workflow → 기본값 그대로 실행
+  - `점검` job: 시크릿 확인 → API 시험 호출 1회 → 시도 목록. 여기서 실패하면 키(디코딩 키인지·활용 신청 승인)를 확인한다.
+  - `수집` job 17개가 동시에 최대 6개씩 돈다. 경기도가 가장 오래 걸린다(1~3시간 예상).
+  - 한 달이라도 못 받은 시도, API 일일 한도(10,000회)에 걸린 시도는 그 job 만 실패한다.
+    → **다음 날 같은 실행 화면에서 "Re-run failed jobs"** 를 누르면 실패한 시도만 다시 받고 저장까지 이어간다.
+  - `원본 저장` job: 17개를 버킷에 올리고 `daily-trades-refresh` 를 `months=1 · dry_run=false · publish_bundles=true` 로 실행한다.
+- [ ] **3. 이어서 돈 `daily-trades-refresh` 확인** — 전체 수집이 끝난 뒤 자동으로 시작한다
+  - 성공하면 `chore(data): …` 봇 커밋이 main 에 생긴다 → Vercel 새 배포 확인 (안 생기면 Vercel 대시보드에서 Redeploy)
+  - Supabase `complex_trades` 행 수가 수만 행 이상, `latest_year_month` 최댓값이 지난달
+  - 같은 날 API 한도를 이미 거의 썼으면 "일일 한도 도달" 경고(노란색)만 남기고 받은 데까지 반영한다 — 정상
+- [ ] **4. 매일 실행 켜기** — Settings → Secrets and variables → Actions → **Variables** 탭 → `TRADES_REFRESH_ENABLED` = `true`
 - [ ] 며칠 뒤 Actions 탭에서 매일 실행이 초록인지 확인. 경고(노란색) 주석: API 일일 한도·신규 0건 시도
-- [ ] 파이프라인 스크립트나 워크플로를 고쳤으면 푸시 전에 리허설 (Git Bash, 1~2분, PyYAML 필요: `pip install pyyaml`)
+- [ ] 파이프라인 스크립트나 워크플로를 고쳤으면 푸시 전에 리허설 (2~3분, PyYAML 필요: `pip install pyyaml`)
 
 ```bash
 python scripts/rehearsal/rehearse.py
 ```
 
-알려진 제약: 1회 실행은 수집 762회 호출(254 시군구 × 3개월) + 집계로 20~30분 예상. 국토부 API 일 한도 10,000회 안.
-비용: 저장소가 공개(public)라 Actions 실행 시간은 무료·무제한이다. 비공개로 바꾸면 무료 한도(월 2,000분) 중 600~900분을 쓴다.
+특정 시도만 다시 받기(예: 광주·전남 API 장애가 풀린 뒤): `trades-bootstrap` 의 `sidos` 에 `광주광역시,전라남도`. 나머지 시도는 버킷의 원본을 그대로 쓴다.
+
+`daily-trades-refresh` 가 실패로 끝나는 경우(메일이 온다)와 뜻:
+- `행 수가 줄었습니다` — 전체 또는 한 시도의 행이 직전보다 2% 넘게 줄었다. 아무것도 올리지 않았고 버킷 원본은 그대로다. 다음 날 실행이 정상이면 넘어가도 된다.
+- `모든 시도가 신규 0건입니다` — API 키 만료·전면 장애. 공공데이터포털에서 키 상태를 확인한다.
+- `버킷에 원본이 없습니다`(안내) — 아직 `trades-bootstrap` 을 돌리지 않았다.
+
+알려진 제약: 전체 수집은 API 약 9,150회(254 시군구 × 36개월) — 일 한도 10,000회 안이지만 같은 날 다른 호출이 있으면 넘칠 수 있다. 매일 수집은 762회(× 3개월).
+비용: 저장소가 공개(public)라 Actions 실행 시간은 무료·무제한이다.
 공개 저장소는 실행 로그도 공개된다 — 시크릿 값은 GitHub 이 가려 주지만, 스크립트에 키나 요청 URL 을 출력하는 코드를 넣지 않는다.
 
 ---

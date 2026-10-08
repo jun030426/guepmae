@@ -77,7 +77,7 @@
 | 운영 | 관리자: 중개사 승인/거부, 매물 검증/취소, 회원 정지 | 완료 | 역할 4단계 user·agent·admin·owner (seller 는 2026-10-06 정리 — `20261006000000_remove_seller_role.sql`). 운영 관리 화면은 `/agent/admin` 하나 (`/admin` 은 이동) |
 | | 파일럿 지표 패널 | 완료 (2026-09-29) | 등록 매물 · 알림 신청 · 문의 전환율 · 유료 의향. 기간(7·30·90일·전체), 중개사별·매물별 표, CSV. 조회·문의는 방문자 식별 없이 일별 합계만. 라이브 DB 적용됨. 설계: `docs/superpowers/specs/2026-09-29-pilot-metrics-design.md` |
 | 유입 | 매물별 정적 HTML + sitemap + robots (SEO) | 완료 | 빌드 시 자동 생성, 검색결과 리치 스니펫용 JSON-LD |
-| 데이터 | 실거래 수집·집계·번들 파이프라인 | 완료(수동) | 매일 증분 자동화는 워크플로 작성 완료 · 실제 실행 전 (§12 과제 3) |
+| 데이터 | 실거래 수집·집계·번들 파이프라인 | 완료(자동화 작성) | GitHub Actions 전체 수집(`trades-bootstrap`, 2026-10-08) + 매일 증분(`daily-trades-refresh`). 리허설 통과 · 실제 실행 전 (§12 과제 3) |
 | | 판정 규칙 백테스트 | 코드 완료 | `node scripts/backtest-price-basis.mjs` → 요약 문서(Markdown)·JSON. 합성 데이터로 검증, 실데이터 실행은 데스크톱(`docs/DESKTOP_TODO.md` G). 사이트 공개 화면은 결과를 본 뒤 결정 |
 | 수익 | 중개사 멤버십·결제 | 미착수 | 파일럿 이후 |
 
@@ -92,7 +92,7 @@
 | AI | Google Gemini 2.5 Flash (폴백 Flash-Lite) | 매물·시장 리포트 사전 생성(구조화 출력), 점검 체크리스트 실시간(Edge Function) |
 | 데이터 파이프라인 | Python(수집: 국토부 OpenAPI) · Node.js(집계·번들·리포트 생성) | `scripts/` |
 | 배포 | Vercel 정적 SPA + 빌드 후 정적 페이지 생성기 | `npm run build` = vite build + generate-static-pages |
-| CI | GitHub Actions | Supabase 무료 티어 슬립 방지 핑(주 2회) · 실거래 매일 증분 수집(`daily-trades-refresh`, 로컬 리허설 통과 · 실제 실행 전) |
+| CI | GitHub Actions | Supabase 무료 티어 슬립 방지 핑(주 2회) · 실거래 전체 수집(`trades-bootstrap`) · 매일 증분 수집(`daily-trades-refresh`) — 로컬 리허설 통과 · 실제 실행 전 |
 | 테스트 | `node:test`, pytest | 파이프라인·정적 생성기·기준가 재계산 |
 
 ## 7. 아키텍처
@@ -197,7 +197,7 @@ Vercel  ── dist/ + properties/<id>/index.html × 387 + sitemap.xml + robots.
 | 0 | 선행 버그 3건 + 미검증 매물 비노출 정책 — **완료 (2026-09-29)** | 시연이 등록 직후 오류 페이지에서 끊겼음 |
 | 1 | 360 실내 투어 + 로드뷰 1단계 — **구현 완료 (2026-09-29)**. 라이브 반영은 버킷 마이그레이션 적용 + 카카오 키 발급 후 | 사용자 결정 사항 |
 | 2 | 검증 기준 고도화 — **코드 완료 (2026-09-29)**. 데이터 반영은 데스크톱에서 재수집(거래유형)·집계·`complex_trades` 적재·`recompute --all --write` 후 | 사업계획서의 핵심 차별점 |
-| 3 | 실거래 매일 증분 수집 자동화 — 워크플로·동기화 스크립트 **작성 완료 (2026-09-29)**. 가짜 API·가짜 DB 로 하는 로컬 리허설(`scripts/rehearsal/rehearse.py`, 15개 상황)은 통과, **실제 키·실제 러너로는 실행 전**. 시크릿 등록·원본 부트스트랩·첫 수동 실행은 `docs/DESKTOP_TODO.md` C | "매일 증분 수집"을 사실로 |
+| 3 | 실거래 매일 증분 수집 자동화 — 워크플로·동기화 스크립트 **작성 완료 (2026-09-29)**. 2026-10-08 전체 수집 워크플로(`trades-bootstrap`, 시도별 병렬)를 추가해 데스크톱 없이 GitHub 에서 처음부터 받는다. 가짜 API·가짜 DB 로 하는 로컬 리허설(`scripts/rehearsal/rehearse.py`, 확인 73개)은 통과, **실제 키·실제 러너로는 실행 전**. 시크릿 등록·첫 실행 절차는 `docs/DESKTOP_TODO.md` C | "매일 증분 수집"을 사실로 |
 | 4 | 관심 단지 급매 알림 — 구독 저장·관리·지표 **완료 (2026-09-29)**, 발송은 메일 서비스 키 확보 후 | 파일럿 지표 "알림 신청 수"의 전제 |
 | 5 | 360 2단계 — .insp 자동 변환·갈래 편집기 **완료 (2026-09-29)** | 파일럿 이후 |
 | 6 | 판정 규칙 백테스트 — 엔진·리포트 **코드 완료 (2026-09-29)**, 실데이터 실행은 데스크톱(`docs/DESKTOP_TODO.md` G). 결과를 보고 규칙 보완·사이트 공개 여부 결정 | 사업계획서 "판정 로직의 정확도를 먼저 점검" |

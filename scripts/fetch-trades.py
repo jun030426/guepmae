@@ -221,6 +221,7 @@ def fetch_sido(sido, codes_for_sido, months, calls, merge=False, zero_yield=None
             print(f"    ⚠ {sido}: 요청한 {len(months)}개월에서 신규 0건 — 수집 실패 가능성. 기존 이력은 보존됨.")
             if zero_yield is not None:
                 zero_yield.append(sido)
+    os.makedirs(DATA, exist_ok=True)  # 새 러너(GitHub Actions)에는 scripts/data 가 없다 — gitignore 대상
     out_path = os.path.join(DATA, f"api_{sido}.csv")
     with open(out_path, "w", encoding="cp949", errors="replace", newline="") as f:
         w = csv.writer(f); w.writerow(HEADER); w.writerows(rows)

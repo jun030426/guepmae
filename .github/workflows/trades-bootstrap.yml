@@ -1,0 +1,279 @@
+# 실거래 원본 전체 수집 (부트스트랩) — 국토부 아파트 매매 실거래가, 전국 17개 시도 × 최근 N개월(기본 36).
+#
+# 왜: 매일 수집(daily-trades-refresh.yml)은 버킷에 있는 원본에 최근 몇 달만 덧붙인다.
+#     원본이 없으면(처음, 또는 거래유형 열 추가처럼 전량을 다시 받아야 할 때) 이 워크플로로 한 번 전체를 받는다.
+#     데스크톱에서 밤새(약 11시간) 돌리던 일을 시도별 job 으로 나눠 GitHub 러너에서 동시에 돌린다.
+#
+# 수동 실행만 있다: Actions 탭 → trades-bootstrap → Run workflow.
+#
+# 흐름:
+#   점검   시크릿 확인 → API 시험 호출 1회(키·접속) → 시도 목록(행렬) 만들기
+#   수집   시도마다 job 하나 (동시에 최대 6개). 한 달이라도 못 받으면 그 job 은 실패로 끝난다.
+#   저장   버킷의 기존 원본을 받고 → 새로 받은 시도로 덮어쓰고 → 17개가 다 있으면 버킷에 올린다.
+#          publish 를 켜 두면(기본) daily-trades-refresh 를 이어서 실행해 집계·complex_trades 적재·
+#          complex_prices 적재·번들 커밋까지 한다.
+#
+# 실패했을 때:
+#   API 일일 한도(10,000회)에 걸리거나 한 달이라도 못 받은 시도의 job 은 실패로 끝나고, 저장 단계는 돌지 않는다.
+#   다음 날 실행 화면에서 "Re-run failed jobs" 를 누르면 실패한 시도만 다시 받고 저장까지 이어간다
+#   (성공한 시도의 결과는 같은 실행 안에 7일간 남아 있다).
+#
+# 특정 시도만 다시 받기: sidos 에 "광주광역시,전라남도" 처럼 적는다. 나머지 시도는 버킷의 원본을 그대로 쓴다.
+#
+# 필요한 시크릿 (Settings → Secrets and variables → Actions) — daily-trades-refresh 와 같다:
+#   MOLIT_API_KEY · SUPABASE_URL · SUPABASE_SERVICE_ROLE_KEY
+# 공개 저장소라 실행 로그가 공개된다 — 키나 요청 URL 을 출력하지 않는다(GitHub 이 시크릿 값은 가려 준다).
+
+name: trades-bootstrap
+
+on:
+  workflow_dispatch:
+    inputs:
+      months:
+        description: '받을 개월 수 (이번 달 포함, 기본 36)'
+        default: '36'
+      sidos:
+        description: '이 시도만 다시 받기 (쉼표로 구분, 비우면 전국 17개)'
+        default: ''
+      publish:
+        description: '끝나면 daily-trades-refresh 를 이어서 실행 (집계·DB 적재·번들 커밋)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+# 매일 수집과 같은 그룹 — 원본 버킷을 동시에 고치지 않는다. 이어서 부른 매일 수집은 이 실행이 끝난 뒤 시작한다.
+concurrency:
+  group: trades-refresh
+  cancel-in-progress: false
+
+env:
+  MONTHS: ${{ github.event.inputs.months || '36' }}
+  SIDOS: ${{ github.event.inputs.sidos || '' }}
+
+jobs:
+  plan:
+    name: 점검
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+    env:
+      MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: 시크릿 확인
+        run: |
+          missing=""
+          [ -z "$MOLIT_API_KEY" ] && missing="$missing MOLIT_API_KEY"
+          [ -z "$SUPABASE_URL" ] && missing="$missing SUPABASE_URL"
+          [ -z "$SUPABASE_SERVICE_ROLE_KEY" ] && missing="$missing SUPABASE_SERVICE_ROLE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error::시크릿이 없습니다:$missing — Settings → Secrets and variables → Actions 에 등록하세요 (docs/DESKTOP_TODO.md C)"
+            exit 1
+          fi
+          case "$MONTHS" in
+            ''|*[!0-9]*) echo "::error::months 는 숫자여야 합니다: '$MONTHS'"; exit 1 ;;
+          esac
+          if [ "$MONTHS" -lt 1 ] || [ "$MONTHS" -gt 60 ]; then
+            echo "::error::months 는 1~60 사이여야 합니다: $MONTHS"; exit 1
+          fi
+
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: API 시험 호출 (키·접속 확인, 1회)
+        run: |
+          echo "MOLIT_API_KEY=$MOLIT_API_KEY" > .env.local
+          set +e
+          python scripts/fetch-trades.py --probe 2>&1 | tee "$RUNNER_TEMP/probe.log"
+          code=${PIPESTATUS[0]}
+          set -e
+          if [ "$code" -ne 0 ] || ! grep -Eq '^rc=0+ ' "$RUNNER_TEMP/probe.log"; then
+            echo "::error::국토부 API 시험 호출이 실패했습니다 — 키(디코딩 키인지), 활용 신청 승인, 일일 한도를 확인하세요"
+            exit 1
+          fi
+
+      - name: 시도 목록 (큰 시도부터)
+        id: matrix
+        run: |
+          python - <<'PY'
+          import json, os
+          codes = json.load(open("scripts/_sigungu_codes.json", encoding="utf-8"))
+          groups = {}
+          for code, name in codes.items():
+              sido = name.split()[0]
+              g = groups.setdefault(sido, {"sido": sido, "code": code[:2], "sigungu": 0})
+              g["sigungu"] += 1
+          wanted = [s.strip() for s in os.environ.get("SIDOS", "").split(",") if s.strip()]
+          unknown = [s for s in wanted if s not in groups]
+          if unknown:
+              print(f"::error::모르는 시도: {', '.join(unknown)} — 예: {', '.join(sorted(groups)[:3])}")
+              raise SystemExit(1)
+          rows = [groups[s] for s in wanted] if wanted else list(groups.values())
+          rows.sort(key=lambda g: -g["sigungu"])
+          months = int(os.environ["MONTHS"])
+          calls = sum(g["sigungu"] for g in rows) * months
+          print(f"시도 {len(rows)}개 · 시군구 {sum(g['sigungu'] for g in rows)}곳 · {months}개월 → API 약 {calls:,}회 (일 한도 10,000)")
+          if calls > 10000:
+              print(f"::warning::예상 호출 {calls:,}회가 일 한도 10,000회를 넘습니다 — 한도에 걸린 시도는 다음 날 Re-run failed jobs 로 이어받으세요")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+              f.write("matrix=" + json.dumps(rows, ensure_ascii=False) + "\n")
+          PY
+
+  fetch:
+    name: 수집 (${{ matrix.code }} ${{ matrix.sido }})
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        include: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    env:
+      MOLIT_API_KEY: ${{ secrets.MOLIT_API_KEY }}
+      SIDO: ${{ matrix.sido }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 수집
+        run: |
+          echo "MOLIT_API_KEY=$MOLIT_API_KEY" > .env.local
+          set +e
+          python scripts/fetch-trades.py "$SIDO" --months "$MONTHS" 2>&1 | tee "$RUNNER_TEMP/fetch.log"
+          code=${PIPESTATUS[0]}
+          set -e
+          if [ "$code" -eq 2 ]; then
+            echo "::error::국토부 API 일일 한도 도달 — 내일 이 실행 화면에서 'Re-run failed jobs' 를 누르세요"
+            exit 1
+          fi
+          if [ "$code" -ne 0 ]; then
+            echo "::error::수집 실패 (exit $code)"
+            exit 1
+          fi
+          # 수집기는 HTTP 오류·결과코드 오류가 난 달을 건너뛰고 계속한다. 전체 수집에서 빠진 달은
+          # 나중에 채워지지 않으므로 여기서 실패로 끝내고, 이 시도를 다시 받게 한다.
+          # rc=03 은 공공데이터포털의 "데이터 없음"(거래가 없는 달)이라 실패로 보지 않는다.
+          failed=$(grep -E '^    ! .* (HTTP [0-9]+|rc=)' "$RUNNER_TEMP/fetch.log" | grep -Ev ' rc=0?3 ' || true)
+          if [ -n "$failed" ]; then
+            n=$(printf '%s\n' "$failed" | wc -l)
+            echo "::error::$SIDO — 못 받은 (시군구, 월) $n 건. 이 job 을 다시 실행하세요."
+            printf '%s\n' "$failed" | head -20
+            exit 1
+          fi
+
+      - name: 결과 점검
+        run: |
+          python - <<'PY'
+          import csv, os
+          sido = os.environ["SIDO"]
+          path = os.path.join("scripts", "data", f"api_{sido}.csv")
+          with open(path, encoding="cp949", newline="") as f:
+              rows = list(csv.reader(f))
+          header, body = rows[0], rows[1:]
+          if len(header) != 10 or header[-1] != "거래유형":
+              print(f"::error::{sido}: 헤더가 10열(마지막 거래유형)이 아닙니다: {header}")
+              raise SystemExit(1)
+          if not body:
+              print(f"::error::{sido}: 거래가 0건입니다 — API 장애일 수 있습니다. 이 job 을 다시 실행하세요.")
+              raise SystemExit(1)
+          dealing = {}
+          for r in body:
+              dealing[r[9] or "(빈 값)"] = dealing.get(r[9] or "(빈 값)", 0) + 1
+          print(f"{sido}: {len(body):,}건 · 거래유형 {dealing}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trades-${{ matrix.code }}
+          path: scripts/data/api_${{ matrix.sido }}.csv
+          if-no-files-found: error
+          retention-days: 7
+
+  save:
+    name: 원본 저장
+    needs: fetch
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: write   # daily-trades-refresh 를 이어서 실행
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PUBLISH: ${{ github.event.inputs.publish || 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 버킷의 기존 원본 내려받기 (일부 시도만 다시 받은 경우 나머지를 채운다)
+        run: |
+          set +e
+          node scripts/pipeline-data-sync.mjs download
+          code=$?
+          set -e
+          if [ "$code" -eq 3 ]; then
+            echo "버킷이 비어 있습니다 — 이번에 받은 원본만 씁니다"
+          elif [ "$code" -ne 0 ]; then
+            exit "$code"
+          fi
+
+      - name: 이번에 받은 원본 모으기
+        uses: actions/download-artifact@v4
+        with:
+          pattern: trades-*
+          path: scripts/data
+          merge-multiple: true
+
+      - name: 시도 17개 확인
+        run: |
+          count=$(ls scripts/data/api_*.csv 2>/dev/null | wc -l)
+          echo "시도 CSV $count 개"
+          if [ "$count" -lt 17 ]; then
+            echo "::error::시도 CSV 가 17개보다 적습니다($count). 버킷이 비어 있으면 sidos 를 비우고 전국을 받아야 합니다."
+            exit 1
+          fi
+
+      - name: 버킷에 올리기
+        run: |
+          node scripts/pipeline-data-sync.mjs upload
+          node scripts/pipeline-data-sync.mjs list
+
+      - name: 매일 수집 이어서 실행 (집계 · DB 적재 · 번들 커밋)
+        if: env.PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # months=1: 방금 전부 받았으므로 지난달만 다시 확인한다 (일 한도를 아낀다).
+          gh workflow run daily-trades-refresh.yml --ref "$GITHUB_REF_NAME" \
+            -f months=1 -f dry_run=false -f publish_bundles=true
+          echo "daily-trades-refresh 를 실행했습니다 — 이 실행이 끝나면 시작합니다. Actions 탭에서 확인하세요."
+
+      - name: 요약
+        if: always()
+        run: |
+          {
+            echo "### 실거래 원본 전체 수집"
+            echo "- months: $MONTHS / sidos: ${SIDOS:-전국} / publish: $PUBLISH"
+            for f in scripts/data/api_*.csv; do
+              [ -f "$f" ] || continue
+              echo "- $(basename "$f"): $(($(wc -l < "$f") - 1))행"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

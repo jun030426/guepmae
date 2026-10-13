@@ -14,6 +14,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'csv-parse/sync';
+import { prepareMarketSnapshot } from '../src/utils/marketReportModel.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, '..');
@@ -44,6 +45,8 @@ export function buildMarketSnapshots(marketData) {
     top_urgent: marketData.topUrgentComplexes ?? [],
     insights: marketData.marketInsights ?? [],
     metadata: marketData.dataSource ?? {},
+    full_period: marketData.fullPeriod ?? null,
+    home_trend: marketData.monthlyMarketTrend ?? [],
   };
 }
 
@@ -51,21 +54,24 @@ function main() {
   const publicData = path.join(projectRoot, 'public', 'data');
   fs.mkdirSync(publicData, { recursive: true });
 
-  const csvPath = path.join(projectRoot, 'scripts', 'output', 'complex_prices.csv');
-  if (!fs.existsSync(csvPath)) {
-    throw new Error(`${csvPath} 가 없습니다. node scripts/build-complex-prices.mjs 를 먼저 실행하세요.`);
+  if (!process.argv.includes('--market-only')) {
+    const csvPath = path.join(projectRoot, 'scripts', 'output', 'complex_prices.csv');
+    if (!fs.existsSync(csvPath)) {
+      throw new Error(`${csvPath} 가 없습니다. node scripts/build-complex-prices.mjs 를 먼저 실행하세요.`);
+    }
+    const complexRows = topComplexRows(fs.readFileSync(csvPath, 'utf8'));
+    const complexOut = path.join(publicData, 'complex_prices.json');
+    fs.writeFileSync(complexOut, JSON.stringify(complexRows), 'utf8');
+    const minSample = complexRows.length ? complexRows[complexRows.length - 1].sample_size : 0;
+    console.log(`[bundles] complex_prices.json: ${complexRows.length}행 (최소 sample_size ${minSample})`);
   }
-  const complexRows = topComplexRows(fs.readFileSync(csvPath, 'utf8'));
-  const complexOut = path.join(publicData, 'complex_prices.json');
-  fs.writeFileSync(complexOut, JSON.stringify(complexRows), 'utf8');
-  const minSample = complexRows.length ? complexRows[complexRows.length - 1].sample_size : 0;
-  console.log(`[bundles] complex_prices.json: ${complexRows.length}행 (최소 sample_size ${minSample})`);
 
   const marketPath = path.join(projectRoot, 'src', 'data', 'marketData.json');
   if (!fs.existsSync(marketPath)) {
     throw new Error(`${marketPath} 가 없습니다. node scripts/import-trades-csv.mjs 를 먼저 실행하세요.`);
   }
   const snapshots = buildMarketSnapshots(JSON.parse(fs.readFileSync(marketPath, 'utf8')));
+  if (prepareMarketSnapshot(snapshots).metadata.status !== 'ready') throw new Error('집계 검증 실패: 기존 시장 번들을 유지합니다.');
   const snapshotOut = path.join(publicData, 'market_snapshots.json');
   fs.writeFileSync(snapshotOut, JSON.stringify(snapshots), 'utf8');
   const months = snapshots.metadata.months ?? [];

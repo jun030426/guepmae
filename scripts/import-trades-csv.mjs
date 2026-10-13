@@ -7,12 +7,16 @@
  * 실행:
  *   node scripts/import-trades-csv.mjs scripts/data/raw-trades.csv
  *
- * 인자 없이 실행하면 scripts/data/ 폴더에서 첫 번째 .csv 파일을 자동으로 찾습니다.
+ * 인자 없이 실행하면 scripts/data/ 폴더의 모든 .csv 파일을 집계합니다.
+ * --report-input: fetch-report-trades.py로 완전히 수집된 12개월 원본만 사용합니다.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { aggregate, buildComplexLookup } from './lib/marketAggregation.mjs';
+export { aggregate, buildPeerMedians, buildComplexLookup } from './lib/marketAggregation.mjs';
 import iconv from 'iconv-lite';
 import { parse } from 'csv-parse/sync';
 
@@ -24,6 +28,7 @@ const outputDir = path.join(projectRoot, 'src', 'data');
 /* ---------- 1. CSV 파일 위치 결정 (인자 1개 또는 scripts/data/ 의 모든 .csv) ---------- */
 function resolveCsvPaths() {
   const arg = process.argv[2];
+  if (arg === '--report-input') return [path.join(defaultDataDir, 'report', 'trades.csv')];
   if (arg) {
     const resolved = path.resolve(projectRoot, arg);
     if (!fs.existsSync(resolved)) {
@@ -50,14 +55,14 @@ function resolveCsvPaths() {
 
 /* ---------- 2. CP949 → UTF-8 + 메타 헤더 제거 ---------- */
 function readNationalCsv(csvPath) {
-  const buffer = fs.readFileSync(csvPath);
-  // 국토부 기본 다운로드는 CP949. UTF-8로 받은 경우도 fallback 처리.
-  let text;
-  try {
-    text = iconv.decode(buffer, 'cp949');
-  } catch {
-    text = buffer.toString('utf8');
-  }
+  return decodeCsvBody(fs.readFileSync(csvPath));
+}
+
+export function decodeCsvBody(buffer) {
+  // iconv decoding does not throw on UTF-8 input. Detect the Korean header,
+  // otherwise decode the national CSV's CP949 encoding.
+  const utf8 = buffer.toString('utf8');
+  const text = /시군구/.test(utf8) ? utf8 : iconv.decode(buffer, 'cp949');
 
   // 줄 단위로 잘라서 실제 데이터 헤더("NO,"로 시작 또는 "시군구"가 포함된 헤더 행) 위치 찾기
   const lines = text.split(/\r?\n/);
@@ -76,9 +81,10 @@ function readNationalCsv(csvPath) {
 }
 
 /* ---------- 3. CSV 파싱 ---------- */
-function parseRows(csvBody) {
+export function parseRows(csvBody) {
   return parse(csvBody, {
     columns: true,
+    bom: true,
     skip_empty_lines: true,
     trim: true,
     relax_quotes: true,
@@ -113,7 +119,7 @@ function parseArea(raw) {
 function parseYearMonth(raw) {
   if (!raw) return null;
   const cleaned = String(raw).replace(/[^0-9]/g, '');
-  if (cleaned.length === 6) {
+  if ((cleaned.length === 6 || cleaned.length === 8) && /^(0[1-9]|1[0-2])$/.test(cleaned.slice(4, 6))) {
     return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 6)}`;
   }
   return null;
@@ -125,7 +131,7 @@ function getRegionLevel1(sigungu) {
   if (!first) return null;
   // 줄임말로 통일 (서울특별시 → 서울, 경기도 → 경기)
   return first
-    .replace(/특별시$|광역시$|특별자치시$|특별자치도$/, '')
+    .replace(/통합특별시$|특별시$|광역시$|특별자치시$|특별자치도$/, '')
     .replace(/도$/, '')
     .trim();
 }
@@ -139,8 +145,10 @@ function getAreaBucket(area) {
   return '135㎡ 초과';
 }
 
-function normalizeRow(row) {
-  const sigungu = pickColumn(row, ['시군구', '시군구명', '시도']);
+export function normalizeRow(row) {
+  let sigungu = pickColumn(row, ['시군구', '시군구명', '시도']);
+  const legalDong = pickColumn(row, ['법정동', '법정동명', '읍면동']);
+  if (sigungu && legalDong && !sigungu.trim().endsWith(legalDong.trim())) sigungu = `${sigungu.trim()} ${legalDong.trim()}`;
   const dong = pickColumn(row, ['단지명', '아파트', '아파트명']);
   const area = parseArea(pickColumn(row, ['전용면적(㎡)', '전용면적', '면적']));
   const dealAmount = parseDealAmount(pickColumn(row, ['거래금액(만원)', '거래금액', '금액']));
@@ -148,10 +156,17 @@ function normalizeRow(row) {
   const buildYear = Number(pickColumn(row, ['건축년도', '준공년도']) ?? '') || null;
   const floor = pickColumn(row, ['층']) ?? '';
 
-  if (!sigungu || !dong || dealAmount == null) return null;
+  if (!sigungu || !dong || dealAmount == null || dealAmount <= 0 || area == null || area <= 0 || !yearMonth) return null;
+  const cancellation = String(pickColumn(row, ['해제사유발생일', '해제일', 'cdealDay']) ?? '').trim();
+  const cancellationFlag = String(pickColumn(row, ['해제여부', 'cdealType']) ?? '').trim();
+  const canceled = !['', '-', '0', '00000000', '0000-00-00'].includes(cancellation) || /^(Y|O|해제)$/i.test(cancellationFlag);
 
   return {
     region: getRegionLevel1(sigungu),
+    complexCode: pickColumn(row, ['아파트일련번호', '단지코드', 'aptSeq']) ?? null,
+    lot: pickColumn(row, ['번지', '지번', 'jibun']) ?? null,
+    canceled,
+    dealing: pickColumn(row, ['거래유형', 'dealingGbn']) ?? '',
     sigungu: sigungu.trim(),
     complex: dong.trim(),
     area,
@@ -163,285 +178,6 @@ function normalizeRow(row) {
   };
 }
 
-/* ---------- 5. 집계 ---------- */
-function median(numbers) {
-  if (!numbers.length) return null;
-  const sorted = [...numbers].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  if (sorted.length % 2 === 0) return (sorted[mid - 1] + sorted[mid]) / 2;
-  return sorted[mid];
-}
-
-function average(numbers) {
-  if (!numbers.length) return null;
-  return numbers.reduce((sum, value) => sum + value, 0) / numbers.length;
-}
-
-function calculateDiscount(dealAmount, peerMedian) {
-  if (!peerMedian || !dealAmount) return null;
-  return ((peerMedian - dealAmount) / peerMedian) * 100;
-}
-
-function buildPeerMedians(rows) {
-  // 단지 + 면적 bucket 별 median을 peer 기준으로 사용
-  const groups = new Map();
-  rows.forEach((row) => {
-    if (!row) return;
-    const key = `${row.complex}__${row.areaBucket}`;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(row.dealAmount);
-  });
-  const result = new Map();
-  groups.forEach((amounts, key) => {
-    if (amounts.length >= 3) {
-      // 표본이 충분할 때만 peer median 사용 (3건 이상)
-      result.set(key, median(amounts));
-    }
-  });
-  return result;
-}
-
-function aggregate(rows) {
-  const cleanRows = rows.filter(Boolean);
-  const peerMedians = buildPeerMedians(cleanRows);
-  const URGENT_THRESHOLD = 5; // 5% 이상 할인 = 급매
-
-  // 각 거래마다 할인율 계산
-  const enrichedRows = cleanRows.map((row) => {
-    const key = `${row.complex}__${row.areaBucket}`;
-    const peer = peerMedians.get(key);
-    const discount = calculateDiscount(row.dealAmount, peer);
-    return { ...row, peerMedian: peer ?? null, discount };
-  });
-
-  /* 5-1. 시도별 스냅샷 */
-  const regionMap = new Map();
-  enrichedRows.forEach((row) => {
-    if (!row.region) return;
-    if (!regionMap.has(row.region)) {
-      regionMap.set(row.region, {
-        region: row.region,
-        amounts: [],
-        discounts: [],
-        urgentCount: 0,
-        transactionVolume: 0,
-      });
-    }
-    const stat = regionMap.get(row.region);
-    stat.amounts.push(row.dealAmount);
-    stat.transactionVolume += 1;
-    if (row.discount != null) {
-      stat.discounts.push(row.discount);
-      if (row.discount >= URGENT_THRESHOLD) stat.urgentCount += 1;
-    }
-  });
-
-  const regionalSnapshots = Array.from(regionMap.values())
-    .map((stat) => ({
-      region: stat.region,
-      averageDealPrice: Math.round(average(stat.amounts) ?? 0),
-      averageDiscount: stat.discounts.length ? Number(average(stat.discounts).toFixed(1)) : 0,
-      // medianDiscount — 평균은 강남·신축 등 고가 거래 outlier에 끌려가서
-      // 서울 평균 -32.8% 같은 왜곡이 생김. 중앙값은 일반 매물 기준이라
-      // 사용자에게 "평균만 보면 안 됨" 정합을 제공 (UI에서 평균과 같이 표시).
-      medianDiscount: stat.discounts.length ? Number(median(stat.discounts).toFixed(1)) : 0,
-      transactionVolume: stat.transactionVolume,
-      urgentRatio: stat.transactionVolume ? Number((stat.urgentCount / stat.transactionVolume).toFixed(2)) : 0,
-    }))
-    .sort((a, b) => b.transactionVolume - a.transactionVolume);
-
-  /* 5-2. 월별 추이 (한 달 데이터지만 일별로는 너무 잘게 쪼개지므로 yearMonth 단위 합계 1행) */
-  const monthMap = new Map();
-  enrichedRows.forEach((row) => {
-    if (!row.yearMonth) return;
-    if (!monthMap.has(row.yearMonth)) {
-      monthMap.set(row.yearMonth, { yearMonth: row.yearMonth, amounts: [], urgentCount: 0, count: 0, discounts: [] });
-    }
-    const stat = monthMap.get(row.yearMonth);
-    stat.amounts.push(row.dealAmount);
-    stat.count += 1;
-    if (row.discount != null) {
-      stat.discounts.push(row.discount);
-      if (row.discount >= URGENT_THRESHOLD) stat.urgentCount += 1;
-    }
-  });
-  const monthlyMarketTrend = Array.from(monthMap.values())
-    .map((stat) => ({
-      month: stat.yearMonth,
-      averageDealPrice: Math.round(average(stat.amounts) ?? 0),
-      averageDiscount: stat.discounts.length ? Number(average(stat.discounts).toFixed(1)) : 0,
-      urgentCount: stat.urgentCount,
-      transactionVolume: stat.count,
-    }))
-    .sort((a, b) => a.month.localeCompare(b.month));
-
-  /* 5-3. 면적대별 — medianDiscount 와 urgentRatio 도 같이 (regional 과 동일 패턴) */
-  const areaMap = new Map();
-  enrichedRows.forEach((row) => {
-    const bucket = row.areaBucket;
-    if (!areaMap.has(bucket)) areaMap.set(bucket, { bucket, amounts: [], discounts: [], urgentCount: 0 });
-    const stat = areaMap.get(bucket);
-    stat.amounts.push(row.dealAmount);
-    if (row.discount != null) {
-      stat.discounts.push(row.discount);
-      if (row.discount >= URGENT_THRESHOLD) stat.urgentCount += 1;
-    }
-  });
-  const bucketOrder = ['60㎡ 이하', '60–85㎡', '85–102㎡', '102–135㎡', '135㎡ 초과', '미상'];
-  const areaTypeBreakdown = bucketOrder
-    .filter((bucket) => areaMap.has(bucket))
-    .map((bucket) => {
-      const stat = areaMap.get(bucket);
-      return {
-        bucket,
-        averageDealPrice: Math.round(average(stat.amounts) ?? 0),
-        // medianDealPrice — 대형 평형의 초고가 거래(펜트하우스 등) outlier 가 평균을 끌어올리므로
-        // 차트 막대는 중앙값(일반 매물 기준)으로 그림. regional 의 medianDiscount 와 같은 의도.
-        medianDealPrice: Math.round(median(stat.amounts) ?? 0),
-        averageDiscount: stat.discounts.length ? Number(average(stat.discounts).toFixed(1)) : 0,
-        medianDiscount: stat.discounts.length ? Number(median(stat.discounts).toFixed(1)) : 0,
-        transactionVolume: stat.amounts.length,
-        urgentRatio: stat.amounts.length ? Number((stat.urgentCount / stat.amounts.length).toFixed(2)) : 0,
-      };
-    });
-
-  /* 5-4. 급매 집중 단지 Top 10 — 표본 30건 이상 + 급매 거래 비율 높은 순 */
-  const complexMap = new Map();
-  enrichedRows.forEach((row) => {
-    if (!row.complex) return;
-    const key = row.complex;
-    if (!complexMap.has(key)) {
-      complexMap.set(key, {
-        complex: row.complex,
-        region: row.sigungu,
-        amounts: [],
-        urgentCount: 0,
-        sampleSize: 0,
-        discounts: [],
-      });
-    }
-    const stat = complexMap.get(key);
-    stat.amounts.push(row.dealAmount);
-    stat.sampleSize += 1;
-    if (row.discount != null) {
-      stat.discounts.push(row.discount);
-      if (row.discount >= URGENT_THRESHOLD) stat.urgentCount += 1;
-    }
-  });
-  const topUrgentComplexes = Array.from(complexMap.values())
-    .filter((stat) => stat.sampleSize >= 5 && stat.urgentCount >= 1)
-    .map((stat) => ({
-      complex: stat.complex,
-      region: stat.region,
-      dealCount: stat.urgentCount,
-      sampleSize: stat.sampleSize,
-      averageDiscount: stat.discounts.length ? Number(average(stat.discounts).toFixed(1)) : 0,
-      urgentRatio: Number((stat.urgentCount / stat.sampleSize).toFixed(2)),
-    }))
-    .sort((a, b) => b.averageDiscount - a.averageDiscount)
-    .slice(0, 10)
-    .map((item, index) => ({ rank: index + 1, ...item }));
-
-  /* 5-5. 인사이트 카드 — 의미 있는 지표만 */
-  const totalVolume = cleanRows.length;
-  const urgentRows = enrichedRows.filter((row) => row.discount != null && row.discount >= URGENT_THRESHOLD);
-  const overallUrgentCount = urgentRows.length;
-  const urgentAvgDiscount = urgentRows.length ? Number(average(urgentRows.map((row) => row.discount)).toFixed(1)) : 0;
-  const urgentMedianDiscount = urgentRows.length ? Number(median(urgentRows.map((row) => row.discount)).toFixed(1)) : 0;
-  const overallAvgPrice = Math.round(average(cleanRows.map((row) => row.dealAmount)) ?? 0);
-  const urgentRatio = totalVolume ? (overallUrgentCount / totalVolume) * 100 : 0;
-
-  const marketInsights = [
-    {
-      label: '급매 비율',
-      value: `${urgentRatio.toFixed(1)}%`,
-      direction: 'up',
-      delta: `${overallUrgentCount.toLocaleString('ko-KR')}건 / ${totalVolume.toLocaleString('ko-KR')}건`,
-      note: '단지·면적 median 대비 5%↑ 할인',
-    },
-    {
-      label: '급매 평균 할인율',
-      value: `${urgentAvgDiscount.toFixed(1)}%`,
-      direction: 'up',
-      delta: `중앙값 ${urgentMedianDiscount.toFixed(1)}%`,
-      note: '급매 거래만 집계',
-    },
-    {
-      label: '평균 거래가',
-      value: formatKoreanWon(overallAvgPrice),
-      direction: 'up',
-      delta: '전체 거래 단순 평균',
-      note: '단지별 가중 없음',
-    },
-    {
-      label: '집계 거래량',
-      value: `${totalVolume.toLocaleString('ko-KR')}건`,
-      direction: 'up',
-      delta: monthlyMarketTrend[0]?.month ?? '단일 기간',
-      note: '국토부 실거래 데이터',
-    },
-  ];
-
-  return {
-    regionalSnapshots,
-    monthlyMarketTrend,
-    areaTypeBreakdown,
-    topUrgentComplexes,
-    marketInsights,
-    dataSource: {
-      name: '국토교통부 실거래가 공개시스템',
-      endpoint: 'CSV 일괄 다운로드',
-      lastUpdated: new Date().toISOString().slice(0, 10),
-      disclosureLag: '계약일 기준 약 2주 후 공개',
-      totalRows: totalVolume,
-      months: monthlyMarketTrend.map((stat) => stat.month),
-    },
-  };
-}
-
-function formatKoreanWon(amount) {
-  if (!amount) return '—';
-  const eok = Math.floor(amount / 100000000);
-  const man = Math.floor((amount % 100000000) / 10000);
-  if (eok > 0 && man > 0) return `${eok}억 ${man.toLocaleString('ko-KR')}만`;
-  if (eok > 0) return `${eok}억`;
-  if (man > 0) return `${man.toLocaleString('ko-KR')}만`;
-  return `${amount}원`;
-}
-
-/* ---------- 6. complex lookup (매물 등록 검증용 별도 파일) ---------- */
-function buildComplexLookup(rows) {
-  const cleanRows = rows.filter(Boolean);
-  const map = new Map();
-  cleanRows.forEach((row) => {
-    if (!row.complex) return;
-    const key = `${row.complex}__${row.areaBucket}`;
-    if (!map.has(key)) {
-      map.set(key, {
-        complex: row.complex,
-        region: row.sigungu,
-        areaBucket: row.areaBucket,
-        amounts: [],
-        latestYearMonth: row.yearMonth,
-      });
-    }
-    const stat = map.get(key);
-    stat.amounts.push(row.dealAmount);
-    if (row.yearMonth && row.yearMonth > (stat.latestYearMonth ?? '')) {
-      stat.latestYearMonth = row.yearMonth;
-    }
-  });
-  return Array.from(map.values()).map((stat) => ({
-    complex: stat.complex,
-    region: stat.region,
-    areaBucket: stat.areaBucket,
-    sampleSize: stat.amounts.length,
-    medianDealPrice: median(stat.amounts),
-    averageDealPrice: Math.round(average(stat.amounts) ?? 0),
-    latestYearMonth: stat.latestYearMonth,
-  }));
-}
-
 /* ---------- main ---------- */
 async function main() {
   const csvPaths = resolveCsvPaths();
@@ -451,13 +187,22 @@ async function main() {
   for (const csvPath of csvPaths) {
     const csvBody = readNationalCsv(csvPath);
     const rows = parseRows(csvBody);
-    const norm = rows.map(normalizeRow).filter(Boolean);
+    const norm = rows.map(normalizeRow);
     normalizedRows = normalizedRows.concat(norm);
     console.log(`[import] ${path.basename(csvPath)}: ${norm.length.toLocaleString('ko-KR')}건`);
   }
   console.log(`[import] 정규화 완료(전체): ${normalizedRows.length.toLocaleString('ko-KR')}건`);
 
-  const aggregated = aggregate(normalizedRows);
+  let receipt = null;
+  if (process.argv.includes('--report-input')) {
+    receipt = JSON.parse(fs.readFileSync(path.join(defaultDataDir, 'report', 'collection.json'), 'utf8'));
+    const digest = createHash('sha256').update(fs.readFileSync(csvPaths[0])).digest('hex');
+    if (receipt.failures.length || receipt.missingRegionMonths?.length || receipt.sha256 !== digest || receipt.completedPairs !== receipt.expectedPairs || receipt.rows !== normalizedRows.length) {
+      throw new Error('API 수집 완료 기록과 원본이 일치하지 않습니다. 다시 수집하세요.');
+    }
+  }
+  const aggregated = aggregate(normalizedRows, { asOf: receipt?.end });
+  if (receipt) aggregated.dataSource.collection = receipt;
   const complexLookup = buildComplexLookup(normalizedRows);
 
   fs.mkdirSync(outputDir, { recursive: true });
@@ -475,7 +220,8 @@ async function main() {
   });
 }
 
-main().catch((error) => {
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) main().catch((error) => {
   console.error('[import] 실행 실패:', error.message);
   process.exit(1);
 });

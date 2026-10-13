@@ -13,7 +13,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { prepareMarketSnapshot, regionCategories, reportPeriodLabel, MARKET_AGGREGATION_VERSION } from '../src/utils/marketReportModel.js';
 
 const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
@@ -53,7 +54,7 @@ const SYSTEM_PROMPT = `당신은 한국 부동산 시장 데이터를 분석하�
 
 [강조점] 다음 같은 진단이 좋은 인사이트입니다:
 - "어느 지역이 프리미엄 우세(평균 음수)고 어느 지역이 할인 우세(양수)인가"
-- "평균과 중앙값 차이가 큰 지역은 무엇이고 이는 무엇을 의미하는가" (소수 고가 거래가 평균을 흔든 것)
+- "평균과 중앙값 차이가 큰 지역은 무엇인가" (원인은 입력 데이터만으로 단정하지 말 것)
 - "면적대별로 가격·할인이 어떻게 분포하는가"
 - "급매 집중 단지 Top 10 의 공통점·지역 분포"
 - "월별 추이에서 관찰되는 거래량·급매 비율 변화"
@@ -115,84 +116,34 @@ const RESPONSE_SCHEMA = {
 };
 
 // ── 사용자 프롬프트 (옛 buildMarketUserPrompt 이식) ──
-function buildUserPrompt(market) {
-  const md = market.metadata || {};
-  const regional = market.regional || [];
-  const monthly = market.monthly || [];
-  const areaType = market.area_type || [];
-  const topUrgent = market.top_urgent || [];
-  const insights = market.insights || [];
-
-  const regionalLines = regional
-    .map(
-      (r) =>
-        `- ${r.region}: 평균 ${r.averageDiscount}% / 중앙값 ${r.medianDiscount ?? '?'}% / 거래 ${r.transactionVolume?.toLocaleString() ?? '?'}건 / 급매비율 ${r.urgentRatio != null ? (r.urgentRatio * 100).toFixed(0) + '%' : '?'}`,
-    )
-    .join('\n');
-
-  const monthlyLines = monthly
-    .map(
-      (m) =>
-        `- ${m.month}: 거래 ${m.transactionVolume?.toLocaleString() ?? '?'}건 / 급매 ${m.urgentCount?.toLocaleString() ?? '?'}건 / 평균할인 ${m.averageDiscount}%`,
-    )
-    .join('\n');
-
-  const areaLines = areaType
-    .map(
-      (a) =>
-        `- ${a.bucket}: 평균 거래가 ${a.averageDealPrice != null ? (a.averageDealPrice / 100000000).toFixed(2) + '억원' : '?'} / 평균할인 ${a.averageDiscount}% / 거래량 ${a.transactionVolume?.toLocaleString() ?? '?'}건`,
-    )
-    .join('\n');
-
-  const topLines = topUrgent
-    .map(
-      (t) =>
-        `${t.rank}. ${t.complex} (${t.region}): 급매 ${t.dealCount}/${t.sampleSize}건 / 평균할인 ${t.averageDiscount}%`,
-    )
-    .join('\n');
-
-  const insightLines = insights
-    .map((i) => `- ${i.label}: ${i.value} (${i.delta}, ${i.note})`)
-    .join('\n');
-
+export function buildUserPrompt(input) {
+  const market = prepareMarketSnapshot(input);
+  if (market.metadata.status !== 'ready') throw new Error('검증된 새 집계로 시장 스냅샷을 먼저 생성하세요.');
+  const categories = regionCategories(market.regional);
   return `아래 데이터로 3~5개 인사이트 카드를 작성하세요.
+집계 기간: ${reportPeriodLabel(market.metadata)}
+기준 월: ${market.metadata.reportPeriod.end}
+지역 분류: 프리미엄 ${categories.premium.length}곳, 할인 ${categories.discount.length}곳, 중립 ${categories.neutral.length}곳, 표본 부족 ${categories.insufficient.length}곳.
+지역·면적·단지·월별 수치는 모두 같은 집계 기간입니다.
+급매는 같은 지역·단지·정확한 전용면적의 기간 내 거래가 중앙값보다 5% 이상 낮은 과거 거래입니다.
+비교 표본은 3건 이상, 대상 거래 포함, 층수 미보정입니다. 매물별 가격 판정과 다릅니다.
+급매 비율의 분모는 판정 불가 거래를 포함한 전체 집계 거래입니다. 표본 부족 거래의 할인율은 null이며 0%가 아닙니다.
+순위는 전체 거래 표본 10건 이상인 단지에 한정합니다. 제공된 순위와 지역 분류를 그대로 사용하세요.
+해제·직거래는 제외됩니다. 거래유형 미상 건수와 단지 식별정보 대체 건수는 metadata에 있습니다.
+신고 지연과 해제 신고로 모든 월의 수치가 변할 수 있습니다. 마지막 월을 임의로 부분월이라고 단정하지 마세요.
+평균과 중앙값의 차이만으로 고가 거래, 상승세, 이상 거래 등 원인을 단정하지 마세요.
+미래 예측·매수 권유·외부 지식 금지. 숫자는 데이터에서 직접 인용하고 dataAsOf는 기준 월을 그대로 쓰세요.
+${JSON.stringify({ metadata: market.metadata, regional: market.regional, monthly: market.monthly,
+    area_type: market.area_type, top_urgent: market.top_urgent, insights: market.insights })}`;
+}
 
-## 📅 데이터 기준
-- 기준 월(데이터가 덮는 마지막 월): ${md.months?.[md.months.length - 1] || '미상'}
-- 갱신일(수집 실행일, 분석 기준이 아님): ${md.lastUpdated || '미상'}
-- 출처: ${md.name || '미상'}
-- 총 거래 표본: ${md.totalRows?.toLocaleString() || '?'}건
-- 집계 기간: ${md.months?.[0] || '?'} ~ ${md.months?.[md.months.length - 1] || '?'} (${md.months?.length || '?'}개월)
-- 공시 지연: ${md.disclosureLag || '미상'}
-
-## 🗺️ 17개 시도 평균/중앙값 (음수 = 또래 시세보다 비싸게 거래 = 프리미엄, 양수 = 할인)
-${regionalLines}
-
-## 📈 ${md.months?.length ?? '?'}개월 월별 추이
-${monthlyLines}
-
-## 📐 면적대별
-${areaLines}
-
-## 🏘️ 급매 집중 단지 Top 10
-${topLines}
-
-## 💡 시장 종합 인사이트 (이미 계산된 값 — 참고용)
-${insightLines}
-
-규칙 (재강조):
-- 위 데이터만 사용. 외부 지식/뉴스/예측 금지.
-- **미래 가격 단정 절대 금지** ("오를"·"내릴"·"전망"·"예상" 등). 과거 패턴만 서술.
-- **매수·투자 권유 절대 금지** ("사세요"·"기회"·"추천" 등). 사실 기술만.
-- 숫자는 위에서 정확히 인용. 새 수치 만들지 말 것.
-- dataAsOf 에는 갱신일이 아니라 데이터가 덮는 마지막 월(${md.months?.[md.months.length - 1] || '미상'})을 쓸 것.
-
-좋은 인사이트는 다음 같은 진단:
-- "서울 평균 -32.8% vs 중앙값 -1.1%"의 의미 (소수 고가 거래가 평균을 흔든 것, 일반 매물은 거의 시세대로)
-- 프리미엄 우세 지역 vs 할인 우세 지역의 분포 패턴
-- 면적대별 가격·할인 차이 (소형 vs 대형)
-- Top 10 단지의 지역적 분포·공통점
-- 월별 거래량·급매 추이의 관찰된 변화`;
+export function buildReportRow(report, input, model, generatedAt = new Date().toISOString()) {
+  const market = prepareMarketSnapshot(input);
+  if (market.metadata.status !== 'ready') throw new Error('검증된 시장 스냅샷이 필요합니다.');
+  const dataAsOf = market.metadata.reportPeriod.end;
+  return { data_as_of: dataAsOf,
+    report_data: { ...report, dataAsOf, sourceSnapshotId: market.metadata.snapshotId, aggregationVersion: MARKET_AGGREGATION_VERSION },
+    status: 'ready', model, generated_at: generatedAt };
 }
 
 async function callGemini(key, model, system, user) {
@@ -236,28 +187,21 @@ async function generate(key, market) {
 }
 
 async function main() {
-  const key = loadKey();
   const snapshotPath = path.join(ROOT, 'public', 'data', 'market_snapshots.json');
   if (!fs.existsSync(snapshotPath)) {
     throw new Error('public/data/market_snapshots.json 이 없습니다. 시장 스냅샷을 먼저 생성하세요.');
   }
-  const market = JSON.parse(fs.readFileSync(snapshotPath, 'utf-8'));
+  const market = prepareMarketSnapshot(JSON.parse(fs.readFileSync(snapshotPath, 'utf-8')));
+  if (market.metadata.status !== 'ready') throw new Error('시장 스냅샷을 다시 집계하세요.');
+  const key = loadKey();
   // 갱신일이 아니라 데이터가 실제로 덮는 마지막 월이 분석의 기준이다.
   const md = market.metadata || {};
-  const dataAsOf = md.months?.[md.months.length - 1] || md.lastUpdated || null;
+  const dataAsOf = md.reportPeriod.end;
 
   console.log(`시장 리포트 생성 시작 (기준 ${dataAsOf || '미상'}, 모델 ${MODELS[0]})...`);
   const { report, model } = await generate(key, market);
 
-  const rows = [
-    {
-      data_as_of: report.dataAsOf || dataAsOf,
-      report_data: report,
-      status: 'ready',
-      model,
-      generated_at: new Date().toISOString(),
-    },
-  ];
+  const rows = [buildReportRow(report, market, model)];
 
   const out = path.join(ROOT, 'public', 'data', 'ai_market_reports.json');
   fs.writeFileSync(out, JSON.stringify(rows, null, 0), 'utf-8');
@@ -266,7 +210,8 @@ async function main() {
   );
 }
 
-main().catch((err) => {
+const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isMain) main().catch((err) => {
   console.error('\n실패:', err.message);
   process.exitCode = 1;
 });

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build && node scripts/generate-static-pages.mjs",
     "preview": "vite preview",
-    "test": "node --test"
+    "test": "node --test",
+    "report:refresh": "python scripts/fetch-report-trades.py && node scripts/import-trades-csv.mjs --report-input && node scripts/build-public-bundles.mjs --market-only"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.6.2",

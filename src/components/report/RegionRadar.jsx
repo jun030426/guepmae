@@ -1,11 +1,11 @@
 /*
  * RegionRadar — /report '급매 레이더' 4탭 차트.
  *
- * 17개 시도를 4가지 관점으로 보기:
+ * 조회된 시도를 4가지 관점으로 보기:
  *   - 거래량        (단순 큰 순)
- *   - 급매비율      (또래 시세보다 싸게 거래된 비율 — 매수 신호)
+ *   - 급매비율      (비교 중앙값보다 5% 이상 낮은 거래 비율)
  *   - 평균할인      (대형 outlier 영향 있음, 부호 색 분기)
- *   - 중앙값할인    (일반 매물 기준, 부호 색 분기)
+ *   - 중앙값할인    (할인율 중앙값, 부호 색 분기)
  *
  * 색 매핑은 지역 시세 차트·분류 카드와 일관:
  *   음수(프리미엄) = 테라코타, 양수(할인) = 차콜.
@@ -34,8 +34,8 @@ function RegionRadarTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const row = payload[0]?.payload;
   if (!row) return null;
-  const avg = row.averageDiscount ?? 0;
-  const med = row.medianDiscount ?? 0;
+  const avg = row.averageDiscount;
+  const med = row.medianDiscount;
   return (
     <div className="region-tooltip">
       <p className="region-tooltip-name">{formatRegionName(row.region)}</p>
@@ -50,15 +50,13 @@ function RegionRadarTooltip({ active, payload }) {
       <p className="region-tooltip-row">
         <span>평균할인</span>
         <strong>
-          {avg >= 0 ? '+' : ''}
-          {avg}%
+          {avg == null ? '표본 부족' : `${avg}%`}
         </strong>
       </p>
       <p className="region-tooltip-row">
         <span>중앙값</span>
         <strong>
-          {med >= 0 ? '+' : ''}
-          {med}%
+          {med == null ? '표본 부족' : `${med}%`}
         </strong>
       </p>
     </div>
@@ -78,7 +76,7 @@ function makeTabConfig() {
       label: '거래량',
       dataKey: 'transactionVolume',
       sortBy: 'transactionVolume',
-      subtitle: '1년 누적 · 거래 활발도',
+      subtitle: '집계 기간 거래량',
       unit: '건',
       formatTick: formatVolumeTick,
       formatValue: (v) => `${v?.toLocaleString() ?? '?'}건`,
@@ -90,7 +88,7 @@ function makeTabConfig() {
       label: '급매비율',
       dataKey: 'urgentPct',
       sortBy: 'urgentRatio',
-      subtitle: '또래 시세보다 싸게 거래된 비율 — 높을수록 매수자 발굴 여지',
+      subtitle: '비교 중앙값보다 5% 이상 낮은 거래 / 전체 집계 거래',
       unit: '%',
       formatTick: (v) => `${Math.round(v)}%`,
       formatValue: (v) => `${v?.toFixed(1) ?? '?'}%`,
@@ -98,40 +96,37 @@ function makeTabConfig() {
       topNote: (top) =>
         `${formatRegionName(top.region)}이 급매비율 최고 — ${Math.round(
           (top.urgentRatio ?? 0) * 100,
-        )}% (5건 중 ${Math.round(5 * (top.urgentRatio ?? 0))}건이 급매)`,
+        )}%`,
     },
     avgDiscount: {
       label: '평균할인',
       dataKey: 'averageDiscount',
       sortBy: 'averageDiscount',
-      subtitle: '1년 평균 · 음수=프리미엄 · 평균은 대형 outlier 영향 큼',
+      subtitle: '집계 기간 평균 · 음수=프리미엄 · 양수=할인',
       unit: '%',
       formatTick: formatPctTick,
       formatValue: (v) => `${v >= 0 ? '+' : ''}${v}%`,
       colorFor: (r) => (r.averageDiscount < 0 ? PRIMARY : TEXT_STRONG_SOFT),
       topNote: (top) =>
         top.averageDiscount > 0
-          ? `${formatRegionName(top.region)}이 할인 우세 1위 — +${top.averageDiscount}% (급매 발굴 여지)`
+          ? `${formatRegionName(top.region)}이 할인 우세 1위 — +${top.averageDiscount}%`
           : `${formatRegionName(top.region)} 평균 ${top.averageDiscount}% — 가장 약한 프리미엄`,
     },
     medianDiscount: {
       label: '중앙값할인',
       dataKey: 'medianDiscount',
       sortBy: 'medianDiscount',
-      subtitle: '1년 중앙값 · 일반 매물 기준 (outlier 제외)',
+      subtitle: '집계 기간 할인율 중앙값 · 표본 부족 거래 제외',
       unit: '%',
       formatTick: formatPctTick,
       formatValue: (v) => `${v >= 0 ? '+' : ''}${v}%`,
       colorFor: (r) => ((r.medianDiscount ?? 0) < 0 ? PRIMARY : TEXT_STRONG_SOFT),
-      topNote: (top) =>
-        (top.medianDiscount ?? 0) > 0
-          ? `${formatRegionName(top.region)} 중앙값 +${top.medianDiscount}% — 일반 매물도 할인 우세`
-          : `${formatRegionName(top.region)} 중앙값 ${top.medianDiscount ?? 0}% — 일반 매물은 거의 시세대로 (평균 ${top.averageDiscount}%는 outlier)`,
+      topNote: (top) => `${formatRegionName(top.region)} 할인율 중앙값 ${top.medianDiscount}% · 평균 ${top.averageDiscount}%`,
     },
   };
 }
 
-function RegionRadar({ rows }) {
+function RegionRadar({ rows, periodLabel }) {
   const [tab, setTab] = useState('volume');
   const navigate = useNavigate();
 
@@ -142,6 +137,7 @@ function RegionRadar({ rows }) {
   const sorted = useMemo(() => {
     if (!rows?.length) return [];
     return [...rows]
+      .filter((r) => Number.isFinite(r[active.sortBy]))
       .map((r) => ({ ...r, urgentPct: (r.urgentRatio ?? 0) * 100 }))
       .sort((a, b) => (b[active.sortBy] ?? 0) - (a[active.sortBy] ?? 0));
   }, [rows, active.sortBy]);
@@ -160,7 +156,7 @@ function RegionRadar({ rows }) {
       <div className="chart-title-row">
         <div className="chart-title-stack">
           <h3>급매 레이더</h3>
-          <p className="chart-subtitle">{active.subtitle}</p>
+          <p className="chart-subtitle">{periodLabel} · {active.subtitle}</p>
         </div>
         <span>단위 {active.unit}</span>
       </div>
@@ -172,6 +168,7 @@ function RegionRadar({ rows }) {
             type="button"
             className={`radar-tab${tab === key ? ' active' : ''}`}
             onClick={() => setTab(key)}
+            aria-pressed={tab === key}
           >
             {cfg.label}
           </button>

@@ -6,6 +6,8 @@
  */
 
 import { db } from '../lib/dataClient.js';
+import { prepareMarketSnapshot, selectTopComplexes } from '../utils/marketReportModel.js';
+export { TOP_COMPLEX_MIN_SAMPLE, TOP_COMPLEX_SOLID_SAMPLE } from '../utils/marketReportModel.js';
 
 let cache = null;
 let inflight = null;
@@ -27,15 +29,13 @@ async function loadAll() {
   inflight = (async () => {
     const { data, error } = await db.from('market_snapshots').select('key, data');
     if (error) {
-      console.warn('[reportData] 시장 스냅샷 로드 실패, 빈 상태로 대체.', error);
-      cache = EMPTY;
-      return cache;
+      throw error;
     }
     const result = { ...EMPTY };
     (data ?? []).forEach((row) => {
       result[row.key] = row.data;
     });
-    cache = result;
+    cache = prepareMarketSnapshot(result);
     return cache;
   })();
 
@@ -64,16 +64,11 @@ export async function fetchAreaTypeBreakdown() {
 
 // 단지별 급매 집중도는 표본이 적으면 우연에 좌우된다 (표본 5건 중 2건이 급매여도 40%).
 // 화면에 붙는 하한과 여기 하한은 반드시 같아야 한다 — 라벨이 보증하는 규칙을 실제로 적용한다.
-export const TOP_COMPLEX_MIN_SAMPLE = 10;
 // 이 아래는 통계적으로 약해 '표본 적음' 주의 표기를 붙인다.
-export const TOP_COMPLEX_SOLID_SAMPLE = 30;
 
 export async function fetchTopUrgentComplexes(limit = 10) {
   const all = await loadAll();
-  return (all.top_urgent ?? [])
-    .filter((row) => (row.sampleSize ?? 0) >= TOP_COMPLEX_MIN_SAMPLE)
-    .slice(0, limit)
-    .map((row, index) => ({ ...row, rank: index + 1 })); // 필터 후 순위 재부여
+  return selectTopComplexes(all.top_urgent, limit);
 }
 
 export async function fetchMarketInsights() {

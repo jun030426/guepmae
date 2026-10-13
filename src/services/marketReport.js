@@ -5,6 +5,8 @@
  */
 
 import { db } from '../lib/dataClient.js';
+import { getDataSource } from './reportData.js';
+import { isCurrentMarketReport } from '../utils/marketReportModel.js';
 
 export async function fetchMarketReport() {
   const { data, error } = await db
@@ -19,7 +21,8 @@ export async function fetchMarketReport() {
     console.warn('[marketReport] fetch failed:', error.message);
     return null;
   }
-  if (!data) return null;
+  const metadata = await getDataSource();
+  if (!data || !isCurrentMarketReport(data, metadata)) return null;
 
   return {
     dataAsOf: data.data_as_of,

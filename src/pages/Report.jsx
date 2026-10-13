@@ -10,7 +10,6 @@ import {
   Legend,
   Line,
   LineChart,
-  ReferenceArea,
   ResponsiveContainer,
   Scatter,
   Tooltip,
@@ -33,7 +32,8 @@ import {
 } from '../services/reportData.js';
 import { fetchMarketReport } from '../services/marketReport.js';
 import { formatRegionName } from '../utils/regionName.js';
-import { PRIMARY, SURFACE_WARM, TEXT_STRONG, TEXT_STRONG_SOFT, TEXT_MUTED, BORDER } from '../styles/tokens.js';
+import { reportPeriodLabel, regionCategories } from '../utils/marketReportModel.js';
+import { PRIMARY, TEXT_STRONG, TEXT_STRONG_SOFT, TEXT_MUTED, BORDER } from '../styles/tokens.js';
 
 // 차트 의미 이름 유지 + 토큰 미러 사용 (tokens.js가 truth 미러)
 const CHART_INK = TEXT_STRONG;
@@ -84,21 +84,20 @@ function HeadlineCard({ tone, label, mainValue, mainSub, change, sub, meta, link
   );
 }
 
-// Hero 아래 분류 카드 — 평균 부호로 프리미엄/할인 분류, 17개 시도 다 표시
+// Hero 아래 분류 카드 — 평균 부호로 프리미엄/할인 분류, 조회된 시도 표시
 function MarketCategoryCards({ rows }) {
-  const { premium, discount } = useMemo(() => {
-    if (!rows?.length) return { premium: [], discount: [] };
+  const { premium, discount, neutral, insufficient } = useMemo(() => {
+    const categories = regionCategories(rows);
     return {
-      premium: rows
-        .filter((r) => r.averageDiscount < 0)
+      ...categories,
+      premium: categories.premium
         .sort((a, b) => a.averageDiscount - b.averageDiscount), // 음수가 큰(=프리미엄 강한) 순
-      discount: rows
-        .filter((r) => r.averageDiscount > 0)
+      discount: categories.discount
         .sort((a, b) => b.averageDiscount - a.averageDiscount), // 양수가 큰(=할인 강한) 순
     };
   }, [rows]);
 
-  if (!premium.length && !discount.length) return null;
+  if (!rows?.length) return null;
 
   const fmtMedian = (v) => {
     if (v == null) return '—';
@@ -108,6 +107,8 @@ function MarketCategoryCards({ rows }) {
 
   return (
     <section className="container market-category-section">
+      {neutral.length > 0 && <p className="chart-subtitle">평균 할인율 0%: {neutral.map((r) => formatRegionName(r.region)).join(' · ')}</p>}
+      {insufficient.length > 0 && <p className="chart-subtitle">비교 표본 부족: {insufficient.map((r) => formatRegionName(r.region)).join(' · ')}</p>}
       <div className="market-category-grid">
         <article className="market-category-card market-category-premium">
           <header className="market-category-header">
@@ -116,7 +117,7 @@ function MarketCategoryCards({ rows }) {
               <h2>
                 프리미엄 지역 <strong>{premium.length}곳</strong>
               </h2>
-              <p>또래 시세 대비 평균 음수 — 시세 상승세, 매수 신중</p>
+              <p>집계 기간 비교 중앙값보다 높은 가격에 거래된 지역</p>
             </div>
           </header>
           <ul className="market-category-list">
@@ -144,7 +145,7 @@ function MarketCategoryCards({ rows }) {
               <h2>
                 할인 우세 지역 <strong>{discount.length}곳</strong>
               </h2>
-              <p>또래 시세 대비 평균 양수 — 급매 발굴 여지</p>
+              <p>집계 기간 비교 중앙값보다 낮은 가격에 거래된 지역</p>
             </div>
           </header>
           <ul className="market-category-list">
@@ -187,22 +188,22 @@ function RegionChartNotes({ rows }) {
     <div className="chart-note">
       <p className="chart-note-help">
         <Info size={13} aria-hidden="true" />
-        막대 = 전체 거래 평균 · ● 점 = 일반 매물 기준(중앙값). 둘이 멀면 소수 고가 거래가 평균을 흔든 것입니다.
+        막대 = 판정 가능한 거래의 평균 할인율 · ● 점 = 할인율 중앙값. 표본이 부족한 거래는 할인율 계산에서 제외합니다.
       </p>
       <ul className="chart-note-list">
         {notes.gapRows.length > 0 && (
           <li>
-            <strong>{notes.gapRows.map((r) => formatRegionName(r.region)).join(' · ')}</strong>는 평균과 중앙값 차이가 큽니다 — 소수 이상 거래가 평균을 왜곡한 지역(일반 매물 기준은 ● 중앙값).
+            <strong>{notes.gapRows.map((r) => formatRegionName(r.region)).join(' · ')}</strong>는 평균과 중앙값 차이가 큽니다. 거래별 할인율 분포를 함께 살펴봐야 합니다.
           </li>
         )}
         {notes.topDiscount && notes.topDiscount.averageDiscount > 0 && (
           <li>
-            <strong>{formatRegionName(notes.topDiscount.region)}</strong>가 가장 할인 우세 (+{notes.topDiscount.averageDiscount}%) — 급매 발굴 여지.
+            <strong>{formatRegionName(notes.topDiscount.region)}</strong>의 평균 할인율이 가장 높습니다 (+{notes.topDiscount.averageDiscount}%).
           </li>
         )}
         {notes.premiumCount > 0 && (
           <li>
-            프리미엄 우세 <strong>{notes.premiumCount}곳</strong> — 시세 상승세, 매수 신중.
+            비교 중앙값 대비 평균 거래가가 높은 지역은 <strong>{notes.premiumCount}곳</strong>입니다.
           </li>
         )}
       </ul>
@@ -215,27 +216,25 @@ function RegionDiscountTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
   const row = payload[0]?.payload;
   if (!row) return null;
-  const avg = row.averageDiscount ?? 0;
-  const med = row.medianDiscount ?? 0;
-  const meaning = avg > 0 ? '할인 우세' : avg < 0 ? '프리미엄' : '중립';
+  const avg = row.averageDiscount;
+  const med = row.medianDiscount;
+  const meaning = avg == null ? '표본 부족' : avg > 0 ? '할인 우세' : avg < 0 ? '프리미엄' : '중립';
   return (
     <div className="region-tooltip">
       <p className="region-tooltip-name">{formatRegionName(row.region)}</p>
       <p className="region-tooltip-row">
         <span>평균</span>
         <strong>
-          {avg >= 0 ? '+' : ''}
-          {avg}%
+          {formatPercent(avg)}
         </strong>
         <em>{meaning}</em>
       </p>
       <p className="region-tooltip-row">
         <span>중앙값</span>
         <strong>
-          {med >= 0 ? '+' : ''}
-          {med}%
+          {formatPercent(med)}
         </strong>
-        <em>일반 매물</em>
+        <em>할인율 중앙값</em>
       </p>
       <p className="region-tooltip-row">
         <span>거래</span>
@@ -250,12 +249,12 @@ function MonthlyTrendTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   const vol = payload.find(
     (p) =>
-      (p.dataKey === 'volumeCompleted' || p.dataKey === 'volumePartial') &&
+      p.dataKey === 'transactionVolume' &&
       p.value != null,
   );
   const urg = payload.find(
     (p) =>
-      (p.dataKey === 'urgentCompleted' || p.dataKey === 'urgentPartial') &&
+      p.dataKey === 'urgentCount' &&
       p.value != null,
   );
   return (
@@ -269,7 +268,7 @@ function MonthlyTrendTooltip({ active, payload, label }) {
       )}
       {urg && (
         <p className="region-tooltip-row">
-          <span>급매 매물</span>
+          <span>급매로 분류된 거래</span>
           <strong>{urg.value.toLocaleString()}건</strong>
         </p>
       )}
@@ -277,28 +276,24 @@ function MonthlyTrendTooltip({ active, payload, label }) {
   );
 }
 
-// 월별 추이 차트 아래 자동 해석 — 부분월 안내 + 1년 평균 급매비율 + 직전 완료월
+// 모든 카드·차트와 같은 12개월 전체 거래를 분모로 사용한다.
 function MonthlyTrendNotes({ rows }) {
   const notes = useMemo(() => {
     if (!rows?.length || rows.length < 2) return null;
-    const N = rows.length;
-    const partial = rows[N - 1];
-    const completed = rows.slice(0, N - 1);
-    const totalUrgent = completed.reduce((s, m) => s + (m.urgentCount ?? 0), 0);
-    const totalVol = completed.reduce((s, m) => s + (m.transactionVolume ?? 0), 0);
+    const totalUrgent = rows.reduce((s, m) => s + (m.urgentCount ?? 0), 0);
+    const totalVol = rows.reduce((s, m) => s + (m.transactionVolume ?? 0), 0);
     const avgUrgent = totalVol > 0 ? (totalUrgent / totalVol) * 100 : 0;
-    const ratios = completed
+    const ratios = rows
       .map((m) => (m.transactionVolume > 0 ? (m.urgentCount / m.transactionVolume) * 100 : null))
       .filter((v) => v != null);
     const minRatio = ratios.length ? Math.min(...ratios) : 0;
     const maxRatio = ratios.length ? Math.max(...ratios) : 0;
-    const lastCompleted = completed[completed.length - 1];
+    const last = rows[rows.length - 1];
     return {
       avgUrgent: avgUrgent.toFixed(1),
       range: `${minRatio.toFixed(1)} ~ ${maxRatio.toFixed(1)}`,
-      lastCompletedMonth: lastCompleted.month,
-      lastCompletedVol: lastCompleted.transactionVolume,
-      partialMonth: partial.month,
+      lastMonth: last.month,
+      lastVolume: last.transactionVolume,
     };
   }, [rows]);
 
@@ -308,15 +303,15 @@ function MonthlyTrendNotes({ rows }) {
     <div className="chart-note">
       <p className="chart-note-help">
         <Info size={13} aria-hidden="true" />
-        실선 = 완료월 · 점선 + 음영 = <strong>{notes.partialMonth}</strong>(공시 지연으로 변동 가능)
+        신고 지연과 해제 신고에 따라 과거 월의 수치도 바뀔 수 있습니다.
       </p>
       <ul className="chart-note-list">
         <li>
-          1년 평균 급매비율 <strong>{notes.avgUrgent}%</strong> (월별 {notes.range}% 범위)
+          집계 기간 전체 급매비율 <strong>{notes.avgUrgent}%</strong> (월별 {notes.range}% 범위)
         </li>
         <li>
-          직전 완료월 <strong>{notes.lastCompletedMonth}</strong> 거래{' '}
-          {notes.lastCompletedVol?.toLocaleString()}건
+          마지막 집계 월 <strong>{notes.lastMonth}</strong> 거래{' '}
+          {notes.lastVolume?.toLocaleString()}건
         </li>
       </ul>
     </div>
@@ -369,7 +364,7 @@ function AreaChartNotes({ rows }) {
     <div className="chart-note">
       <p className="chart-note-help">
         <Info size={13} aria-hidden="true" />
-        막대 = 1년 거래 중앙값(억). 평균은 대형 평형 outlier(펜트하우스 등) 영향 큼.
+        막대 = 집계 기간 거래가 중앙값(억). 면적대 분류는 통계 표시용이며, 할인율은 같은 전용면적끼리 비교합니다.
       </p>
       <ul className="chart-note-list">
         <li>
@@ -378,7 +373,7 @@ function AreaChartNotes({ rows }) {
         </li>
         <li>
           <strong>{notes.topSample.bucket}</strong> — 표본{' '}
-          {notes.topSample.transactionVolume?.toLocaleString()}건 (가장 신뢰)
+          {notes.topSample.transactionVolume?.toLocaleString()}건 (가장 많음)
         </li>
         <li>
           <strong>{notes.bottomSample.bucket}</strong> — 표본{' '}
@@ -404,12 +399,15 @@ function Report() {
   const [regionalRows, setRegionalRows] = useState([]);
   const [monthlyTrend, setMonthlyTrend] = useState([]);
 
+  const [dataSource, setDataSource] = useState({ name: '국토교통부 실거래가', lastUpdated: '-', disclosureLag: '데이터 로딩 중', totalTrades: 0 });
+  const periodLabel = reportPeriodLabel(dataSource);
+
   // 4개 헤드라인 카드 데이터 — monthly·regional·insights 에서 추출/계산
   const headlineCards = useMemo(() => {
     if (!monthlyTrend.length || !regionalRows.length) return null;
 
-    // --- 카드 1: 급매 압력 (2026-05 vs 2026-04, %p) ---
-    const last = monthlyTrend[monthlyTrend.length - 1]; // 부분월 OK
+    // 마지막 집계 월과 전월의 급매비율 비교
+    const last = monthlyTrend[monthlyTrend.length - 1];
     const prev = monthlyTrend[monthlyTrend.length - 2];
     const lastRatio = last?.transactionVolume
       ? (last.urgentCount / last.transactionVolume) * 100
@@ -426,9 +424,9 @@ function Report() {
         : `${ratioDir === 'up' ? '+' : ''}${ratioDiff.toFixed(1)}%p vs 전월`;
     const oneOutOfN = lastRatio > 0 ? Math.round(100 / lastRatio) : null;
 
-    // --- 카드 2: 할인 강도 (1년 누적, marketInsights 에서 추출) ---
+    // --- 카드 2: 할인 강도 (집계 기간 누적, marketInsights 에서 추출) ---
     const discountInsight = insights.find((i) => i.label === '급매 평균 할인율');
-    const discountNum = discountInsight ? parseFloat(discountInsight.value) : 0;
+    const discountNum = parseFloat(discountInsight?.value);
     const medianMatch = discountInsight?.delta?.match(/(\d+\.?\d*)/);
     const medianNum = medianMatch ? parseFloat(medianMatch[1]) : null;
     const discountPerEok = Math.round(discountNum * 100); // 1억당 만원
@@ -438,9 +436,9 @@ function Report() {
       .filter((r) => r.averageDiscount > 0)
       .sort((a, b) => b.averageDiscount - a.averageDiscount)[0];
 
-    // --- 카드 4: 거래 모멘텀 (완료월 vs 직전 완료월) ---
-    const completed = monthlyTrend[monthlyTrend.length - 2]; // 직전 완료월
-    const prevCompleted = monthlyTrend[monthlyTrend.length - 3];
+    // 같은 두 달의 거래량 비교
+    const completed = last;
+    const prevCompleted = prev;
     const volDiff =
       prevCompleted?.transactionVolume
         ? ((completed.transactionVolume - prevCompleted.transactionVolume) /
@@ -457,28 +455,28 @@ function Report() {
     return {
       urgentPressure: {
         tone: 'primary',
-        label: '급매 압력',
-        mainValue: `${lastRatio.toFixed(1)}%`,
-        change: { direction: ratioDir, text: ratioText },
+        label: '마지막 집계 월 급매비율',
+        mainValue: last.transactionVolume ? formatPercent(lastRatio) : '—',
+        change: last.transactionVolume && prev?.transactionVolume ? { direction: ratioDir, text: ratioText } : null,
         sub: oneOutOfN ? `${oneOutOfN}건 중 1건이 급매` : null,
-        meta: '기준: peer 대비 5%↑ 할인',
+        meta: `${last.month} · 비교 중앙값 대비 5% 이상 할인`,
       },
       discountIntensity: {
         tone: 'primary',
         label: '할인 강도',
-        mainValue: `${discountNum.toFixed(1)}%`,
+        mainValue: formatPercent(discountNum),
         mainSub: medianNum != null ? `중앙값 ${medianNum.toFixed(1)}%` : null,
-        sub: `1억당 ${discountPerEok.toLocaleString()}만원 할인`,
-        meta: 'peer = 같은 단지·면적 1년 중앙값',
+        sub: Number.isFinite(discountNum) ? `1억당 ${discountPerEok.toLocaleString()}만원 할인` : '급매로 분류된 거래 없음',
+        meta: periodLabel,
       },
       featuredRegion: featured
         ? {
             tone: 'soft',
-            label: '오늘의 주목 지역',
+            label: '평균 할인율 상위 지역',
             mainValue: formatRegionName(featured.region),
             mainSub: `+${featured.averageDiscount}%`,
-            sub: '할인 우세 1위 — 급매 발굴 여지',
-            meta: `중앙값 +${featured.medianDiscount ?? 0}% · 거래 ${featured.transactionVolume?.toLocaleString() ?? '?'}건 · → 매물 보기`,
+            sub: '집계 기간 평균 할인율 기준',
+            meta: `중앙값 ${formatPercent(featured.medianDiscount)} · 거래 ${featured.transactionVolume?.toLocaleString() ?? '?'}건 · → 매물 보기`,
             linkTo: `/properties?region=${encodeURIComponent(featured.region)}`,
           }
         : null,
@@ -487,15 +485,14 @@ function Report() {
             tone: 'soft',
             label: '거래 모멘텀',
             mainValue: `${completed.transactionVolume?.toLocaleString() ?? '?'}건`,
-            change: { direction: volDir, text: volText },
-            meta: `${completed.month} 완료월 기준 (${last?.month}은 공시 지연으로 변동)`,
+            change: prev?.transactionVolume ? { direction: volDir, text: volText } : null,
+            meta: `${completed.month} 기준 · 신고 지연으로 변동 가능`,
           }
         : null,
     };
-  }, [monthlyTrend, regionalRows, insights]);
+  }, [monthlyTrend, regionalRows, insights, periodLabel]);
   const [areaBreakdown, setAreaBreakdown] = useState([]);
   const [topComplexes, setTopComplexes] = useState([]);
-  const [dataSource, setDataSource] = useState({ name: '국토교통부 실거래가', lastUpdated: '-', disclosureLag: '데이터 로딩 중', totalTrades: 0 });
   const [aiReport, setAiReport] = useState(null);
   const [loadState, setLoadState] = useState('loading'); // 'loading' | 'ready' | 'error'
 
@@ -550,6 +547,22 @@ function Report() {
         </div>
       </section>
 
+      {loadState !== 'ready' || dataSource.status !== 'ready' ? (
+        <section className="container report-disclaimer" role="status">
+          <p>{loadState === 'loading' ? '리포트를 불러오는 중입니다.' : loadState === 'error' ? '리포트를 불러오지 못했습니다. 새로고침해 주세요.' : '통계를 다시 집계하고 있습니다. 준비가 끝나면 리포트를 제공하겠습니다.'}</p>
+        </section>
+      ) : <>
+      <section className="container report-disclaimer">
+        <p><strong>집계 기간 {periodLabel}</strong> · 거래 {dataSource.totalRows?.toLocaleString()}건</p>
+        <p>수집 시점의 행정구역 기준 {regionalRows.length}개 시도 · 과거 거래 통계이며 현재 등록된 매물 수가 아닙니다.</p>
+        <details>
+        <summary>집계 기준과 표본 확인</summary>
+        <p>같은 지역·단지·전용면적의 집계 기간 거래가 중앙값보다 5% 이상 낮은 거래를 급매로 분류합니다. 비교 표본은 3건 이상이며 대상 거래도 포함합니다. 층수 차이는 보정하지 않아 개별 매물의 가격 판정과는 다릅니다.</p>
+        <p>판정 가능 {dataSource.comparableRows?.toLocaleString()}건 · 표본 부족 {dataSource.unclassifiedRows?.toLocaleString()}건. 급매비율의 분모는 표본 부족 거래를 포함한 전체 집계 거래입니다. 해제·직거래는 제외합니다.</p>
+        {dataSource.unknownDealingRows > 0 && <p>거래유형 미상 {dataSource.unknownDealingRows.toLocaleString()}건은 포함되어 있습니다.</p>}
+        {dataSource.fallbackIdentityRows > 0 && <p>단지 식별정보가 없는 {dataSource.fallbackIdentityRows.toLocaleString()}건은 법정동·단지명·건축년도로 구분했습니다.</p>}
+        </details>
+      </section>
       {headlineCards && (
         <section className="container headline-cards-grid">
           <HeadlineCard {...headlineCards.urgentPressure} />
@@ -569,9 +582,9 @@ function Report() {
         <div className="chart-card chart-card-clickable">
           <div className="chart-title-row">
             <div className="chart-title-stack">
-              <h3>지역별 시세 대비 등락</h3>
+              <h3>지역별 비교 중앙값 대비 할인율</h3>
               <p className="chart-subtitle">
-                음수 = 프리미엄(또래 시세보다 비싸게) · 양수 = 할인 · <strong>막대 클릭 → 해당 지역 매물</strong>
+                음수 = 비교 중앙값보다 비싸게 거래 · 양수 = 할인 · <strong>막대 클릭 → 해당 지역 매물</strong>
               </p>
             </div>
             <span>단위 %</span>
@@ -610,80 +623,23 @@ function Report() {
         <div className="chart-card">
           <div className="chart-title-row">
             <div className="chart-title-stack">
-              <h3>월별 거래량과 급매 매물 추이</h3>
-              <p className="chart-subtitle">최근 12개월 · 마지막 점선 = 공시 진행 중</p>
+              <h3>월별 거래량과 급매 거래 추이</h3>
+              <p className="chart-subtitle">{periodLabel} · 계약월 기준</p>
             </div>
             <span>건</span>
           </div>
           <ResponsiveContainer width="100%" height={320}>
             <LineChart
-              data={monthlyTrend.map((m, idx) => {
-                const N = monthlyTrend.length;
-                return {
-                  ...m,
-                  // 직전 완료월(N-2)에서 두 라인 연결, 부분월(N-1)은 점선만
-                  volumeCompleted: idx <= N - 2 ? m.transactionVolume : null,
-                  volumePartial: idx >= N - 2 ? m.transactionVolume : null,
-                  urgentCompleted: idx <= N - 2 ? m.urgentCount : null,
-                  urgentPartial: idx >= N - 2 ? m.urgentCount : null,
-                };
-              })}
+              data={monthlyTrend}
               margin={{ top: 20, right: 12, left: 0, bottom: 0 }}
             >
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="month" tickLine={false} axisLine={false} stroke={CHART_MUTED} />
               <YAxis tickLine={false} axisLine={false} stroke={CHART_MUTED} />
-              {monthlyTrend.length >= 2 && (
-                <ReferenceArea
-                  x1={monthlyTrend[monthlyTrend.length - 2].month}
-                  x2={monthlyTrend[monthlyTrend.length - 1].month}
-                  fill={SURFACE_WARM}
-                  fillOpacity={0.5}
-                  ifOverflow="extendDomain"
-                />
-              )}
               <Tooltip content={<MonthlyTrendTooltip />} />
               <Legend wrapperStyle={{ fontSize: '12px', color: CHART_MUTED }} />
-              <Line
-                type="monotone"
-                dataKey="volumeCompleted"
-                name="거래량"
-                stroke={CHART_MUTED}
-                strokeWidth={2}
-                dot={false}
-                connectNulls={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="volumePartial"
-                name="거래량"
-                legendType="none"
-                stroke={CHART_MUTED}
-                strokeWidth={2}
-                strokeDasharray="4 4"
-                dot={false}
-                connectNulls={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="urgentCompleted"
-                name="급매 매물"
-                stroke={CHART_INK}
-                strokeWidth={2.5}
-                dot={false}
-                connectNulls={false}
-              />
-              <Line
-                type="monotone"
-                dataKey="urgentPartial"
-                name="급매 매물"
-                legendType="none"
-                stroke={CHART_INK}
-                strokeWidth={2.5}
-                strokeDasharray="4 4"
-                dot={false}
-                connectNulls={false}
-              />
+              <Line type="monotone" dataKey="transactionVolume" name="거래량" stroke={CHART_MUTED} strokeWidth={2} dot={false} />
+              <Line type="monotone" dataKey="urgentCount" name="급매로 분류된 거래" stroke={CHART_INK} strokeWidth={2.5} dot={false} />
             </LineChart>
           </ResponsiveContainer>
           <MonthlyTrendNotes rows={monthlyTrend} />
@@ -696,7 +652,7 @@ function Report() {
             <div className="chart-title-stack">
               <h3>면적대별 시장 분포</h3>
               <p className="chart-subtitle">
-                막대 = 1년 거래 <strong>중앙값</strong>(억) · 평균은 대형 평형 outlier 영향 큼
+                {periodLabel} · 막대 = 거래가 <strong>중앙값</strong>(억)
               </p>
             </div>
             <span>단위 억</span>
@@ -731,14 +687,14 @@ function Report() {
                 labelFormatter={(label) => {
                   const row = areaBreakdown.find((r) => r.bucket === label);
                   if (!row) return label;
-                  return `${label} · 평균할인 ${row.averageDiscount}% · 급매 ${Math.round((row.urgentRatio ?? 0) * 100)}% · 표본 ${row.transactionVolume?.toLocaleString()}건`;
+                  return `${label} · 평균할인 ${formatPercent(row.averageDiscount)} · 급매 ${Math.round((row.urgentRatio ?? 0) * 100)}% · 표본 ${row.transactionVolume?.toLocaleString()}건`;
                 }}
               />
               <Bar dataKey="medianDealPrice" fill={DISCOUNT_FILL} radius={[2, 2, 0, 0]}>
                 <LabelList
                   dataKey="averageDiscount"
                   position="top"
-                  formatter={(value) => `${value}%`}
+                  formatter={formatPercent}
                   fontSize={12}
                   fill={TEXT_MUTED}
                 />
@@ -748,7 +704,7 @@ function Report() {
           <AreaChartNotes rows={areaBreakdown} />
         </div>
 
-        <RegionRadar rows={regionalRows} />
+        <RegionRadar rows={regionalRows} periodLabel={periodLabel} />
       </section>
 
       <section className="container">
@@ -756,11 +712,12 @@ function Report() {
           <div className="chart-title-row">
             <h3>급매 집중 단지</h3>
             <span>
-              거래 표본 {TOP_COMPLEX_MIN_SAMPLE}건 이상
+              {periodLabel} · 거래 표본 {TOP_COMPLEX_MIN_SAMPLE}건 이상
               {topComplexes.length > 0 && ` · ${topComplexes.length}곳`}
             </span>
           </div>
           <div className="report-table-wrap">
+            <p className="chart-subtitle">급매비율이 높은 순서입니다. 평균 할인율은 급매 외의 비교 가능한 거래도 포함합니다.</p>
             <table className="report-table">
               <thead>
                 <tr>
@@ -785,7 +742,7 @@ function Report() {
                   </tr>
                 ) : (
                   topComplexes.map((row) => (
-                    <tr key={row.rank}>
+                    <tr key={row.complexId}>
                       <td>{row.rank}</td>
                       <td><strong>{row.complex}</strong></td>
                       <td>{row.region}</td>
@@ -807,6 +764,7 @@ function Report() {
       </section>
 
       <AiMarketReport report={aiReport} />
+      </>}
 
       <section className="container report-disclaimer">
         <p>

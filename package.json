@@ -11,21 +11,21 @@
     "report:refresh": "python scripts/fetch-report-trades.py && node scripts/import-trades-csv.mjs --report-input && node scripts/build-public-bundles.mjs --market-only"
   },
   "dependencies": {
-    "@googlemaps/markerclusterer": "^2.6.2",
-    "@supabase/supabase-js": "^2.112.4",
-    "@vitejs/plugin-react": "latest",
-    "leaflet": "^1.9.4",
-    "leaflet.markercluster": "^1.5.3",
-    "lucide-react": "latest",
-    "react": "latest",
-    "react-dom": "latest",
-    "react-router-dom": "latest",
-    "recharts": "latest",
-    "vite": "latest"
+    "@googlemaps/markerclusterer": "2.6.2",
+    "@supabase/supabase-js": "2.112.4",
+    "@vitejs/plugin-react": "6.0.1",
+    "leaflet": "1.9.4",
+    "leaflet.markercluster": "1.5.3",
+    "lucide-react": "1.14.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "react-router-dom": "7.18.4",
+    "recharts": "3.8.1",
+    "vite": "8.0.16"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.9",
-    "csv-parse": "^6.2.1",
-    "iconv-lite": "^0.7.2"
+    "csv-parse": "7.0.3",
+    "iconv-lite": "0.7.2"
   }
 }

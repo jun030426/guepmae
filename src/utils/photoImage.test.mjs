@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fitWithin, PHOTO_MAX_EDGE } from './photoImage.js';
+import { fitWithin, PHOTO_MAX_EDGE, processPhotoFile } from './photoImage.js';
+
+test('camera originals are rejected with actionable guidance in the ordinary photo field', async () => {
+  await assert.rejects(processPhotoFile({ name: 'camera.insp' }), /360 투어/);
+  await assert.rejects(processPhotoFile({ name: 'camera.dng' }), /JPG/);
+});
+
+test('undecodable photo is rejected instead of uploading unreadable original bytes', async () => {
+  await assert.rejects(processPhotoFile({ name: 'broken.jpg' }), /읽을 수 없는 사진/);
+});
 
 test('fitWithin — 긴 변을 1600 으로 맞추고 비율을 유지한다', () => {
   assert.deepEqual(fitWithin(4000, 3000), { width: 1600, height: 1200, scale: 0.4 });

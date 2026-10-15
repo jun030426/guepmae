@@ -12,7 +12,7 @@ import { writeManagedProperty, verifyProperty } from './propertyMutations.js';
 import { geocodeAddress, hasKakaoKey } from '../utils/kakaoLoader.js';
 import { processPanoramaFile } from '../utils/panoramaImage.js';
 import { processPhotoFile } from '../utils/photoImage.js';
-import { panoramaMediaItem } from '../utils/panoramaTour.js';
+import { uploadMediaSelection } from './propertyMediaUpload.js';
 import { heldBasis } from '../utils/priceBasis.js';
 import { resolveReferencePrice as resolveWithClient } from '../../supabase/functions/_shared/resolveReferencePrice.js';
 
@@ -30,83 +30,9 @@ async function uploadPrefix(propertyId) {
 }
 
 
-/*
- * 일반 사진 업로드 — 긴 변 1600px JPEG 로 줄여 property-photos 버킷(하이브리드) 또는
- * IndexedDB(로컬, idb: 참조)에 저장하고 URL 만 돌려준다. 매물 행에 data URL 을 넣지 않는다.
- * 한 장이 실패하면 그 장만 건너뛴다(등록 자체는 계속).
- */
-export async function uploadPropertyPhotos(files, propertyId) {
-  const prefix = await uploadPrefix(propertyId);
-  const photos = [];
-  for (let i = 0; i < files.length; i += 1) {
-    const file = files[i];
-    try {
-      // eslint-disable-next-line no-await-in-loop
-      const processed = await processPhotoFile(file);
-      const ext = processed.contentType === 'image/jpeg' ? 'jpg' : (file.name.split('.').pop() || 'bin').toLowerCase();
-      const path = `${prefix}/photo-${i + 1}-${Date.now()}.${ext}`;
-      // eslint-disable-next-line no-await-in-loop
-      const { data, error } = await db.storage
-        .from('property-photos')
-        .upload(path, processed.blob, { contentType: processed.contentType, upsert: true });
-      if (error) throw new Error(error.message || '업로드 실패');
-      const { data: pub } = db.storage.from('property-photos').getPublicUrl(data?.path ?? path);
-      photos.push({
-        src: pub.publicUrl,
-        label: photos.length === 0 ? '대표 사진' : `사진 ${photos.length + 1}`,
-        alt: `${propertyId} 사진 ${photos.length + 1}`,
-      });
-    } catch (error) {
-      console.warn(`[photos] ${file?.name ?? i} 업로드 건너뜀:`, error);
-    }
-  }
-  return photos;
-}
-
-/*
- * 360 파노라마 업로드 — 검증·축소(4096×2048 JPEG) 후 Storage(하이브리드) 또는 IndexedDB(로컬)에 저장.
- * items: [{ id, label, file?, src?, yawOffset?, links? }] — 배열 순서가 투어 이동 순서(order).
- *   file 이 있으면 새로 처리·업로드, src 만 있으면(수정 폼의 기존 항목) 순서·라벨만 갱신.
- * onProgress({ done, total, label }) 로 진행률을 알린다. 한 장이 실패해도 나머지는 계속 처리한다.
- * 반환: { media: [360 media 항목...], failures: [{ label, message }] }
- */
-export async function uploadPropertyPanoramas(items, propertyId, { onProgress } = {}) {
-  const prefix = await uploadPrefix(propertyId);
-  const list = Array.isArray(items) ? items.filter(Boolean) : [];
-  const media = [];
-  const failures = [];
-  const total = list.filter((item) => item.file).length;
-  let done = 0;
-
-  for (let i = 0; i < list.length; i += 1) {
-    const item = list[i];
-    const order = media.length + 1;
-    if (!item.file) {
-      if (item.src) {
-        media.push(panoramaMediaItem({ id: item.id, src: item.src, label: item.label, order, yawOffset: item.yawOffset ?? 0, links: item.links, linksExplicit: item.linksExplicit, stitched: item.stitched }));
-      }
-      continue;
-    }
-    try {
-      // eslint-disable-next-line no-await-in-loop
-      const { blob } = await processPanoramaFile(item.file);
-      const path = `${prefix}/pano-${order}-${Date.now()}.jpg`;
-      // eslint-disable-next-line no-await-in-loop
-      const { data, error } = await db.storage
-        .from('property-360')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
-      if (error) throw new Error(error.message || '업로드 실패');
-      const { data: pub } = db.storage.from('property-360').getPublicUrl(data?.path ?? path);
-      media.push(panoramaMediaItem({ id: item.id, src: pub.publicUrl, label: item.label, order, links: item.links, linksExplicit: item.linksExplicit, stitched: item.stitched }));
-    } catch (error) {
-      failures.push({ label: item.label || item.file.name || `지점 ${i + 1}`, message: error.message || '처리 실패' });
-    } finally {
-      done += 1;
-      onProgress?.({ done, total, label: item.label || item.file?.name || '' });
-    }
-  }
-  // 업로드에 실패한 지점을 가리키던 화살표는 뷰어에서 걸러진다(effectiveLinks) — 저장 데이터는 그대로 둔다
-  return { media, failures };
+export async function uploadPropertyMedia(photos, panoramas, propertyId, { onProgress } = {}) {
+  return uploadMediaSelection({ storage: db.storage, prefix: await uploadPrefix(propertyId),
+    photos, panoramas, processPhoto: processPhotoFile, processPanorama: processPanoramaFile, onProgress });
 }
 
 // 주소 → 좌표: 카카오 지오코딩(VITE_KAKAO_APP_KEY 있을 때). 좌표가 있어야 지도 탭·집 앞 로드뷰가 동작한다.
@@ -189,14 +115,10 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
   // 1) 사진·360 파노라마 업로드 + 주소로 좌표 자동 조회 (병렬)
   const photoFiles = Array.isArray(form.photos) ? form.photos.filter(Boolean) : [];
   const panoramaItems = Array.isArray(form.panoramas) ? form.panoramas.filter(Boolean) : [];
-  const [photoMedia, lookupResult, panoramaResult] = await Promise.all([
-    photoFiles.length > 0 ? uploadPropertyPhotos(photoFiles, id) : Promise.resolve([]),
+  const [media, lookupResult] = await Promise.all([
+    uploadPropertyMedia(photoFiles, panoramaItems, id, { onProgress: onPanoramaProgress }),
     form.address ? fetchLifestyleAndCoords({ address: form.address }) : Promise.resolve({ lifestyle: null, coordinates: null }),
-    panoramaItems.length > 0
-      ? uploadPropertyPanoramas(panoramaItems, id, { onProgress: onPanoramaProgress })
-      : Promise.resolve({ media: [], failures: [] }),
   ]);
-  const media = [...photoMedia, ...panoramaResult.media];
 
   const lifestyle = lookupResult.lifestyle ?? {
     subway: '', school: '', mart: '', hospital: '', convenience: '', gym: '',
@@ -220,7 +142,7 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
       move_in_date: form.moveInDate || '협의', rooms: Number(form.rooms), bathrooms: Number(form.bathrooms),
       unit_count: Number(form.unitCount) || null, contact_phone: contactPhone, media,
     } });
-    return { id: data.id, panoramaFailures: panoramaResult.failures };
+    return { id: data.id, panoramaFailures: [] };
   }
   const areaBucket = getAreaBucket(Number(form.area));
   const areaM2 = Number.isFinite(Number(form.area)) ? Math.floor(Number(form.area)) : null;
@@ -301,8 +223,8 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
     .single();
   if (error) throw error;
 
-  // 처리하지 못한 360 사진은 호출 측(등록 폼)이 배너로 알린다.
-  return { id: data.id, panoramaFailures: panoramaResult.failures };
+  // 모든 사진이 처리된 경우에만 등록을 완료한다.
+  return { id: data.id, panoramaFailures: [] };
 }
 
 // 운영팀 승인 토글 — properties.verified true/false 변경

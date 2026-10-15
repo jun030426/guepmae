@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
 import { updateProperty } from '../services/propertyMutations.js';
-import { uploadPropertyPanoramas, uploadPropertyPhotos } from '../services/propertyRegistration.js';
+import { uploadPropertyMedia } from '../services/propertyRegistration.js';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import LocalMediaImage from '../components/LocalMediaImage.jsx';
 import { formatPrice } from '../utils/priceUtils.js';
@@ -19,6 +19,7 @@ function AgentEditProperty() {
   const [panoramas, setPanoramas] = useState([]); // 360 투어 지점 [{ id, label, src?, file? }] — 순서 = 이동 순서
   const [panoProgress, setPanoProgress] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [error, setError] = useState('');
   const [photoOverflow, setPhotoOverflow] = useState(0); // 10장 초과 선택분 안내
 
@@ -41,7 +42,7 @@ function AgentEditProperty() {
       media
         .filter((m) => m && m.type === '360' && m.src)
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-        .map((m, i) => ({ id: m.id || `pano-${i + 1}`, label: m.label || '', src: m.src, yawOffset: m.yawOffset, links: m.links, linksExplicit: m.linksExplicit, stitched: m.stitched })),
+        .map((m, i) => ({ id: m.id || `pano-${i + 1}`, label: m.label || '', src: m.src, yawOffset: m.yawOffset, links: m.links, linksExplicit: m.linksExplicit, stitched: m.stitched, calibrated: m.calibrated, model: m.model })),
     );
   }, [property]);
 
@@ -81,6 +82,7 @@ function AgentEditProperty() {
 
   const handleSave = async (event) => {
     event.preventDefault();
+    if (saving || converting) return;
     if (!form.title || !form.price) {
       setError('매물 타이틀과 매도 호가는 필수입니다.');
       return;
@@ -93,22 +95,9 @@ function AgentEditProperty() {
     let photoMedia = existingMedia.filter((m) => !m.type || m.type === 'photo');
     let panoramaMedia = [];
     try {
-      if (newFiles.length > 0) {
-        const uploaded = await uploadPropertyPhotos(newFiles, id);
-        photoMedia = [...photoMedia, ...uploaded];
-      }
-      if (panoramas.length > 0) {
-        const result = await uploadPropertyPanoramas(panoramas, id, { onProgress: setPanoProgress });
-        panoramaMedia = result.media;
-        if (result.failures.length > 0) {
-          // 일부만 저장하면 투어 순서가 어긋난다 — 실패 원인을 보여주고 저장을 멈춘다.
-          throw new Error(
-            `360 사진 ${result.failures.length}장을 처리하지 못했습니다: ${result.failures
-              .map((f) => `${f.label} — ${f.message}`)
-              .join(' / ')}`,
-          );
-        }
-      }
+      const uploaded = await uploadPropertyMedia(newFiles, panoramas, id, { onProgress: setPanoProgress });
+      photoMedia = [...photoMedia, ...uploaded.filter(item => item.type === 'photo')];
+      panoramaMedia = uploaded.filter(item => item.type === '360');
     } catch (uploadErr) {
       setError(uploadErr.message || '사진 업로드 실패');
       setSaving(false);
@@ -216,6 +205,7 @@ function AgentEditProperty() {
                       type="button"
                       className="edit-photo-remove"
                       aria-label="사진 삭제"
+                      disabled={saving}
                       onClick={() => setExistingMedia((arr) => arr.filter((_, idx) => idx !== i))}
                     >
                       ×
@@ -231,6 +221,7 @@ function AgentEditProperty() {
             accept="image/*"
             multiple
             aria-label="추가할 매물 사진 선택 (최대 10장)"
+            disabled={saving}
             onChange={(event) => {
               const selected = Array.from(event.target.files ?? []);
               setPhotoOverflow(Math.max(0, selected.length - 10));
@@ -245,7 +236,7 @@ function AgentEditProperty() {
           )}
           <p className="register-hint">첫 번째 사진이 대표 사진으로 표시됩니다. 기존 사진은 × 로 삭제할 수 있어요.</p>
 
-          <PanoramaUploadField items={panoramas} onChange={setPanoramas} disabled={saving} idPrefix="edit-pano" />
+          <PanoramaUploadField items={panoramas} onChange={setPanoramas} disabled={saving} onBusyChange={setConverting} idPrefix="edit-pano" />
         </fieldset>
 
         <fieldset className="register-section">
@@ -259,7 +250,7 @@ function AgentEditProperty() {
           <button type="button" className="auth-text-button" onClick={() => navigate('/agent/properties')}>
             목록으로
           </button>
-          <button type="submit" className="primary-link-button" disabled={saving}>
+          <button type="submit" className="primary-link-button" disabled={saving || converting}>
             {saving
               ? panoProgress && panoProgress.total > 0
                 ? `360 사진 처리 중 ${panoProgress.done}/${panoProgress.total}`

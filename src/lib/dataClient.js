@@ -14,7 +14,7 @@
  *   - Supabase 접속 실패: 매물 읽기·쓰기는 오류 반환 (오래된 승인 상태를 번들로 복원하지 않음)
  */
 
-import { putBlob } from '../utils/localMediaStore.js';
+import { putBlob, removeBlob } from '../utils/localMediaStore.js';
 import { IDB_PREFIX } from '../utils/mediaUrl.js';
 import { EVENTS, STAFF_ROLES, kstDay } from '../utils/pilotMetrics.js';
 
@@ -462,6 +462,12 @@ const localStorageMock = {
       getPublicUrl(path) { return { data: { publicUrl: path } }; },
       // 로컬 모드: 서명 URL 개념 없음 — 신청서 첨부 문서 보기는 비활성(빈 URL).
       async createSignedUrl() { return { data: { signedUrl: '' }, error: null }; },
+      async remove(paths) {
+        try {
+          await Promise.all(paths.map(path => removeBlob(path.startsWith(IDB_PREFIX) ? path.slice(IDB_PREFIX.length) : `${bucketName}/${path}`)));
+          return { data: [], error: null };
+        } catch (error) { return { data: null, error }; }
+      },
     };
   },
 };

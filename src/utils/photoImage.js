@@ -19,15 +19,17 @@ export function fitWithin(width, height, maxEdge = PHOTO_MAX_EDGE) {
 }
 
 /**
- * 사진 파일 → 축소 JPEG Blob. 디코드할 수 없는 형식(HEIC 등 브라우저 미지원)은 원본을 그대로 돌려준다.
+ * 사진 파일 → 축소 JPEG Blob. 표시할 수 없는 원본을 업로드하지 않는다.
  * 반환 { blob, width, height, compressed, contentType }
  */
 export async function processPhotoFile(file, { maxEdge = PHOTO_MAX_EDGE, quality = PHOTO_JPEG_QUALITY } = {}) {
+  if (/\.insp$/i.test(file?.name || '')) throw new Error('Insta360 원본은 아래 360 투어 사진에서 선택해주세요.');
+  if (/\.dng$/i.test(file?.name || '')) throw new Error('DNG 원본은 JPG로 내보낸 뒤 선택해주세요.');
   let bitmap;
   try {
     bitmap = await createImageBitmap(file); // EXIF 회전 반영
   } catch {
-    return { blob: file, width: null, height: null, compressed: false, contentType: file.type || 'application/octet-stream' };
+    throw new Error('읽을 수 없는 사진입니다. JPG·PNG·WebP로 내보내거나 다른 파일을 선택해주세요.');
   }
   const target = fitWithin(bitmap.width, bitmap.height, maxEdge);
   let source = bitmap;

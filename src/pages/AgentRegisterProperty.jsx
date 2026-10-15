@@ -42,6 +42,7 @@ function AgentRegisterProperty() {
   const navigate = useNavigate();
   const [form, setForm] = useState(initialForm);
   const [submitting, setSubmitting] = useState(false);
+  const [converting, setConverting] = useState(false);
   const [error, setError] = useState('');
   const [attempted, setAttempted] = useState(false); // 제출 시도 여부 (필드별 빨간 안내용)
   const [photoOverflow, setPhotoOverflow] = useState(0); // 10장 초과 선택분 안내
@@ -126,6 +127,7 @@ function AgentRegisterProperty() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (submitting || converting) return;
     setAttempted(true);
     if (missingFields.length > 0) {
       setError(`다음 항목을 입력해주세요: ${missingFields.join(', ')}`);
@@ -347,6 +349,7 @@ function AgentRegisterProperty() {
             accept="image/*"
             multiple
             aria-label="매물 사진 선택 (최대 10장)"
+            disabled={submitting}
             onChange={(event) => {
               const selected = Array.from(event.target.files ?? []);
               setPhotoOverflow(Math.max(0, selected.length - 10));
@@ -369,6 +372,7 @@ function AgentRegisterProperty() {
             items={form.panoramas}
             onChange={(panoramas) => setForm((s) => ({ ...s, panoramas }))}
             disabled={submitting}
+            onBusyChange={setConverting}
             idPrefix="register-pano"
           />
         </fieldset>
@@ -431,7 +435,7 @@ function AgentRegisterProperty() {
             <Sparkles size={16} />
             <span>등록 즉시 실거래가 기준 할인율과 산출 근거가 자동으로 계산됩니다</span>
           </div>
-          <button type="submit" className="primary-link-button" disabled={submitting}>
+          <button type="submit" className="primary-link-button" disabled={submitting || converting}>
             {submitting
               ? panoProgress && panoProgress.total > 0
                 ? `360 사진 처리 중 ${panoProgress.done}/${panoProgress.total}`

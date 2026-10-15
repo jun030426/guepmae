@@ -243,6 +243,7 @@ async function decodeForGpu(file) {
   // GPU 텍스처 한도(모바일 4096 등)를 넘는 원본은 한도에 맞춰 줄여 디코드한다
   const probe = document.createElement('canvas').getContext('webgl2');
   const maxTex = probe ? probe.getParameter(probe.MAX_TEXTURE_SIZE) : 4096;
+  probe?.getExtension('WEBGL_lose_context')?.loseContext();
   if (bitmap.width <= maxTex) return bitmap;
   const scaled = await createImageBitmap(file, { resizeWidth: maxTex, resizeHeight: Math.round((bitmap.height * maxTex) / bitmap.width), resizeQuality: 'high' });
   bitmap.close?.();
@@ -267,13 +268,17 @@ export async function stitchInsp(file, { targetWidth = INSP_TARGET_WIDTH, qualit
   } finally {
     bitmap.close?.();
   }
-  const blob = await new Promise((resolve, reject) => {
-    result.canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('JPEG 인코딩에 실패했습니다.'))), 'image/jpeg', quality);
-  });
-  // WebGL 컨텍스트 반납 (탭당 컨텍스트 수 제한 회피)
-  result.gl.getExtension('WEBGL_lose_context')?.loseContext();
-  result.canvas.width = 0;
-  result.canvas.height = 0;
+  let blob;
+  try {
+    blob = await new Promise((resolve, reject) => {
+      result.canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('JPEG 인코딩에 실패했습니다.'))), 'image/jpeg', quality);
+    });
+  } finally {
+    // Encoding failures must also release the large GPU buffer.
+    result.gl.getExtension('WEBGL_lose_context')?.loseContext();
+    result.canvas.width = 0;
+    result.canvas.height = 0;
+  }
   return {
     blob,
     width: result.width,

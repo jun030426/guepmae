@@ -15,7 +15,7 @@ import TourLinkEditor from './TourLinkEditor.jsx';
  * onChange(nextItems)
  *
  * 선택 즉시 2:1 비율을 검사해 360 사진이 아닌 파일은 이유와 함께 거른다.
- * 실제 축소·업로드는 제출 시(propertyRegistration.uploadPropertyPanoramas) 한다.
+ * 실제 축소·업로드는 제출 시(propertyRegistration.uploadPropertyMedia) 한다.
  */
 
 let idSeed = 0;
@@ -42,34 +42,40 @@ function ExistingPreview({ src, alt }) {
   return url ? <img src={url} alt={alt} loading="lazy" /> : <span className="pano-thumb-empty">미리보기 없음</span>;
 }
 
-export default function PanoramaUploadField({ items, onChange, disabled = false, idPrefix = 'pano' }) {
+export default function PanoramaUploadField({ items, onChange, onBusyChange, disabled = false, idPrefix = 'pano' }) {
   const [rejected, setRejected] = useState([]); // [{ name, reason }]
   const [checking, setChecking] = useState(false);
   const [editingId, setEditingId] = useState(null); // 화살표 편집 중인 지점
   const inputRef = useRef(null);
+  const mounted = useRef(true);
+  const busyRef = useRef(false);
   const remaining = Math.max(0, PANORAMA_MAX_COUNT - items.length);
 
   // 컴포넌트가 사라질 때 새 항목의 object URL 정리
   const itemsRef = useRef(items);
   itemsRef.current = items;
   useEffect(
-    () => () => {
+    () => { mounted.current = true; return () => {
+      mounted.current = false;
       itemsRef.current.forEach((item) => {
         if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
       });
-    },
+    }; },
     [],
   );
 
   const handleSelect = async (event) => {
     const files = Array.from(event.target.files ?? []);
     event.target.value = ''; // 같은 파일 재선택 허용
-    if (files.length === 0) return;
+    if (files.length === 0 || busyRef.current || disabled) return;
 
+    busyRef.current = true;
+    onBusyChange?.(true);
     setChecking(true);
     const accepted = [];
     const failures = [];
     for (const file of files.slice(0, remaining)) {
+      if (!mounted.current) break;
       try {
         if (isInspFile(file)) {
           // Insta360 원본 — 브라우저에서 즉시 정방형 JPG 로 변환(수 초). 이후는 일반 360 JPG 와 동일
@@ -89,6 +95,12 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
     if (files.length > remaining) {
       failures.push({ name: `${files.length - remaining}장`, reason: `최대 ${PANORAMA_MAX_COUNT}장까지 등록됩니다 — 초과분은 제외했습니다.` });
     }
+    busyRef.current = false;
+    if (!mounted.current) {
+      accepted.forEach(item => URL.revokeObjectURL(item.previewUrl));
+      return;
+    }
+    onBusyChange?.(false);
     setRejected(failures);
     setChecking(false);
     if (accepted.length > 0) onChange([...items, ...accepted]);
@@ -163,7 +175,7 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
                   value={item.label}
                   placeholder={`지점 ${index + 1} 이름 (예: 현관, 거실)`}
                   maxLength={20}
-                  disabled={disabled}
+                  disabled={disabled || Boolean(checking)}
                   aria-label={`지점 ${index + 1} 이름`}
                   onChange={(event) => setLabel(index, event.target.value)}
                 />
@@ -171,15 +183,15 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
                   {item.file ? `${item.sourceName ?? item.file.name} · ${(item.file.size / 1024 / 1024).toFixed(1)}MB` : '저장된 사진'}
                   {item.stitched && (
                     <span className="pano-stitched-tag">
-                      {item.calibrated ? '원본에서 자동 변환' : `자동 변환 · ${item.model || '모델 미확인'} 미보정 — 결과 확인 필요`}
+                      {item.calibrated === false ? `자동 변환 · ${item.model || '모델 미확인'} 미보정 — 결과 확인 필요` : '원본에서 자동 변환'}
                     </span>
                   )}
                 </small>
               </div>
               <div className="pano-controls">
-                <button type="button" disabled={disabled || index === 0} aria-label="앞으로" onClick={() => move(index, -1)}>↑</button>
-                <button type="button" disabled={disabled || index === items.length - 1} aria-label="뒤로" onClick={() => move(index, 1)}>↓</button>
-                <button type="button" className="pano-remove" disabled={disabled} aria-label="삭제" onClick={() => remove(index)}>×</button>
+                <button type="button" disabled={disabled || Boolean(checking) || index === 0} aria-label="앞으로" onClick={() => move(index, -1)}>↑</button>
+                <button type="button" disabled={disabled || Boolean(checking) || index === items.length - 1} aria-label="뒤로" onClick={() => move(index, 1)}>↓</button>
+                <button type="button" className="pano-remove" disabled={disabled || Boolean(checking)} aria-label="삭제" onClick={() => remove(index)}>×</button>
               </div>
               {items.length > 1 && (
                 <div className="pano-links-row">
@@ -189,7 +201,7 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
                   <button
                     type="button"
                     className="pano-links-toggle"
-                    disabled={disabled}
+                    disabled={disabled || Boolean(checking)}
                     aria-expanded={editingId === item.id}
                     onClick={() => setEditingId(editingId === item.id ? null : item.id)}
                   >
@@ -198,7 +210,7 @@ export default function PanoramaUploadField({ items, onChange, disabled = false,
                 </div>
               )}
               {editingId === item.id && (
-                <TourLinkEditor items={items} index={index} onChange={onChange} disabled={disabled} />
+                <TourLinkEditor items={items} index={index} onChange={onChange} disabled={disabled || Boolean(checking)} />
               )}
             </li>
           ))}

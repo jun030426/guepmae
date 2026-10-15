@@ -12,7 +12,7 @@
  */
 
 export const PANORAMA_MEDIA_TYPE = '360';
-export const PANORAMA_MAX_COUNT = 12;
+export const PANORAMA_MAX_COUNT = 16;
 export const PANORAMA_MIN_WIDTH = 2048;
 
 export const LINK_PITCH = -10;
@@ -73,6 +73,8 @@ export function normalizePanoramaItems(media) {
       links: Array.isArray(item.links) ? item.links : undefined,
       linksExplicit: item.linksExplicit === true ? true : undefined,
       stitched: item.stitched || undefined, // 'browser' = .insp 를 브라우저에서 자동 변환한 파노라마
+      calibrated: typeof item.calibrated === 'boolean' ? item.calibrated : undefined,
+      model: item.model || undefined,
     }));
   return items.sort((a, b) => a.order - b.order);
 }
@@ -121,7 +123,7 @@ export function buildTourPanoramas(media) {
 }
 
 /** 새 360 media 항목 생성 (등록·수정 폼에서 사용). */
-export function panoramaMediaItem({ id, src, label, order, yawOffset = 0, links, linksExplicit, stitched }) {
+export function panoramaMediaItem({ id, src, label, order, yawOffset = 0, links, linksExplicit, stitched, calibrated, model }) {
   const item = {
     type: PANORAMA_MEDIA_TYPE,
     id,
@@ -137,6 +139,8 @@ export function panoramaMediaItem({ id, src, label, order, yawOffset = 0, links,
     item.links = links.map(normalizeLink);
   }
   if (stitched) item.stitched = stitched;
+  if (typeof calibrated === 'boolean') item.calibrated = calibrated;
+  if (model) item.model = model;
   return item;
 }
 

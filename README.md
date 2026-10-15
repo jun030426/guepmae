@@ -46,10 +46,10 @@
 >
 > 여기에 **하이브리드 모드**를 얹었습니다 — `.env.local` 에 `VITE_SUPABASE_URL` +
 > `VITE_SUPABASE_PUBLISHABLE_KEY` 를 설정하면 인증(가입·로그인·세션)과 쓰기(매물 등록·중개사
-> 신청·회원 관리)가 실제 Supabase(무료 티어)로 동작하고, 매물·시세·리포트 읽기는 여전히 번들이
-> 우선이라 백엔드가 잠들어도 사이트는 살아 있습니다. 빈 DB 의 초기 데이터는
-> `node scripts/load-bundles-to-supabase.mjs --replace-all` 로 번들을 적재하고, 운영 중에는
-> 중개사 등록 매물이 지워지지 않도록 `properties --upsert` 를 씁니다(옵션 없이는 실행을 거부).
+> 신청·회원 관리)가 실제 Supabase(무료 티어)로 동작합니다. 운영 매물은 RLS로 조회하고,
+> 단지 검색·개별 실거래·시세 추이·시장 리포트도 갱신된 DB를 읽습니다. 연결 실패를
+> 오래된 번들로 숨기지 않습니다. 매물 저장과 승인은 서버에서 검증합니다.
+> 운영 실거래 갱신 절차는 [데이터 파이프라인 기록](docs/audits/2026-10-15-p1-market-data.md)을 따릅니다.
 
 ---
 
@@ -85,9 +85,9 @@ React SPA (Vite)
 
 4. **AI 매물 리포트** — `generate-reports.mjs` 로 대표 매물 리포트를 Gemini 로 사전 생성 → `public/data/property_reports.json` 로 번들.
 5. **AI 시장 리포트** — `generate-market-report.mjs` 로 `market_snapshots` 를 입력 삼아 시장 인사이트 3~5개를 사전 생성 → `public/data/ai_market_reports.json` 로 번들.
-6. **매일 증분 수집 (GitHub Actions)** — `.github/workflows/daily-trades-refresh.yml` 이 지난달까지 최근 3개월을 다시 받아 집계하고 Supabase `complex_trades` 를 갱신한다. 원본 CSV 는 비공개 버킷에 시도별 gzip 으로 보관(`pipeline-data-sync.mjs`). API 장애(정상 응답·0건)로는 기존 이력을 지우지 않고, 행 수가 2% 넘게 줄면 아무것도 올리지 않고 멈춘다. 시크릿 등록·첫 실행 절차는 `docs/DESKTOP_TODO.md` C.
+6. **매일 증분 수집 (GitHub Actions)** — `.github/workflows/daily-trades-refresh.yml`은 현재 국토부 행정구역 목록을 사용합니다. 36개월 원본 중 최근 3개월을 재수집하고, 단지 가격·개별 거래·지역 추이·12개월 리포트를 한 트랜잭션으로 갱신합니다. 원본은 비공개 `pipeline-data/market-v1/cache.zip`에 보관합니다. 누락·해시 불일치·적재 실패 시 기존 공개 데이터가 유지됩니다. `TRADES_REFRESH_ENABLED=true`인 경우 매일 한국 03:30에 실행합니다.
 7. **판정 규칙 백테스트** — `node scripts/backtest-price-basis.mjs` : 과거 실거래 한 건을 "그 달에 그 가격으로 나온 매물"로 보고, 그 달보다 앞선 거래만으로 기준가를 구해(운영 판정 함수를 그대로 호출) 실제 거래가와 비교한다. 급매로 판정된 거래가 이후 6개월 시세로 봐도 쌌는지(정밀도·재현율), 규칙의 각 요소(기간 창·층 구간·직거래 제외)가 정확도를 얼마나 바꿨는지를 요약 문서로 낸다. 호가가 아니라 체결가로 채점한다는 한계를 리포트에 명시.
-8. **워크플로 리허설** — `python scripts/rehearsal/rehearse.py` : 실제 키 없이 가짜 국토부 API·가짜 Supabase·임시 git 저장소로 워크플로 단계를 처음부터 끝까지 돌려 본다(정상·장애·한도 초과·행 감소·키 오류·번들 갱신 등 15개 상황). 파이프라인을 고친 뒤 푸시 전에 실행.
+8. **파이프라인 검증** — `node --test scripts/market-dataset.test.mjs supabase/tests/market-publish.test.mjs`와 `python -m unittest scripts/test_fetch_market_trades.py scripts/test_fetch_report_trades.py`. 원본 완결성, 동명 단지 분리, 제외 거래, 층별 판정, 익명 권한 거부, 적재 실패 롤백을 확인합니다. 기존 `scripts/rehearsal/rehearse.py`는 이전 CSV 파이프라인용이며 현재 워크플로 검증에 사용하지 않습니다.
 
 ---
 

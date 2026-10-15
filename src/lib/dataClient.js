@@ -9,7 +9,7 @@
  *   - 쓰기·인증: 브라우저 localStorage (mock)
  *
  * [하이브리드 모드]  (VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY 설정 시)
- *   - 매물 읽기: Supabase RLS를 매번 적용. 시세·리포트는 번들 사용
+ *   - 매물·단지 검색·개별 실거래·시세·리포트 읽기: Supabase RLS를 적용
  *   - 인증(가입·로그인·세션)과 쓰기(매물 등록·중개사 신청·회원 관리): 실제 Supabase
  *   - Supabase 접속 실패: 매물 읽기·쓰기는 오류 반환 (오래된 승인 상태를 번들로 복원하지 않음)
  */
@@ -112,8 +112,8 @@ async function tableRows(table) {
 }
 
 // 하이브리드에서 통째로 Supabase 에 위임하는 테이블 (인증·운영·동적 생성 데이터)
-// complex_trades 는 83k 행이라 번들에 다 못 싣는다 — 하이브리드에서는 Supabase 에서 (complex, gu) 로 읽는다.
-const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'property_inspections', 'complex_trades', 'complex_alerts', 'agent_pricing_intents']);
+// 운영 시세는 완전한 DB 자료를 조회한다. 번들 4,000행으로 검색 범위를 제한하지 않는다.
+const REMOTE_TABLES = new Set(['profiles', 'agent_applications', 'property_inspections', 'complex_trades', 'complex_prices', 'price_trends', 'market_snapshots', 'complex_alerts', 'agent_pricing_intents']);
 
 // ───────────────────────── 쿼리 빌더 (thenable) ─────────────────────────
 const BUILDER_METHODS = [

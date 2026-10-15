@@ -113,6 +113,7 @@ function PriceReport({ property }) {
       </div>
 
       <div className="chart-card">
+        {property.marketEvidenceError && <p role="alert">실거래 내역을 불러오지 못했습니다. 새로고침해서 다시 확인해주세요.</p>}
         <div className="chart-title-row">
           <h3>{table.complexName || '동일 단지'} 실거래가 (최근 3년)</h3>
           <span>국토부 실거래 · 추정 없음</span>
@@ -207,7 +208,7 @@ function PriceReport({ property }) {
             )}
           </>
         ) : (
-          !hasChart && <p className="chart-empty">동일 단지의 최근 실거래 내역이 아직 없습니다.</p>
+          !hasChart && !property.marketEvidenceError && <p className="chart-empty">동일 단지의 최근 실거래 내역이 아직 없습니다.</p>
         )}
       </div>
     </section>

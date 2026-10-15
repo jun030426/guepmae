@@ -1,4 +1,5 @@
-import { db } from '../lib/dataClient.js';
+import { db, isHybrid } from '../lib/dataClient.js';
+import { marketEvidence } from '../utils/marketEvidence.js';
 import { buildTourPanoramas } from '../utils/panoramaTour.js';
 import { isLocalMediaRef, resolveMediaUrl } from '../utils/mediaUrl.js';
 
@@ -113,5 +114,20 @@ export async function fetchPropertyById(id) {
     throw error;
   }
 
-  return data ? withDisplayMedia(normalizeProperty(data)) : null;
+  if (!data) return null;
+  const property = normalizeProperty(data);
+  if (isHybrid && property.complexName && property.complexGu) {
+    const { data: rows, error: sourceError } = await db.from('complex_trades')
+      .select('area_m2,trades,latest_year_month').eq('complex',property.complexName).eq('gu',property.complexGu);
+    if (sourceError) {
+      property.marketEvidenceError = true;
+      property.priceHistory = [];
+      property.priceTable = null;
+    } else {
+      const now = new Date();
+      const asOf = new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),0)).toISOString().slice(0,7);
+      Object.assign(property,marketEvidence(rows || [],{complexName:property.complexName,area:property.area,asOf}));
+    }
+  }
+  return withDisplayMedia(property);
 }

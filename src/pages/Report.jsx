@@ -554,6 +554,7 @@ function Report() {
       ) : <>
       <section className="container report-disclaimer">
         <p><strong>집계 기간 {periodLabel}</strong> · 거래 {dataSource.totalRows?.toLocaleString()}건</p>
+        {dataSource.collectionPeriod && <p>매물 가격 판정용 자료: {dataSource.collectionPeriod.start} ~ {dataSource.collectionPeriod.end} ({dataSource.collectionPeriod.months}개월) · 중개거래 {dataSource.collectionRows?.toLocaleString()}건 · {dataSource.collectionDistricts}개 시군구 조회 완료</p>}
         <p>수집 시점의 행정구역 기준 {regionalRows.length}개 시도 · 과거 거래 통계이며 현재 등록된 매물 수가 아닙니다.</p>
         <details>
         <summary>집계 기준과 표본 확인</summary>

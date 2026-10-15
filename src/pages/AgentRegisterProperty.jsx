@@ -8,6 +8,7 @@ import ComplexAutocomplete from '../components/ComplexAutocomplete.jsx';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import { formatArea, formatPrice, pyeongToSqm } from '../utils/priceUtils.js';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
+import { isValidContactPhone } from '../../supabase/functions/_shared/contactPhone.js';
 
 const DIRECTIONS = ['남향', '동향', '서향', '북향', '남동향', '남서향'];
 const OCCUPANCY_OPTIONS = ['공실', '세입자 거주', '집주인 거주'];
@@ -138,6 +139,10 @@ function AgentRegisterProperty() {
         el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         if (typeof el.focus === 'function') setTimeout(() => el.focus(), 300);
       }
+      return;
+    }
+    if (!isValidContactPhone(form.contactPhone)) {
+      setError('문의 연락처에 올바른 전화번호를 입력해주세요.');
       return;
     }
     setError('');

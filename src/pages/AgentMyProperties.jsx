@@ -87,7 +87,7 @@ function AgentMyProperties() {
             </div>
             <h3>아직 등록한 매물이 없습니다</h3>
             <p>
-              매물을 등록하면 실거래가 검증과 AI 리포트가 자동으로 붙고,
+              매물을 등록하면 실거래가 비교 근거가 자동으로 붙고,
               등록한 매물이 이 목록에 표시됩니다.
             </p>
             <Link to="/agent/properties/new" className="primary-link-button">

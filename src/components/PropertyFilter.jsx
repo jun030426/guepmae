@@ -1,13 +1,13 @@
 import { SlidersHorizontal } from 'lucide-react';
 
-// 실제 매물 분포 기반 13개 시도 (매물 많은 순). 매물 0건 지역(세종·강원·제주·울산)은 제외.
-// 차트 onClick 등 외부에서 URL region=강원 같은 값이 와도 매칭은 시도되며,
-// 그 결과 매물 0건이면 Properties 의 empty-state 가 떠서 사용자에게 안내됨.
+// 새 지역 매물도 바로 검색할 수 있도록 현재 매물 수와 무관하게 전국 시도를 제공한다.
 const regionOptions = [
   '전체',
   '경기',
   '서울',
   '인천',
+  '강원',
+  '세종',
   '충청북',
   '충청남',
   '부산',
@@ -18,6 +18,8 @@ const regionOptions = [
   '경상북',
   '대구',
   '경상남',
+  '울산',
+  '제주',
 ];
 const priceOptions = [
   { label: '전체', value: 'all' },

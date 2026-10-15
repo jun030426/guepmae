@@ -14,6 +14,7 @@ export async function writeManagedProperty(body) {
 
 export async function updateProperty(property, input) {
   if (isHybrid) return writeManagedProperty({ action: 'edit', id: property.id, expectedRevision: property.revision, input });
+  const { contact_phone, ...fields } = input;
   const reference = await resolveReferencePrice(db, {
     complexName: property.complexName || property.priceBasis?.complexName,
     gu: property.complexGu || property.priceBasis?.gu,
@@ -21,7 +22,8 @@ export async function updateProperty(property, input) {
   });
   const { discountRate, ...basis } = reference.basis;
   const { data, error } = await db.from('properties').update({
-    ...input, verified: false, last_verified_at: null,
+    ...fields, ...(contact_phone === undefined ? {} : { agent: { ...property.agent, phone: contact_phone } }),
+    verified: false, last_verified_at: null,
     revision: (property.revision || 1) + 1,
     actual_transaction_price: reference.price, discount_rate: discountRate,
     price_basis: { ...basis, complexName: property.priceBasis?.complexName, gu: property.priceBasis?.gu },

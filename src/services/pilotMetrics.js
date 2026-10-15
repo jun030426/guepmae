@@ -55,8 +55,8 @@ export async function trackPropertyEvent(property, event, viewer = null) {
 
     flight = `${day}|${key}`;
     inFlight.add(flight);
-    const { error } = await db.rpc('track_property_event', { p_property_id: property.id, p_event: event });
-    if (error) return false; // 기록하지 않는다 — 다음에 다시 시도된다
+    const { data, error } = await db.rpc('track_property_event', { p_property_id: property.id, p_event: event });
+    if (error || data !== true) return false; // 서버가 거절한 조회는 로컬에서도 집계 완료로 기록하지 않는다.
     // 요청이 오가는 사이 다른 집계가 끼어들었을 수 있어 저장값을 다시 읽는다
     writeTracked(rememberTracked(readTracked(), day, key).store);
     return true;

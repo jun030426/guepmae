@@ -8,6 +8,8 @@ import { uploadPropertyMedia } from '../services/propertyRegistration.js';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import LocalMediaImage from '../components/LocalMediaImage.jsx';
 import { formatPrice } from '../utils/priceUtils.js';
+import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
+import { isValidContactPhone } from '../../supabase/functions/_shared/contactPhone.js';
 
 function AgentEditProperty() {
   const { id } = useParams();
@@ -35,6 +37,7 @@ function AgentEditProperty() {
       bathrooms: property.bathrooms ?? 0,
       parking: property.parking ?? '',
       description: property.description ?? '',
+      contactPhone: property.agent?.phone || '',
     });
     const media = Array.isArray(property.media) ? property.media : [];
     setExistingMedia(media);
@@ -73,7 +76,10 @@ function AgentEditProperty() {
     );
   }
 
-  const update = (key) => (event) => setForm((s) => ({ ...s, [key]: event.target.value }));
+  const update = (key) => (event) => {
+    const value = key === 'contactPhone' ? formatPhone(event.target.value) : event.target.value;
+    setForm((s) => ({ ...s, [key]: value }));
+  };
 
   // 아래 할인율은 현재 기준가로 계산한 미리보기. 저장 시 서버가 근거를 다시 조회한다
   // (자기 호가를 기준가로 삼으면 항상 0%가 되는 가짜 지표가 됨)
@@ -85,6 +91,10 @@ function AgentEditProperty() {
     if (saving || converting) return;
     if (!form.title || !form.price) {
       setError('매물 타이틀과 매도 호가는 필수입니다.');
+      return;
+    }
+    if (!isValidContactPhone(form.contactPhone)) {
+      setError('문의 연락처에 올바른 전화번호를 입력해주세요.');
       return;
     }
     setSaving(true);
@@ -114,6 +124,7 @@ function AgentEditProperty() {
         direction: form.direction, occupancy_status: form.occupancyStatus,
         rooms: Number(form.rooms), bathrooms: Number(form.bathrooms),
         parking: form.parking || '미공개', description: form.description, media,
+        contact_phone: form.contactPhone,
       });
     } catch (saveError) {
       setError(`수정 실패: ${saveError.message || '네트워크 오류 — 잠시 후 다시 시도해주세요.'}`);
@@ -240,8 +251,18 @@ function AgentEditProperty() {
         </fieldset>
 
         <fieldset className="register-section">
+          <legend>문의 연락처</legend>
+          <label>
+            매수자 문의 연락처 *
+            <input type="tel" name="contactPhone" value={form.contactPhone} onChange={update('contactPhone')}
+              maxLength={PHONE_MAX_LENGTH} autoComplete="tel" required />
+          </label>
+          <p className="register-hint">변경한 전화번호는 운영팀 재승인 후 매물 상세의 문의 버튼에 반영됩니다.</p>
+        </fieldset>
+
+        <fieldset className="register-section">
           <legend>매물 설명</legend>
-          <textarea value={form.description} onChange={update('description')} rows={6} />
+          <textarea aria-label="매물 설명" value={form.description} onChange={update('description')} rows={6} />
         </fieldset>
 
         {error && <p className="form-status error">{error}</p>}

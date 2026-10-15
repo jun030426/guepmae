@@ -637,7 +637,7 @@ function Admin() {
                             onConfirm: async () => {
                               setUpdating(property.id);
                               try {
-                                await setPropertyVerified(property.id, false);
+                                await setPropertyVerified(property, false);
                                 await refreshProperties();
                               } catch (err) {
                                 setError(`검증 취소 실패: ${err.message}`);

@@ -44,6 +44,9 @@ before(async () => {
     grant update (verified) on public.properties to authenticated;
     create policy legacy_broad_writes on public.properties for all to authenticated using (true) with check (true);`);
   await pg.exec(await migration('20261013061805_secure_property_writes.sql'));
+  const metrics = await migration('20260930150000_pilot_metrics.sql');
+  await pg.exec(metrics.slice(0, metrics.indexOf('create table if not exists public.agent_pricing_intents')));
+  await pg.exec(await migration('20261015090544_complete_property_cycle.sql'));
   await pg.exec(`alter table public.profiles enable row level security;
     create policy profiles_read on public.profiles for select to authenticated
     using (id = auth.uid() or public.current_user_role()::text in ('admin','owner'));`);
@@ -142,6 +145,49 @@ test('only staff approve; edits recompute evidence, hide the row and reject stal
   assert.equal((await asRole('anon', null, "select id from properties where id='workflow'")).rows.length, 0);
   await denied(() => change(ADMIN, { action: 'verify', id: 'workflow', expectedRevision: 2, input: { verified: true } }), 409);
   await change(OWNER, { action: 'verify', id: 'workflow', expectedRevision: 3, input: { verified: true } });
+});
+
+test('contact edits preserve agent identity, need reapproval, and reject invalid numbers', async () => {
+  await create('contact');
+  await change(ADMIN, { action: 'verify', id: 'contact', expectedRevision: 1, input: { verified: true } });
+  const identity = (await row('contact')).agent;
+  await change(AGENT, { action: 'edit', id: 'contact', expectedRevision: 2, input: { contact_phone: '033-123-4567' } });
+  const p = await row('contact');
+  assert.deepEqual(p.agent, { ...identity, phone: '033-123-4567' });
+  assert.equal(p.verified, false);
+  assert.equal(p.revision, 3);
+  for (const contact_phone of ['', '123', 'letters', 'javascript:12345678', null]) {
+    await denied(() => change(AGENT, { action: 'edit', id: 'contact', expectedRevision: 3, input: { contact_phone } }), 400);
+    await denied(() => create('invalid-contact', AGENT, { ...base(), contact_phone }), 400);
+  }
+  await denied(() => change(OTHER, { action: 'edit', id: 'contact', expectedRevision: 3, input: { contact_phone: '02-1234-5678' } }));
+  await change(ADMIN, { action: 'verify', id: 'contact', expectedRevision: 3, input: { verified: true } });
+  await change(ADMIN, { action: 'verify', id: 'contact', expectedRevision: 4, input: { verified: false } });
+  assert.equal((await asRole('anon', null, "select id from properties where id='contact'")).rows.length, 0);
+});
+
+test('inquiries count only public listings and exclude staff and the immutable owner', async () => {
+  await create('metrics');
+  const track = async (actor, event = 'view') => (await asRole(actor ? 'authenticated' : 'anon', actor,
+    "select track_property_event('metrics',$1) as tracked", [event])).rows[0].tracked;
+  assert.equal(await track(null), false);
+  await change(ADMIN, { action: 'verify', id: 'metrics', expectedRevision: 1, input: { verified: true } });
+  for (const actor of [AGENT, ADMIN, OWNER, SUSPENDED]) assert.equal(await track(actor), false);
+  const originalEmail = (await pg.query('select email from profiles where id=$1', [AGENT])).rows[0].email;
+  await pg.query('update profiles set email=$1 where id=$2', ['new-email@example.test', AGENT]);
+  assert.equal(await track(AGENT), false);
+  await pg.query('update profiles set email=$1 where id=$2', [originalEmail, AGENT]);
+  assert.equal(await track(null), true);
+  assert.equal(await track(USER, 'inquiry_tel'), true);
+  assert.equal(await track(null, 'inquiry_email'), true);
+  assert.equal(await track(null, 'invalid'), false);
+  const stats = (await asRole('authenticated', AGENT, 'select property_stats() as stats')).rows[0].stats;
+  assert.equal(stats.scope, 'own');
+  assert.equal(stats.listings.find(p => p.property_id === 'metrics').inquiry_tel, 1);
+  assert.equal((await asRole('authenticated', OTHER, 'select property_stats() as stats')).rows[0].stats.listings.length, 0);
+  await change(AGENT, { action: 'edit', id: 'metrics', expectedRevision: 2, input: { title: '수정됨' } });
+  assert.equal(await track(null, 'inquiry_tel'), false);
+  assert.equal((await pg.query("select views from property_daily_stats where property_id='metrics'")).rows[0].views, 1);
 });
 
 test('email changes do not transfer ownership; other users cannot edit/delete pending rows', async () => {

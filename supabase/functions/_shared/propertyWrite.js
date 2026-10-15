@@ -1,12 +1,13 @@
 import { resolveReferencePrice } from './resolveReferencePrice.js';
+import { isValidContactPhone } from './contactPhone.js';
 
 export class PropertyWriteError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
 }
 const fail = (message, status) => { throw new PropertyWriteError(message, status); };
 const STAFF = ['admin', 'owner'];
-const EDIT_FIELDS = ['title', 'price', 'floor', 'direction', 'occupancy_status', 'rooms', 'bathrooms', 'parking', 'description', 'media'];
-export const CREATE_FIELDS = [...EDIT_FIELDS, 'address', 'region', 'complex_name', 'complex_gu', 'area', 'supply_area', 'built_year', 'maintenance_fee', 'move_in_date', 'unit_count', 'coordinates', 'contact_phone'];
+const EDIT_FIELDS = ['title', 'price', 'floor', 'direction', 'occupancy_status', 'rooms', 'bathrooms', 'parking', 'description', 'media', 'contact_phone'];
+export const CREATE_FIELDS = [...EDIT_FIELDS, 'address', 'region', 'complex_name', 'complex_gu', 'area', 'supply_area', 'built_year', 'maintenance_fee', 'move_in_date', 'unit_count', 'coordinates'];
 
 export function assertPropertyActor(profile, action, property) {
   if (!profile || profile.suspended !== false || !['agent', ...STAFF].includes(profile.role)) {
@@ -42,6 +43,7 @@ export function validatePropertyInput(input, { action, id, actorId, storageUrl, 
   for (const [key, max] of Object.entries(strings)) {
     if (key in row) row[key] = string(row[key], key, max, required.includes(key) || key === 'title');
   }
+  if ('contact_phone' in row && !isValidContactPhone(row.contact_phone)) fail('문의 연락처에 올바른 전화번호를 입력해주세요.');
   if (action === 'create' || 'price' in row) row.price = number(row.price, '가격', { min: 1, integer: true });
   if (action === 'create' || 'area' in row) row.area = number(row.area, '전용면적', { min: 1, max: 10000 });
   for (const key of ['supply_area', 'maintenance_fee', 'rooms', 'bathrooms', 'unit_count', 'built_year']) {
@@ -108,6 +110,10 @@ export async function propertyChange({ admin, actorId, body, storageUrl }) {
     delete row.contact_phone;
     row.property_type = '아파트';
     row.recent_transaction_date = null; // Registration date is not a transaction date.
+  } else if (action === 'edit' && 'contact_phone' in row) {
+    // Only the number is editable, never the agent identity or certification.
+    row.agent = { ...existing.agent, phone: row.contact_phone };
+    delete row.contact_phone;
   }
   const next = { ...existing, ...row };
   // Read trusted DB data again on EVERY create/edit/approval. No client baseline,

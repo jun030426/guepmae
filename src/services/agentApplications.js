@@ -1,4 +1,5 @@
-import { db } from '../lib/dataClient.js';
+import { db, isHybrid } from '../lib/dataClient.js';
+import { submitVerifiedApplication, validateAgentDocuments } from './agentOnboarding.js';
 
 function sanitizeFileName(fileName) {
   return fileName
@@ -34,6 +35,8 @@ async function uploadAgentDocument(file, label) {
 }
 
 export async function createAgentApplication(form) {
+  if (isHybrid) return submitVerifiedApplication(db, form);
+  validateAgentDocuments(form);
   const documentPaths = [];
 
   if (form.businessDocument) {
@@ -76,10 +79,15 @@ export async function fetchAgentApplications() {
 }
 
 /**
- * 신청서 승인 — application.status='approved' + contact_email 로 profile 찾아 role='agent' 부여.
- * 매칭되는 profile 이 없으면 application 만 approved 처리 (사용자가 가입 후 자동 권한 부여는 추후 트리거).
+ * 운영에서는 신청 계정의 권한과 신청 상태를 하나의 DB 트랜잭션으로 변경한다.
+ * 아래 이메일 기반 처리는 로컬 데모에만 사용한다.
  */
 export async function approveAgentApplication(application, reviewerNote = null) {
+  if (isHybrid) {
+    const { data, error } = await db.rpc('review_agent_application', { p_id: application.id, p_status: 'approved', p_note: reviewerNote });
+    if (error) throw error;
+    return data;
+  }
   // 1) 신청서 상태 업데이트
   const { error: appError } = await db
     .from('agent_applications')
@@ -118,6 +126,11 @@ export async function approveAgentApplication(application, reviewerNote = null) 
 }
 
 export async function rejectAgentApplication(applicationId, reviewerNote = null) {
+  if (isHybrid) {
+    const { data, error } = await db.rpc('review_agent_application', { p_id: applicationId, p_status: 'rejected', p_note: reviewerNote });
+    if (error) throw error;
+    return data;
+  }
   const { error } = await db
     .from('agent_applications')
     .update({ status: 'rejected', reviewer_note: reviewerNote })
@@ -125,19 +138,21 @@ export async function rejectAgentApplication(applicationId, reviewerNote = null)
   if (error) throw error;
 }
 
-// 로그인한 사용자의 자기 신청서 조회 (이메일 매칭)
+// 운영에서는 인증된 사용자 ID로, 로컬 데모에서는 이메일로 자기 신청서를 조회한다.
 export async function fetchMyApplication(email) {
   if (!email) return null;
+  const { data: sessionData, error: sessionError } = await db.auth.getSession();
+  if (sessionError) throw sessionError;
+  if (!sessionData?.session?.user?.id) return null;
   const { data, error } = await db
     .from('agent_applications')
     .select('id, office_name, status, reviewer_note, created_at, updated_at')
-    .eq('contact_email', email)
+    .eq(isHybrid ? 'user_id' : 'contact_email', isHybrid ? sessionData.session.user.id : email)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
   if (error) {
-    console.warn('fetchMyApplication failed:', error);
-    return null;
+    throw error;
   }
   return data;
 }

@@ -214,7 +214,7 @@ function Admin() {
   const handleApproveApplication = (app) => {
     askConfirm({
       title: '중개사 신청 승인',
-      message: `${app.office_name} 신청을 승인합니다. 해당 이메일(${app.contact_email})로 가입된 사용자에게 중개사 권한이 부여됩니다.`,
+      message: `${app.office_name}의 제출 서류를 확인했나요? 승인하면 신청한 계정에 중개사 권한이 함께 부여됩니다.`,
       confirmLabel: '승인',
       onConfirm: async () => {
         setUpdating(app.id);

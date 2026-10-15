@@ -1,8 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, FileUp, MailCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { createAgentApplication } from '../services/agentApplications.js';
+import { validateAgentDocuments } from '../services/agentOnboarding.js';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
 
 const PHONE_FIELDS = new Set(['representativePhone', 'contactPhone']);
@@ -22,7 +23,8 @@ const initialForm = {
 };
 
 function AgentSignup() {
-  const { isAuthenticated, profile, signUp, verifySignupOtp, resendVerification, isConfigured } = useAuth();
+  const { isAuthenticated, isLoading, profile, signUp, verifySignupOtp, resendVerification, isConfigured } = useAuth();
+  const applicationId = useRef(crypto.randomUUID());
 
   // 이미 로그인 상태면 password 필드 숨김 + email 자동
   const isLoggedInUser = isAuthenticated && profile?.role === 'user';
@@ -55,6 +57,8 @@ function AgentSignup() {
       form.brokerLicenseDocument
     );
   }, [form, isLoggedInUser]);
+
+  if (isLoading) return <div className="page-shell"><p role="status">계정 정보를 확인하고 있습니다.</p></div>;
 
   if (isLoggedInAgent) {
     return (
@@ -92,6 +96,7 @@ function AgentSignup() {
     // 실패 안내에서 "로그인 후 재신청" 경로를 정확히 알려주기 위해 단계를 추적.
     let accountCreated = false;
     try {
+      validateAgentDocuments(form);
       // 1) 로그인 안 된 경우만 — Auth signUp
       if (!isLoggedInUser) {
         const result = await signUp({
@@ -104,15 +109,13 @@ function AgentSignup() {
         accountCreated = true;
         // 이메일 인증 필요한 경우만 OTP 단계로
         if (result.needsEmailConfirmation) {
-          // 인증 전에 application 미리 insert (anon RLS 허용)
-          await createAgentApplication({ ...form, contactEmail: form.email });
           setStep('otp');
           return;
         }
         // 자동 로그인된 경우 (이메일 인증 옵션 끔) — 바로 application insert + done
       }
       // 2) 이미 로그인된 user / 자동 로그인 케이스 — application insert
-      await createAgentApplication({ ...form, contactEmail: form.email });
+      await createAgentApplication({ ...form, contactEmail: profile?.email || form.email, applicationId: applicationId.current });
       setStep('done');
     } catch (submitError) {
       console.error('Failed to register agent application:', submitError);
@@ -134,11 +137,15 @@ function AgentSignup() {
     }
     setError('');
     setIsSubmitting(true);
+    let verified = false;
     try {
       await verifySignupOtp({ email: form.email, token: otpInput });
+      verified = true;
+      await createAgentApplication({ ...form, applicationId: applicationId.current });
       setStep('done');
     } catch (err) {
-      setError(err.message || '인증번호가 올바르지 않거나 만료되었습니다.');
+      if (verified) setStep('form');
+      setError(verified ? `이메일 인증은 완료되었습니다. 신청서를 다시 제출해주세요. ${err.message || ''}` : err.message || '인증번호가 올바르지 않거나 만료되었습니다.');
     } finally {
       setIsSubmitting(false);
     }
@@ -199,7 +206,7 @@ function AgentSignup() {
               <strong>{form.email}</strong> 로 6자리 인증번호를 보냈습니다.
             </p>
             <p className="verification-pending-body">
-              신청서는 접수되었습니다. 인증번호를 입력해 계정의 이메일 인증을 마쳐주세요.
+              인증번호 확인 후 입력하신 신청서와 서류를 제출합니다. 이 화면을 닫으면 로그인 후 서류를 다시 선택해주세요.
               중개사 자격 확인과 이용 승인은 운영팀의 서류 검토 후 진행됩니다.
             </p>
 
@@ -258,8 +265,9 @@ function AgentSignup() {
           <p>
             {isLoggedInUser
               ? '로그인한 계정으로 신청합니다. 제출한 정보와 서류를 운영팀이 검토한 뒤 이용 권한을 부여합니다.'
-              : '계정 생성과 중개사 신청을 함께 진행합니다. 이메일 확인이 필요한 경우 다음 단계에서 안내하며, 중개사 이용 승인은 운영팀의 서류 검토 후 진행됩니다.'}
+              : '계정을 만들고 이메일 인증을 마친 뒤 신청서와 서류를 제출합니다. 운영팀의 검토 후 중개사 이용 권한이 부여됩니다.'}
           </p>
+          {!isLoggedInUser && <p>이미 계정이 있으신가요? <Link to="/login">로그인 후 신청하기</Link></p>}
         </div>
 
         <form onSubmit={handleSubmit}>

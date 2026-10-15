@@ -435,6 +435,10 @@ const hybridStorage = {
         if (!c) return { data: { signedUrl: '' }, error: CONNECT_FAIL };
         return c.storage.from(bucketName).createSignedUrl(path, expiresIn);
       },
+      async remove(paths) {
+        const c = await supa();
+        return c ? c.storage.from(bucketName).remove(paths) : { data: null, error: CONNECT_FAIL };
+      },
     };
   },
 };

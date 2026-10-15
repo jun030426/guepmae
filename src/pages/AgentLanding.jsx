@@ -14,13 +14,14 @@ function friendlyAuthError(error) {
 }
 
 function AgentLanding() {
-  const { isAuthenticated, profile, signIn, isConfigured } = useAuth();
+  const { isAuthenticated, profile, signIn, refreshProfile, isConfigured } = useAuth();
   const navigate = useNavigate();
   const [loginForm, setLoginForm] = useState(initialLoginForm);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [myApplication, setMyApplication] = useState(null);
   const [appCheckDone, setAppCheckDone] = useState(false);
+  const [appError, setAppError] = useState('');
 
   // 이미 agent 로 로그인되어 있으면 대시보드로 자동 이동
   useEffect(() => {
@@ -31,14 +32,34 @@ function AgentLanding() {
 
   // 로그인된 user 가 신청서 제출했는지 확인
   useEffect(() => {
+    let active = true;
     if (!isAuthenticated || profile?.role !== 'user' || !profile?.email) {
       setAppCheckDone(true);
       return;
     }
+    setAppCheckDone(false);
+    setAppError('');
     fetchMyApplication(profile.email)
-      .then((app) => setMyApplication(app))
-      .finally(() => setAppCheckDone(true));
-  }, [isAuthenticated, profile]);
+      .then((app) => { if (active) setMyApplication(app); })
+      .catch(() => { if (active) setAppError('신청 상태를 불러오지 못했습니다. 다시 확인해주세요.'); })
+      .finally(() => { if (active) setAppCheckDone(true); });
+    return () => { active = false; };
+  }, [isAuthenticated, profile?.id, profile?.role, profile?.email]);
+
+  const refreshApplication = async () => {
+    setAppCheckDone(false);
+    setAppError('');
+    try {
+      const account = await refreshProfile();
+      if (['agent','admin','owner'].includes(account?.role)) {
+        navigate('/agent/dashboard', { replace: true });
+      } else {
+        setMyApplication(await fetchMyApplication(profile?.email));
+      }
+    } catch {
+      setAppError('신청 상태를 불러오지 못했습니다. 다시 확인해주세요.');
+    } finally { setAppCheckDone(true); }
+  };
 
   const updateForm = (event) => {
     const { name, value } = event.target;
@@ -52,8 +73,8 @@ function AgentLanding() {
     try {
       const result = await signIn(loginForm);
       // 로그인 후 role 검증 — agent/admin 아니면 안내
-      if (!['agent', 'admin'].includes(result.profile?.role)) {
-        setError('중개사 권한이 없는 계정입니다. 우측 "가입 신청" 으로 신청해주세요.');
+      if (!['agent', 'admin', 'owner'].includes(result.profile?.role)) {
+        setError('');
         return;
       }
       navigate('/agent/dashboard', { replace: true });
@@ -66,7 +87,7 @@ function AgentLanding() {
 
   // 일반 사용자(role=user)로 로그인된 상태 — 권한 안내
   const isNonAgentLoggedIn =
-    isAuthenticated && profile?.role && !['agent', 'admin'].includes(profile.role);
+    isAuthenticated && profile?.role && !['agent', 'admin', 'owner'].includes(profile.role);
 
   return (
     <div className="page-shell agent-landing">
@@ -74,13 +95,22 @@ function AgentLanding() {
         <p className="section-eyebrow">급매 PRO</p>
         <h1>매물 등록부터 실거래가 검증까지<br />한 번에 처리하세요</h1>
         <p className="agent-landing-subtitle">
-          국토부 실거래가 기반 검증 + AI 매물 리포트 자동 생성. 매물의 가치를 명확하게 전달합니다.
+          실거래가 기준 가격 검증과 사진·360 투어로 매물 정보를 전달하세요.
         </p>
       </section>
 
       {/* 인라인 로그인 — agent portal 안에서 인증 완료 */}
       <section className="container agent-login-section">
-        {isNonAgentLoggedIn && myApplication && (myApplication.status === 'pending' || myApplication.status === 'reviewing') ? (
+        {isNonAgentLoggedIn && (!appCheckDone || appError) ? (
+          <div className="agent-login-card">
+            {appError ? <><p role="alert">{appError}</p><button type="button" onClick={refreshApplication}>다시 확인</button></> : <p role="status">신청 상태를 확인하고 있습니다.</p>}
+          </div>
+        ) : isNonAgentLoggedIn && myApplication?.status === 'approved' ? (
+          <div className="agent-login-card">
+            <h2>중개사 신청이 승인되었습니다</h2>
+            <button type="button" className="primary-link-button" onClick={refreshApplication}>승인 확인하고 등록 시작</button>
+          </div>
+        ) : isNonAgentLoggedIn && myApplication && (myApplication.status === 'pending' || myApplication.status === 'reviewing') ? (
           <div className="agent-login-card application-pending">
             <Clock size={28} />
             <h2>승인 대기 중</h2>
@@ -95,6 +125,7 @@ function AgentLanding() {
               <span className="application-status-badge pending">{myApplication.status === 'reviewing' ? '검토 중' : '대기 중'}</span>
               <span className="application-status-date">신청일: {new Date(myApplication.created_at).toLocaleDateString('ko-KR')}</span>
             </div>
+            <button type="button" className="primary-link-button" onClick={refreshApplication}>승인 상태 새로고침</button>
           </div>
         ) : isNonAgentLoggedIn && myApplication?.status === 'rejected' ? (
           <div className="agent-login-card application-rejected">

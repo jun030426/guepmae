@@ -10,6 +10,7 @@ import concurrent.futures
 import csv
 import datetime
 import hashlib
+import http.client
 import importlib.util
 import json
 import os
@@ -74,7 +75,7 @@ def fetch_pair(code, month):
     for attempt in range(4):
         try:
             return report.collect_pair(code, month)
-        except (urllib.error.HTTPError, urllib.error.URLError, ValueError):
+        except (urllib.error.URLError, http.client.HTTPException, TimeoutError, ValueError):
             if attempt == 3:
                 raise
             time.sleep(min(30, 2 ** (attempt + 2)))

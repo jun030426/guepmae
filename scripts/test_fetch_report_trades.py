@@ -1,4 +1,6 @@
 import importlib.util
+import io
+import http.client
 import os
 import unittest
 from unittest.mock import patch
@@ -13,6 +15,20 @@ def xml(total, items='', code='000'):
 
 
 class ReportCollectionTests(unittest.TestCase):
+    def test_district_request_retries_disconnected_responses(self):
+        with patch.object(collector.urllib.request, 'urlopen', side_effect=[
+                http.client.RemoteDisconnected('transient'), io.BytesIO(b'{"signguList": []}')]) as request, \
+                patch.object(collector.time, 'sleep'):
+            self.assertEqual(collector.read_district_response('https://example.invalid'), b'{"signguList": []}')
+            self.assertEqual(request.call_count, 2)
+
+    def test_district_request_exhaustion_propagates_failure(self):
+        with patch.object(collector.urllib.request, 'urlopen', side_effect=TimeoutError) as request, \
+                patch.object(collector.time, 'sleep'):
+            with self.assertRaises(TimeoutError):
+                collector.read_district_response('https://example.invalid')
+            self.assertEqual(request.call_count, 4)
+
     def test_current_province_options_ignore_other_selects_and_blank_options(self):
         parser = collector.ProvinceOptions()
         parser.feed('<select name="srhSidoCode"><option value="">선택</option><option value="12">전남광주통합특별시</option></select><select name="other"><option value="99">잘못된 지역</option></select>')

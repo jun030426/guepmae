@@ -10,6 +10,7 @@ import csv
 import datetime
 import importlib.util
 import hashlib
+import http.client
 import json
 import os
 import re
@@ -46,20 +47,31 @@ class ProvinceOptions(HTMLParser):
         if tag == 'option': self.code = None
 
 
+def read_district_response(url, data=None):
+    # Public MOLIT endpoints occasionally close the connection before sending
+    # headers. Retry that transient failure, but never publish a partial list.
+    for attempt in range(4):
+        try:
+            with urllib.request.urlopen(url, data=data, timeout=30) as response:
+                return response.read()
+        except (urllib.error.URLError, http.client.HTTPException, TimeoutError):
+            if attempt == 3:
+                raise
+            time.sleep(2 ** (attempt + 2))
+
+
 def current_district_codes():
     # The old static table misses the 2026 Jeonnam-Gwangju and Incheon changes.
     # Read the same current legal-district lists used by MOLIT's public website.
     url = 'https://rt.molit.go.kr/pt/gis/gis.do?mobileAt=&srhThingSecd=A'
     parser = ProvinceOptions()
-    with urllib.request.urlopen(url, timeout=30) as response:
-        parser.feed(response.read().decode('utf-8'))
+    parser.feed(read_district_response(url).decode('utf-8'))
     if len(parser.options) < 10:
         raise ValueError('MOLIT province list is incomplete')
     codes = {}
     for province, name in parser.options.items():
-        with urllib.request.urlopen('https://rt.molit.go.kr/cmm/signguList.do',
-                                    data=urllib.parse.urlencode({'code': province}).encode(), timeout=30) as response:
-            districts = json.load(response)['signguList']
+        districts = json.loads(read_district_response('https://rt.molit.go.kr/cmm/signguList.do',
+                               data=urllib.parse.urlencode({'code': province}).encode()))['signguList']
         if not districts:
             raise ValueError('MOLIT district list is incomplete')
         for district in districts:

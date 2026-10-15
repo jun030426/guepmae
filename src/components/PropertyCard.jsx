@@ -83,7 +83,7 @@ function PropertyCard({ property, compact = false }) {
         <div className="property-metrics">
           <div>
             <span>최근 실거래일</span>
-            <strong>{property.recentTransactionDate}</strong>
+            <strong>{property.recentTransactionDate || '상세 리포트에서 확인'}</strong>
           </div>
         </div>
 

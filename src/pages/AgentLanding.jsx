@@ -88,8 +88,8 @@ function AgentLanding() {
               <strong>{myApplication.office_name}</strong> 중개사 신청이 접수되었습니다.
             </p>
             <p className="application-pending-detail">
-              영업일 기준 <strong>1~2일 내</strong> 검토 후 결과를 이메일로 안내드립니다.
-              승인되면 즉시 급매 PRO 이용이 가능해집니다.
+              운영팀이 제출한 정보와 서류를 검토합니다. 신청 접수만으로 중개사 자격 확인이나 이용 승인이 완료되지는 않습니다.
+              검토 상태는 이 화면에서 확인할 수 있으며, 중개사 권한이 부여되면 매물 등록을 시작할 수 있습니다.
             </p>
             <div className="application-status-row">
               <span className="application-status-badge pending">{myApplication.status === 'reviewing' ? '검토 중' : '대기 중'}</span>

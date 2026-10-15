@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, FileUp, MailCheck, Search, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, FileUp, MailCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { createAgentApplication } from '../services/agentApplications.js';
 import { formatPhone, PHONE_MAX_LENGTH } from '../utils/phoneFormat.js';
@@ -32,8 +32,6 @@ function AgentSignup() {
     ...initialForm,
     email: profile?.email || '',
   });
-  const [officeChecked, setOfficeChecked] = useState(false);
-  const [representativeVerified, setRepresentativeVerified] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,19 +44,17 @@ function AgentSignup() {
   const canSubmit = useMemo(() => {
     const accountOk = isLoggedInUser
       ? true
-      : form.email && form.password.length >= 6 && form.password === form.passwordConfirm;
+      : form.email.trim() && form.password.length >= 6 && form.password === form.passwordConfirm;
     return (
       accountOk &&
-      officeChecked &&
-      representativeVerified &&
-      form.officeName &&
-      form.officeRegistrationNumber &&
-      form.representativeName &&
-      form.representativePhone &&
+      form.officeName.trim() &&
+      form.officeRegistrationNumber.trim() &&
+      form.representativeName.trim() &&
+      form.representativePhone.trim() &&
       form.businessDocument &&
       form.brokerLicenseDocument
     );
-  }, [form, officeChecked, representativeVerified, isLoggedInUser]);
+  }, [form, isLoggedInUser]);
 
   if (isLoggedInAgent) {
     return (
@@ -80,31 +76,16 @@ function AgentSignup() {
     const { name, value, files } = event.target;
     const nextValue = files ? files[0] ?? null : PHONE_FIELDS.has(name) ? formatPhone(value) : value;
     setForm((current) => ({ ...current, [name]: nextValue }));
-    if (name === 'officeName' || name === 'officeRegistrationNumber') setOfficeChecked(false);
-    if (name === 'representativeName' || name === 'representativePhone') setRepresentativeVerified(false);
-  };
-
-  const handleOfficeLookup = () => {
-    setError('');
-    if (!form.officeName || !form.officeRegistrationNumber) {
-      setError('중개사무소명과 등록번호를 입력한 뒤 조회해주세요.');
-      return;
-    }
-    setOfficeChecked(true);
-  };
-
-  const handleRepresentativeVerify = () => {
-    setError('');
-    if (!form.representativeName || !form.representativePhone) {
-      setError('대표자명과 대표자 연락처를 입력해주세요.');
-      return;
-    }
-    setRepresentativeVerified(true);
   };
 
   // 핵심: signUp + application insert 한 번에
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (isSubmitting || !isConfigured) return;
+    if (!canSubmit) {
+      setError('필수 정보와 첨부 서류를 확인해주세요. 비밀번호는 6자 이상이며 확인 값과 같아야 합니다.');
+      return;
+    }
     setError('');
     setIsSubmitting(true);
     // 계정 생성 후 신청서 저장이 실패하면, 같은 이메일로 재가입이 막히는 막다른 길이 된다 —
@@ -187,17 +168,16 @@ function AgentSignup() {
           </div>
           <h1>중개사 가입 신청이 접수되었습니다</h1>
           <p className="agent-signup-done-lead">
-            운영팀이 제출하신 사업자등록증과 중개등록증을 확인 후
-            <strong> 영업일 기준 1~2일 내 </strong>
-            결과를 이메일로 안내해드립니다.
+            현재 <strong>운영팀 서류 검토 대기 중</strong>입니다.
+            제출하신 정보와 서류를 검토한 뒤 중개사 이용 권한을 부여합니다.
           </p>
           <ul className="agent-signup-done-list">
-            <li>승인 시: 입력하신 이메일로 안내 후 즉시 급매 PRO 이용 가능</li>
-            <li>거부 시: 사유와 함께 안내드리며, 보완 후 재신청 가능</li>
+            <li>신청 접수만으로 중개사 자격 확인이나 이용 승인이 완료되지는 않습니다</li>
+            <li>급매 PRO에서 로그인 후 신청 상태와 검토 사유를 확인할 수 있습니다</li>
             <li>승인 대기 중에는 일반 회원으로 사이트를 이용하실 수 있습니다</li>
           </ul>
           <div className="agent-signup-done-actions">
-            <Link to="/agent" className="primary-link-button">급매 PRO로 이동</Link>
+            <Link to="/agent" className="primary-link-button">신청 상태 확인</Link>
             <Link to="/" className="outline-dark-button">메인 사이트 둘러보기</Link>
           </div>
         </section>
@@ -219,7 +199,8 @@ function AgentSignup() {
               <strong>{form.email}</strong> 로 6자리 인증번호를 보냈습니다.
             </p>
             <p className="verification-pending-body">
-              메일에 적힌 인증번호를 입력하면 가입과 중개사 신청이 모두 완료됩니다.
+              신청서는 접수되었습니다. 인증번호를 입력해 계정의 이메일 인증을 마쳐주세요.
+              중개사 자격 확인과 이용 승인은 운영팀의 서류 검토 후 진행됩니다.
             </p>
 
             <input
@@ -246,7 +227,7 @@ function AgentSignup() {
                 className="auth-submit-button"
                 disabled={isSubmitting || otpInput.length !== 6}
               >
-                {isSubmitting ? '인증 중...' : '인증 완료'}
+                {isSubmitting ? '확인 중...' : '이메일 인증번호 확인'}
               </button>
               <button
                 type="button"
@@ -276,8 +257,8 @@ function AgentSignup() {
           <h1>중개사 가입 신청</h1>
           <p>
             {isLoggedInUser
-              ? '중개사무소 정보를 등록하면 운영팀 검토 후 1~2일 내 안내드립니다.'
-              : '계정 생성과 중개사 신청을 한 번에 진행합니다. 이메일 인증 후 운영팀이 1~2일 내 검토합니다.'}
+              ? '로그인한 계정으로 신청합니다. 제출한 정보와 서류를 운영팀이 검토한 뒤 이용 권한을 부여합니다.'
+              : '계정 생성과 중개사 신청을 함께 진행합니다. 이메일 확인이 필요한 경우 다음 단계에서 안내하며, 중개사 이용 승인은 운영팀의 서류 검토 후 진행됩니다.'}
           </p>
         </div>
 
@@ -346,9 +327,8 @@ function AgentSignup() {
 
           <section className="agent-form-section">
             <div>
-              <h2>중개사무소 조회</h2>
-              <p>중개사무소명과 등록번호를 입력한 뒤 조회해주세요.</p>
-              {officeChecked && <span className="verification-chip">조회 완료</span>}
+              <h2>중개사무소 정보</h2>
+              <p>중개등록증에 기재된 사무소명과 등록번호를 입력해주세요. 등록 여부는 제출 후 운영팀이 서류로 확인합니다.</p>
             </div>
             <div className="agent-section-controls">
               <label className="agent-field">
@@ -363,17 +343,13 @@ function AgentSignup() {
                 <span>사무소 주소 <small>(선택)</small></span>
                 <input name="officeAddress" value={form.officeAddress} onChange={updateForm} placeholder="예: 서울특별시 마포구 ..." />
               </label>
-              <button type="button" className="agent-outline-button" onClick={handleOfficeLookup}>
-                <Search size={16} /> 조회하기
-              </button>
             </div>
           </section>
 
           <section className="agent-form-section">
             <div>
-              <h2>대표자 인증</h2>
-              <p>대표자 인증은 중개사무소 조회 후 진행할 수 있습니다.</p>
-              {representativeVerified && <span className="verification-chip">인증 완료</span>}
+              <h2>대표자 정보</h2>
+              <p>서류에 기재된 대표자명과 연락 가능한 전화번호를 입력해주세요. 연락처 입력은 휴대폰 본인인증을 의미하지 않습니다.</p>
             </div>
             <div className="agent-section-controls">
               <label className="agent-field">
@@ -392,9 +368,6 @@ function AgentSignup() {
                   required
                 />
               </label>
-              <button type="button" className="agent-outline-button" onClick={handleRepresentativeVerify} disabled={!officeChecked}>
-                <ShieldCheck size={16} /> 인증하기
-              </button>
             </div>
           </section>
 
@@ -440,7 +413,7 @@ function AgentSignup() {
           {error && <p className="form-status error">{error}</p>}
 
           <button type="submit" className="agent-next-button" disabled={!canSubmit || isSubmitting || !isConfigured}>
-            {isSubmitting ? '접수 중...' : '가입 + 중개사 신청'}
+            {isSubmitting ? '접수 중...' : isLoggedInUser ? '중개사 신청서 제출' : '계정 만들고 신청서 제출'}
           </button>
         </form>
       </section>

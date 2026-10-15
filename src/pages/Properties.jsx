@@ -1,3 +1,4 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import PropertyCard from '../components/PropertyCard.jsx';
@@ -35,7 +36,7 @@ function matchesAreaRange(area, range) {
 }
 
 function Properties() {
-  const { properties: urgentProperties, isLoading } = useProperties({ urgentOnly: true, verifiedOnly: true });
+  const { properties: urgentProperties, isLoading, error, refresh } = useProperties({ urgentOnly: true, verifiedOnly: true });
   // 필터·정렬·페이지·검색어를 전부 URL에 둔다 — 뒤로가기로 되돌릴 수 있고 링크로 공유된다.
   // 기본값은 URL에 쓰지 않아 주소가 조건을 바꾼 만큼만 길어진다.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -220,6 +221,8 @@ function Properties() {
                 </nav>
               )}
             </>
+          ) : error ? (
+            <PropertyLoadError onRetry={refresh} />
           ) : isLoading ? (
             <div className="empty-state">
               <h3>급매를 불러오는 중...</h3>

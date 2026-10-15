@@ -1,3 +1,4 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, MapPin, Minus, Plus, SlidersHorizontal, X } from 'lucide-react';
@@ -353,7 +354,7 @@ function MapFilterBar({ filters, onChange, expanded, setExpanded, resultCount })
 }
 
 function MapPage() {
-  const { properties: urgentProperties, isLoading: propertiesLoading } = useProperties({ urgentOnly: true, verifiedOnly: true });
+  const { properties: urgentProperties, isLoading: propertiesLoading, error: propertiesError, refresh: refreshProperties } = useProperties({ urgentOnly: true, verifiedOnly: true });
   const [filters, setFilters] = useState(initialFilters);
   const [filterExpanded, setFilterExpanded] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -468,6 +469,8 @@ function MapPage() {
                   registerRef={registerCardRef(property.id)}
                 />
               ))
+            ) : propertiesError ? (
+              <PropertyLoadError onRetry={refreshProperties} />
             ) : propertiesLoading ? (
               <div className="map-card-empty">
                 <p>매물을 불러오는 중...</p>

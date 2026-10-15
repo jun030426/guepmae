@@ -1,97 +1,47 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  fetchProperties,
-  fetchPropertyById,
-} from '../services/propertiesRepository.js';
-const initialSource = 'loading';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
+import { fetchProperties, fetchPropertyById } from '../services/propertiesRepository.js';
 
-// verifiedOnly: 공개 화면(목록·지도)용 — 운영팀 검증 전 매물은 매수자에게 보이지 않는다.
-//   (PRODUCT 원칙: "검증된 급매만 노출". 중개사는 내 등록 매물, 운영은 /admin 에서 대기 매물을 본다)
-export function useProperties({ urgentOnly = false, verifiedOnly = false } = {}) {
-  const [properties, setProperties] = useState([]);
-  const [source, setSource] = useState(initialSource);
-  const [error, setError] = useState(null);
-
+// A response from the previous login must not restore their pending listings.
+function usePropertyQuery(id) {
+  const { session, profile } = useAuth();
+  const scope = `${session?.user?.id || 'public'}:${profile?.role || ''}:${profile?.suspended || false}:${id || ''}`;
+  const currentScope = useRef(scope);
+  currentScope.current = scope;
+  const request = useRef(0);
+  const [result, setResult] = useState({ scope: null, data: null, source: 'loading', error: null });
   const refresh = useCallback(async () => {
+    const sequence = ++request.current;
     try {
-      const next = await fetchProperties();
-      setProperties(next);
-      setSource('local');
-      setError(null);
-    } catch (fetchError) {
-      console.warn('매물 새로고침 실패.', fetchError);
-      setError(fetchError);
+      const data = id ? await fetchPropertyById(id) : await fetchProperties();
+      if (currentScope.current === scope && sequence === request.current) {
+        setResult({ scope, data, source: data ? 'ready' : 'empty', error: null });
+      }
+    } catch (error) {
+      if (currentScope.current === scope && sequence === request.current) {
+        setResult({ scope, data: null, source: 'error', error });
+      }
     }
-  }, []);
-
+  }, [scope, id]);
   useEffect(() => {
-    let active = true;
-    fetchProperties()
-      .then((nextProperties) => {
-        if (!active) return;
-        setProperties(nextProperties);
-        setSource('local');
-      })
-      .catch((fetchError) => {
-        if (!active) return;
-        console.warn('매물 로드 실패.', fetchError);
-        setError(fetchError);
-        setSource('error');
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+    refresh();
+    return () => { request.current += 1; };
+  }, [refresh]);
+  return { ...(result.scope === scope ? result : { data: null, source: 'loading', error: null }), refresh };
+}
 
-  const visibleProperties = useMemo(() => {
-    return properties.filter(
-      (property) => (!urgentOnly || property.discountRate >= 5) && (!verifiedOnly || property.verified),
-    );
-  }, [properties, urgentOnly, verifiedOnly]);
-
+export function useProperties({ urgentOnly = false, verifiedOnly = false } = {}) {
+  const { data, source, error, refresh } = usePropertyQuery();
+  const properties = useMemo(() => (data || []).filter(
+    (p) => (!urgentOnly || p.discountRate >= 5) && (!verifiedOnly || p.verified),
+  ), [data, urgentOnly, verifiedOnly]);
   return {
-    properties: visibleProperties,
-    source,
-    error,
-    isLoading: source === 'loading',
-    refresh,
+    properties,
+    source, error, isLoading: source === 'loading', refresh,
   };
 }
 
 export function useProperty(id) {
-  const [property, setProperty] = useState(null);
-  const [source, setSource] = useState(initialSource);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    setProperty(null);
-
-    let active = true;
-    setSource('loading');
-
-    fetchPropertyById(id)
-      .then((nextProperty) => {
-        if (!active) return;
-        setProperty(nextProperty);
-        setSource(nextProperty ? 'local' : 'empty');
-      })
-      .catch((fetchError) => {
-        if (!active) return;
-        console.warn('매물 상세 로드 실패.', fetchError);
-        setError(fetchError);
-        setProperty(null);
-        setSource('error');
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [id]);
-
-  return {
-    property,
-    source,
-    error,
-    isLoading: source === 'loading',
-  };
+  const { data, source, error, refresh } = usePropertyQuery(id);
+  return { property: data, source, error, refresh, isLoading: source === 'loading' };
 }

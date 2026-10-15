@@ -1,3 +1,4 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -49,6 +50,7 @@ const detailTabs = [
 ];
 
 function formatKoreanDate(dateString) {
+  if (!dateString) return '—';
   const date = new Date(`${dateString}T00:00:00`);
 
   if (Number.isNaN(date.getTime())) {
@@ -75,7 +77,7 @@ function getDaysSince(dateString) {
 
 function PropertyDetail() {
   const { id } = useParams();
-  const { property } = useProperty(id);
+  const { property, isLoading, error, refresh } = useProperty(id);
   // 매물 등록 직후 진입(?just_registered=1) — 중개사의 첫 성공 순간을 확인해주는 배너.
   // URL 파라미터 기반이라 재방문·새로고침(닫기 후)에는 다시 뜨지 않음.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -186,6 +188,9 @@ function PropertyDetail() {
     }
   }, [activePhoto]);
 
+  if (error) return <div className="page-shell container"><PropertyLoadError onRetry={refresh} /></div>;
+  if (isLoading) return <div className="page-shell container"><p>매물을 불러오는 중...</p></div>;
+
   if (!property) {
     return (
       <div className="page-shell">
@@ -203,7 +208,7 @@ function PropertyDetail() {
   const activePhotoDetails = photos[activePhoto] ?? photos[0];
   // property.id 가 'gm-001' 같은 짧은 형식이거나 'gm-mh3z9k28' 같은 nanoid 형식이거나 그대로 노출
   const listingNumber = property.id?.toUpperCase() ?? '';
-  const daysOnMarket = getDaysSince(property.lastVerifiedAt);
+  const daysOnMarket = getDaysSince(property.createdAt?.slice(0, 10) || property.lastVerifiedAt);
   const agentEmail = property.agent?.email || '';
   const phoneHref = property.agent.phone.replace(/[^\d+]/g, '');
   const pricePerSquareMeter = Math.round(property.price / property.area);
@@ -288,9 +293,9 @@ function PropertyDetail() {
           <div className="container just-registered-inner">
             <CheckCircle2 size={20} aria-hidden="true" />
             <div className="just-registered-copy">
-              <strong>매물이 등록되었습니다 — 지금 매수자에게 보이는 화면입니다.</strong>
+              <strong>매물이 등록되었습니다 — 운영팀 승인을 기다리고 있습니다.</strong>
               <span>
-                실거래가 기준 할인율과 산출 근거가 계산되어 있습니다. 운영팀 검증이 끝나면 &ldquo;검증된 급매&rdquo;로 표시됩니다.
+                작성자와 운영진에게만 보이는 미리보기입니다. 승인 후 공개되며, 기준가 산출이 가능한 매물은 할인율도 함께 표시됩니다.
                 {panoFailed > 0 && ` 360 투어 사진 ${panoFailed}장은 처리하지 못했습니다 — 내 매물 관리 → 수정에서 다시 올려주세요.`}
               </span>
             </div>
@@ -608,7 +613,7 @@ function PropertyDetail() {
           <section className="sidebar-proof-card verification-card">
             <ShieldCheck size={21} />
             <strong>{property.verified ? '검증 완료' : '검증 대기'}</strong>
-            <span>가격, 등기, 중개사 정보를 기준으로 확인했습니다.</span>
+            <span>{property.verified ? '운영팀의 매물 검토가 완료되었습니다.' : '운영팀 검토 전이며 아직 공개되지 않은 매물입니다.'}</span>
           </section>
 
           <ComplexAlertCard property={property} />

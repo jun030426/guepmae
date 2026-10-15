@@ -1,3 +1,4 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Building2, CheckCircle2, ClipboardCheck, Crown, ExternalLink, FileText, Lock, Users, X, XCircle } from 'lucide-react';
@@ -168,7 +169,7 @@ function AgentApplicationModal({ application, onClose, onApprove, onReject, isUp
 }
 
 function Admin() {
-  const { properties, isLoading: propertiesLoading, refresh: refreshProperties } = useProperties();
+  const { properties, isLoading: propertiesLoading, refresh: refreshProperties, error: propertiesError } = useProperties();
   const { profile: currentActor } = useAuth();
   const [updating, setUpdating] = useState(null);
   const [error, setError] = useState('');
@@ -332,7 +333,9 @@ function Admin() {
     setUpdating(id);
     setError('');
     try {
-      await setPropertyVerified(id, true);
+      const property = properties.find((item) => item.id === id);
+      if (!property) throw new Error('매물을 새로고침해주세요.');
+      await setPropertyVerified(property, true);
       await refreshProperties(); // 새로고침 없이 데이터 재페치
     } catch (err) {
       setError(`승인 실패: ${err.message}`);
@@ -524,7 +527,7 @@ function Admin() {
             <h2>매물 승인 대기 ({pendingProperties.length})</h2>
             <span>중개사가 등록한 새 매물 — 승인하면 일반 사이트에 "검증 완료" 라벨로 노출됨</span>
           </div>
-          {propertiesLoading ? (
+          {propertiesError ? <PropertyLoadError onRetry={refreshProperties} /> : propertiesLoading ? (
             <p className="admin-empty">매물 목록을 불러오는 중...</p>
           ) : pendingProperties.length === 0 ? (
             <p className="admin-empty">승인 대기 중인 매물이 없습니다.</p>

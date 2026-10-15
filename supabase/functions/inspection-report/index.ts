@@ -10,7 +10,7 @@
  * 시크릿: GEMINI_API_KEY (대시보드 → Edge Functions → Secrets)
  */
 
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.112.4';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -190,9 +190,6 @@ Deno.serve(async (req: Request) => {
     /* fallthrough */
   }
   if (!propertyId) return json({ error: 'propertyId 가 필요합니다.' }, 400);
-  if (!geminiKey) {
-    return json({ error: 'GEMINI_API_KEY 시크릿이 아직 설정되지 않았습니다. Supabase 대시보드 → Edge Functions → Secrets 에 추가해주세요.' }, 503);
-  }
 
   const admin = createClient(supabaseUrl, serviceKey);
 
@@ -204,22 +201,25 @@ Deno.serve(async (req: Request) => {
     const uid = userData?.user?.id;
     if (!uid) return json({ error: '로그인이 필요합니다.' }, 401);
 
-    const { data: profile } = await admin.from('profiles').select('role, email').eq('id', uid).maybeSingle();
+    const { data: profile } = await admin.from('profiles').select('role, suspended').eq('id', uid).maybeSingle();
     const role = profile?.role ?? 'user';
-    if (!['agent', 'admin', 'owner'].includes(role)) {
+    if (profile?.suspended !== false || !['agent', 'admin', 'owner'].includes(role)) {
       return json({ error: '중개사·운영진만 점검 리포트를 생성할 수 있습니다.' }, 403);
     }
 
     const { data: property } = await admin
       .from('properties')
-      .select('id, title, description, media, agent')
+      .select('id, title, description, media, created_by')
       .eq('id', propertyId)
       .maybeSingle();
     if (!property) return json({ error: '매물을 찾을 수 없습니다.' }, 404);
 
-    const agentEmail = (property.agent as { email?: string } | null)?.email ?? '';
-    if (role === 'agent' && agentEmail !== profile?.email) {
+    if (role === 'agent' && property.created_by !== uid) {
       return json({ error: '자신이 등록한 매물만 점검 리포트를 생성할 수 있습니다.' }, 403);
+    }
+
+    if (!geminiKey) {
+      return json({ error: 'GEMINI_API_KEY 시크릿이 아직 설정되지 않았습니다. Supabase 대시보드 → Edge Functions → Secrets 에 추가해주세요.' }, 503);
     }
 
     // 2) 사진 수집 (최대 8장)

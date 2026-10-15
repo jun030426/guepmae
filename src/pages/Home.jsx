@@ -1,3 +1,4 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import HeroSearch from '../components/HeroSearch.jsx';
@@ -23,7 +24,7 @@ const verifySteps = [
 ];
 
 function Home() {
-  const { properties: urgentProperties } = useProperties({ urgentOnly: true });
+  const { properties: urgentProperties, error, refresh } = useProperties({ urgentOnly: true, verifiedOnly: true });
   const verifiedDeals = urgentProperties.filter((property) => property.verified).slice(0, 6);
 
   return (
@@ -77,6 +78,7 @@ function Home() {
             </Link>
           </div>
 
+          {error && <PropertyLoadError onRetry={refresh} />}
           <div className="property-grid">
             {verifiedDeals.map((property) => (
               <PropertyCard key={property.id} property={property} />

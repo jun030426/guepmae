@@ -9,9 +9,9 @@
  *   - 쓰기·인증: 브라우저 localStorage (mock)
  *
  * [하이브리드 모드]  (VITE_SUPABASE_URL + VITE_SUPABASE_PUBLISHABLE_KEY 설정 시)
- *   - 매물·시세·리포트 읽기: 번들 그대로 + Supabase 매물 오버레이(신규·수정분, id 충돌 시 Supabase 우선)
+ *   - 매물 읽기: Supabase RLS를 매번 적용. 시세·리포트는 번들 사용
  *   - 인증(가입·로그인·세션)과 쓰기(매물 등록·중개사 신청·회원 관리): 실제 Supabase
- *   - Supabase 접속 실패(무료 티어 슬립 등): 읽기는 번들만으로 정상 동작, 쓰기는 오류 반환
+ *   - Supabase 접속 실패: 매물 읽기·쓰기는 오류 반환 (오래된 승인 상태를 번들로 복원하지 않음)
  */
 
 import { putBlob } from '../utils/localMediaStore.js';
@@ -83,47 +83,10 @@ function seedUsers() {
   return users;
 }
 
-// ───────────────────────── 하이브리드: Supabase 매물 오버레이 캐시 ─────────────────────────
-const REMOTE_PROPS_TTL = 60 * 1000;
-// 잠든 무료 티어 백엔드는 CORS 차단 응답 + supabase-js 내부 재시도(~7초),
-// 저장된 세션이 있으면 토큰 갱신 대기까지 겹쳐 쿼리가 무기한 걸릴 수 있다.
-// 오버레이는 부가 데이터일 뿐이므로 짧게 자르고 번들 렌더를 보장한다.
-const REMOTE_PROPS_TIMEOUT = 2500;
-let _remoteProps = null; // { at, promise }
-function remotePropertiesRows() {
-  const now = Date.now();
-  if (_remoteProps && now - _remoteProps.at < REMOTE_PROPS_TTL) return _remoteProps.promise;
-  const fetchRows = supa()
-    .then((c) => (c ? c.from('properties').select('*') : { data: null }))
-    .then(({ data }) => data || [])
-    .catch(() => []);
-  const promise = Promise.race([
-    fetchRows,
-    new Promise((resolve) => setTimeout(() => resolve(null), REMOTE_PROPS_TIMEOUT)),
-  ]).then((rows) => rows || []);
-  _remoteProps = { at: now, promise };
-  return promise;
-}
-function invalidateRemoteProperties() { _remoteProps = null; }
-
-// 번들 + Supabase 병합: id 충돌 시 Supabase 행이 이김 (수정분 반영), 신규 행은 앞에.
-async function hybridPropertiesRows() {
-  const [base, remote] = await Promise.all([bundle('properties'), remotePropertiesRows()]);
-  const baseRows = base || [];
-  if (!remote.length) return baseRows;
-  const remoteIds = new Set(remote.map((r) => r.id));
-  const bundleOnly = baseRows.filter((r) => !remoteIds.has(r.id));
-  const bundleIds = new Set(baseRows.map((r) => r.id));
-  const remoteNew = remote.filter((r) => !bundleIds.has(r.id));
-  const remoteKnown = remote.filter((r) => bundleIds.has(r.id));
-  return [...remoteNew, ...remoteKnown, ...bundleOnly];
-}
-
 // ───────────────────────── 테이블 → 행 배열 (읽기) ─────────────────────────
 async function tableRows(table) {
   switch (table) {
     case 'properties': {
-      if (isHybrid) return hybridPropertiesRows();
       const base = (await bundle('properties')) || [];
       const ov = propsOverlay();
       return [...ov.created, ...base]
@@ -324,38 +287,9 @@ function localFrom(table) {
   return builder;
 }
 
-// 하이브리드 properties: 읽기는 로컬 엔진(번들+오버레이 병합) / 쓰기는 Supabase.
-// 첫 mutation 메서드 호출 시점에 원격 빌더로 전환하고 이전 체인을 재생한다.
-function hybridPropertiesFrom() {
-  const replay = [];
-  let target = null; // null = 아직 읽기 경로(로컬 엔진)
-  const local = localFrom('properties');
-
-  const builder = {
-    then(resolve, reject) {
-      return (target ?? local).then(resolve, reject);
-    },
-  };
-  for (const m of BUILDER_METHODS) {
-    builder[m] = (...args) => {
-      if (target) { target[m](...args); return builder; }
-      if (m === 'insert' || m === 'update' || m === 'delete' || m === 'upsert') {
-        target = remoteFrom('properties', { onMutate: invalidateRemoteProperties });
-        for (const [pm, pargs] of replay) target[pm](...pargs);
-        target[m](...args);
-        return builder;
-      }
-      replay.push([m, args]);
-      local[m](...args);
-      return builder;
-    };
-  }
-  return builder;
-}
-
 function from(table) {
   if (isHybrid && REMOTE_TABLES.has(table)) return remoteFrom(table);
-  if (isHybrid && table === 'properties') return hybridPropertiesFrom();
+  if (isHybrid && table === 'properties') return remoteFrom(table);
   return localFrom(table);
 }
 

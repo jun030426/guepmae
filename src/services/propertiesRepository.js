@@ -39,6 +39,10 @@ function normalizeProperty(row) {
 
   return {
     id: row.id,
+    createdBy: row.created_by ?? null,
+    revision: row.revision ?? null,
+    complexName: row.complex_name ?? row.price_basis?.complexName ?? null,
+    complexGu: row.complex_gu ?? row.price_basis?.gu ?? null,
     title: row.title,
     address: row.address,
     coordinates: row.coordinates ?? null,

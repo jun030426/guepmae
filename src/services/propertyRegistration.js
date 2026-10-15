@@ -7,23 +7,26 @@
  *   3) 새 매물 id 반환
  */
 
-import { db } from '../lib/dataClient.js';
+import { db, isHybrid } from '../lib/dataClient.js';
+import { writeManagedProperty, verifyProperty } from './propertyMutations.js';
 import { geocodeAddress, hasKakaoKey } from '../utils/kakaoLoader.js';
 import { processPanoramaFile } from '../utils/panoramaImage.js';
 import { processPhotoFile } from '../utils/photoImage.js';
 import { panoramaMediaItem } from '../utils/panoramaTour.js';
-import {
-  basisFromComplexRow,
-  computePriceBasis,
-  expandTradeRow,
-  heldBasis,
-  MIN_SAMPLE as BASIS_MIN_SAMPLE,
-} from '../utils/priceBasis.js';
+import { heldBasis } from '../utils/priceBasis.js';
+import { resolveReferencePrice as resolveWithClient } from '../../supabase/functions/_shared/resolveReferencePrice.js';
 
 function generatePropertyId() {
   const ts = Date.now().toString(36);
   const rand = Math.random().toString(36).slice(2, 6);
   return `gm-${ts}${rand}`;
+}
+
+async function uploadPrefix(propertyId) {
+  if (!isHybrid) return `properties/${propertyId}`;
+  const { data, error } = await db.auth.getSession();
+  if (error || !data?.session?.user?.id) throw new Error('로그인이 필요합니다.');
+  return `${data.session.user.id}/${propertyId}`;
 }
 
 
@@ -33,6 +36,7 @@ function generatePropertyId() {
  * 한 장이 실패하면 그 장만 건너뛴다(등록 자체는 계속).
  */
 export async function uploadPropertyPhotos(files, propertyId) {
+  const prefix = await uploadPrefix(propertyId);
   const photos = [];
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i];
@@ -40,7 +44,7 @@ export async function uploadPropertyPhotos(files, propertyId) {
       // eslint-disable-next-line no-await-in-loop
       const processed = await processPhotoFile(file);
       const ext = processed.contentType === 'image/jpeg' ? 'jpg' : (file.name.split('.').pop() || 'bin').toLowerCase();
-      const path = `properties/${propertyId}/photo-${i + 1}-${Date.now()}.${ext}`;
+      const path = `${prefix}/photo-${i + 1}-${Date.now()}.${ext}`;
       // eslint-disable-next-line no-await-in-loop
       const { data, error } = await db.storage
         .from('property-photos')
@@ -67,6 +71,7 @@ export async function uploadPropertyPhotos(files, propertyId) {
  * 반환: { media: [360 media 항목...], failures: [{ label, message }] }
  */
 export async function uploadPropertyPanoramas(items, propertyId, { onProgress } = {}) {
+  const prefix = await uploadPrefix(propertyId);
   const list = Array.isArray(items) ? items.filter(Boolean) : [];
   const media = [];
   const failures = [];
@@ -85,7 +90,7 @@ export async function uploadPropertyPanoramas(items, propertyId, { onProgress } 
     try {
       // eslint-disable-next-line no-await-in-loop
       const { blob } = await processPanoramaFile(item.file);
-      const path = `properties/${propertyId}/pano-${order}-${Date.now()}.jpg`;
+      const path = `${prefix}/pano-${order}-${Date.now()}.jpg`;
       // eslint-disable-next-line no-await-in-loop
       const { data, error } = await db.storage
         .from('property-360')
@@ -131,72 +136,8 @@ export function getAreaBucket(area) {
  *  없음:  판정 보류(status 'insufficient') — 지역 시세·얇은 표본으로 숫자를 만들지 않는다
  * 반환: { price: number|null, source: 'complex'|null, basis }
  */
-export async function resolveReferencePrice({ complexName, gu, areaM2, floor, price }) {
-  const today = new Date().toISOString().slice(0, 10);
-  const requested = Number.isFinite(Number(areaM2)) ? Math.floor(Number(areaM2)) : null;
-  if (!gu || !complexName || requested == null) {
-    return { price: null, source: null, basis: heldBasis('no_data', { requestedAreaM2: requested, areaM2: requested, computedAt: today }) };
-  }
-
-  // 1순위: 개별 실거래 (요청 면적 ±2㎡ 행만)
-  const { data: tradeRows } = await db
-    .from('complex_trades')
-    .select('area_m2, trades, latest_year_month')
-    .eq('complex', complexName)
-    .eq('gu', gu);
-  const rows = Array.isArray(tradeRows)
-    ? tradeRows.filter((row) => Math.abs(Number(row.area_m2) - requested) <= 2)
-    : [];
-  if (rows.length > 0) {
-    const trades = rows.flatMap(expandTradeRow);
-    const asOf = rows.map((row) => row.latest_year_month).filter(Boolean).sort().pop() ?? undefined;
-    const basis = computePriceBasis({ trades, areaM2: requested, floor, price, asOf, computedAt: today });
-    return { price: basis.baselinePrice, source: basis.status === 'ok' ? 'complex' : null, basis };
-  }
-
-  // 2순위: 중앙값 테이블 — 동일 면적 → 근접 면적(±2㎡, 표본 최다)
-  const columns = 'median_price, sample_size, area_m2, earliest_year_month, latest_year_month';
-  const enough = (row) => row?.median_price && (Number(row.sample_size) || 0) >= BASIS_MIN_SAMPLE;
-  const { data: exact } = await db
-    .from('complex_prices')
-    .select(columns)
-    .eq('complex', complexName)
-    .eq('gu', gu)
-    .eq('area_m2', requested)
-    .maybeSingle();
-  if (enough(exact)) {
-    const basis = basisFromComplexRow(exact, { requestedAreaM2: requested, approxArea: false, price, computedAt: today });
-    return { price: basis.baselinePrice, source: 'complex', basis };
-  }
-  const { data: near } = await db
-    .from('complex_prices')
-    .select(columns)
-    .eq('complex', complexName)
-    .eq('gu', gu)
-    .gte('area_m2', requested - 2)
-    .lte('area_m2', requested + 2)
-    .order('sample_size', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (enough(near)) {
-    const basis = basisFromComplexRow(near, { requestedAreaM2: requested, approxArea: true, price, computedAt: today });
-    return { price: basis.baselinePrice, source: 'complex', basis };
-  }
-
-  // 판정 보류 — 표본이 얇은 값(1~2건)을 기준가로 쓰지 않는다
-  const thin = exact ?? near;
-  const basis = thin
-    ? heldBasis('low_sample', {
-        requestedAreaM2: requested,
-        areaM2: Number(thin.area_m2),
-        approxArea: Number(thin.area_m2) !== requested,
-        totalSample36: Number(thin.sample_size) || 0,
-        dataAsOf: thin.latest_year_month ?? null,
-        computedAt: today,
-        method: `동일 단지 ${thin.area_m2}㎡ 실거래 ${Number(thin.sample_size) || 0}건 — 표본 부족(${BASIS_MIN_SAMPLE}건 미만)으로 판정 보류`,
-      })
-    : heldBasis('no_data', { requestedAreaM2: requested, areaM2: requested, computedAt: today });
-  return { price: null, source: null, basis };
+export function resolveReferencePrice(input) {
+  return resolveWithClient(db, input);
 }
 
 // 구/시/군 + 평형대로 13개월 실거래가 추이를 조회해 price_history 스냅샷 생성.
@@ -264,6 +205,23 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
 
   // gu 는 자동완성에서 고른 단지의 gu 우선, 없으면 Geocoding 결과
   const gu = form.complexGu || lookupResult.region?.gu || null;
+  // Production accepts source fields only. Price evidence, approval and owner
+  // are determined by property-write and the database, never by this browser.
+  if (isHybrid) {
+    const data = await writeManagedProperty({ action: 'create', id, input: {
+      title: form.title, address: form.address, coordinates,
+      region: form.complexSigungu || lookupResult.region?.gu || form.address || '',
+      complex_name: form.complexName || null, complex_gu: gu,
+      price: Number(form.price), area: Number(form.area),
+      supply_area: Number(form.supplyArea) || Math.round(Number(form.area) * 1.33),
+      floor: form.floor, direction: form.direction || null, occupancy_status: form.occupancyStatus || null,
+      built_year: Number(form.builtYear) || null, description: form.description,
+      parking: form.parking || '미공개', maintenance_fee: Number(form.maintenanceFee) || 0,
+      move_in_date: form.moveInDate || '협의', rooms: Number(form.rooms), bathrooms: Number(form.bathrooms),
+      unit_count: Number(form.unitCount) || null, contact_phone: contactPhone, media,
+    } });
+    return { id: data.id, panoramaFailures: panoramaResult.failures };
+  }
   const areaBucket = getAreaBucket(Number(form.area));
   const areaM2 = Number.isFinite(Number(form.area)) ? Math.floor(Number(form.area)) : null;
 
@@ -292,6 +250,10 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
   // 2) 매물 INSERT
   const row = {
     id,
+    created_by: agentProfile?.id,
+    revision: 1,
+    complex_name: form.complexName || null,
+    complex_gu: gu,
     title: form.title,
     address: form.address,
     coordinates,
@@ -310,8 +272,8 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
     built_year: Number(form.builtYear) || null,
     image_label: '',
     verified: false, // 관리자 승인 전엔 false
-    last_verified_at: now,
-    recent_transaction_date: now,
+    last_verified_at: null,
+    recent_transaction_date: null,
     description: form.description,
     parking: form.parking || '미공개',
     maintenance_fee: Number(form.maintenanceFee) || 0,
@@ -344,14 +306,6 @@ export async function registerProperty(form, agentProfile, { onPanoramaProgress 
 }
 
 // 운영팀 승인 토글 — properties.verified true/false 변경
-export async function setPropertyVerified(propertyId, verified) {
-  const { data, error } = await db
-    .from('properties')
-    .update({ verified, last_verified_at: new Date().toISOString().slice(0, 10) })
-    .eq('id', propertyId)
-    .select('id');
-  if (error) throw error;
-  if (!data || data.length === 0) {
-    throw new Error('권한이 없거나 매물이 존재하지 않아 변경되지 않았습니다.');
-  }
+export async function setPropertyVerified(property, verified) {
+  return verifyProperty(property, verified);
 }

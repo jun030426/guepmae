@@ -1,3 +1,4 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Plus, FileText, Building2, ShieldCheck, Sparkles } from 'lucide-react';
@@ -28,13 +29,13 @@ const firstRunSteps = [
 
 function AgentDashboard() {
   const { profile } = useAuth();
-  const { properties, isLoading } = useProperties();
+  const { properties, isLoading, error, refresh } = useProperties();
 
   const myEmail = profile?.email;
   const mine = useMemo(() => {
-    const list = properties.filter((p) => myEmail && p.agent?.email === myEmail);
+    const list = properties.filter((p) => profile?.id && p.createdBy === profile.id);
     return [...list].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  }, [properties, myEmail]);
+  }, [properties, profile?.id]);
 
   const verifiedCount = mine.filter((p) => p.verified).length;
   const pendingCount = mine.length - verifiedCount;
@@ -69,7 +70,8 @@ function AgentDashboard() {
           </Link>
         </div>
 
-        {isFirstRun ? (
+        {error && <PropertyLoadError onRetry={refresh} />}
+        {isFirstRun && !error ? (
           <section className="agent-first-run" aria-labelledby="agent-first-run-title">
             <h2 id="agent-first-run-title">첫 매물을 등록해보세요</h2>
             <p className="agent-first-run-lead">

@@ -1,8 +1,9 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { useProperty } from '../hooks/useProperties.js';
-import { db } from '../lib/dataClient.js';
+import { updateProperty } from '../services/propertyMutations.js';
 import { uploadPropertyPanoramas, uploadPropertyPhotos } from '../services/propertyRegistration.js';
 import PanoramaUploadField from '../components/PanoramaUploadField.jsx';
 import LocalMediaImage from '../components/LocalMediaImage.jsx';
@@ -10,7 +11,7 @@ import { formatPrice } from '../utils/priceUtils.js';
 
 function AgentEditProperty() {
   const { id } = useParams();
-  const { property, isLoading } = useProperty(id);
+  const { property, isLoading, error: loadError, refresh } = useProperty(id);
   const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [existingMedia, setExistingMedia] = useState([]); // 유지할 기존 사진
@@ -44,6 +45,8 @@ function AgentEditProperty() {
     );
   }, [property]);
 
+  if (loadError) return <div className="page-shell container"><PropertyLoadError onRetry={refresh} /></div>;
+
   // 로드가 끝났는데 매물이 없으면 not-found — "불러오는 중" 무한 표시 방지
   if (!isLoading && !property) {
     return (
@@ -71,7 +74,7 @@ function AgentEditProperty() {
 
   const update = (key) => (event) => setForm((s) => ({ ...s, [key]: event.target.value }));
 
-  // 기준 실거래가는 등록 시 확정된 값 유지 — 없으면 할인율을 계산하지 않는다
+  // 아래 할인율은 현재 기준가로 계산한 미리보기. 저장 시 서버가 근거를 다시 조회한다
   // (자기 호가를 기준가로 삼으면 항상 0%가 되는 가짜 지표가 됨)
   const market = property.actualTransactionPrice || 0;
   const newDiscount = market > 0 ? (((market - Number(form.price)) / market) * 100).toFixed(1) : null;
@@ -115,44 +118,20 @@ function AgentEditProperty() {
     let media = photoMedia.map((m, i) => ({ ...m, label: i === 0 ? '대표 사진' : `사진 ${i + 1}` }));
     media = [...media, ...panoramaMedia];
 
-    let data;
+
     try {
-      const { data: updated, error: updateError } = await db
-        .from('properties')
-        .update({
-          title: form.title,
-          price: Number(form.price),
-          // 기준가가 없어 재계산 불가하면 기존 할인율 유지
-          discount_rate: newDiscount !== null ? Number(newDiscount) : property.discountRate,
-          floor: form.floor,
-          direction: form.direction,
-          occupancy_status: form.occupancyStatus,
-          rooms: Number(form.rooms),
-          bathrooms: Number(form.bathrooms),
-          parking: form.parking || '미공개',
-          description: form.description,
-          media,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select('id');
-      if (updateError) throw updateError;
-      data = updated;
+      await updateProperty(property, {
+        title: form.title, price: Number(form.price), floor: form.floor,
+        direction: form.direction, occupancy_status: form.occupancyStatus,
+        rooms: Number(form.rooms), bathrooms: Number(form.bathrooms),
+        parking: form.parking || '미공개', description: form.description, media,
+      });
     } catch (saveError) {
       setError(`수정 실패: ${saveError.message || '네트워크 오류 — 잠시 후 다시 시도해주세요.'}`);
       setSaving(false);
       return;
     }
-    if (!data || data.length === 0) {
-      setError('권한이 없거나 매물이 존재하지 않아 수정되지 않았습니다.');
-      setSaving(false);
-      return;
-    }
-
-    // 로컬 모드: AI 리포트는 사전 생성해 번들(public/data/property_reports.json)하므로
-    // 무효화할 서버 캐시가 없다. 수정 내용은 다음 번들 재생성 때 반영된다.
-
-    navigate(`/properties/${id}`, { replace: true });
+    navigate('/agent/properties', { replace: true });
   };
 
   return (
@@ -160,7 +139,7 @@ function AgentEditProperty() {
       <section className="container agent-register-hero">
         <p className="section-eyebrow">매물 수정</p>
         <h1>{property.title}</h1>
-        <p>자주 바뀌는 정보를 수정할 수 있습니다. 단지·면적·주소 등 구조 정보는 변경하려면 삭제 후 재등록해주세요.</p>
+        <p>자주 바뀌는 정보를 수정할 수 있습니다. 저장하면 가격 근거가 다시 계산되고 승인 대기로 전환됩니다. 단지·면적·주소 변경은 재등록해주세요.</p>
       </section>
 
       <form className="container agent-register-form" onSubmit={handleSave}>

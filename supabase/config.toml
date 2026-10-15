@@ -1,0 +1,7 @@
+project_id = "guepmae"
+
+[functions.property-write]
+verify_jwt = true
+
+[functions.inspection-report]
+verify_jwt = true

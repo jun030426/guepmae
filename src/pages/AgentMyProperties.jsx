@@ -1,3 +1,4 @@
+import PropertyLoadError from '../components/PropertyLoadError.jsx';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Pencil, Plus, Trash2 } from 'lucide-react';
@@ -17,15 +18,15 @@ function formatDate(iso) {
 
 function AgentMyProperties() {
   const { profile } = useAuth();
-  const { properties, refresh } = useProperties();
+  const { properties, refresh, error: loadError, isLoading } = useProperties();
   const [confirm, setConfirm] = useState(null);
   const [error, setError] = useState('');
 
   const myEmail = profile?.email;
   const mine = useMemo(() => {
-    const list = properties.filter((p) => myEmail && p.agent?.email === myEmail);
+    const list = properties.filter((p) => profile?.id && p.createdBy === profile.id);
     return [...list].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  }, [properties, myEmail]);
+  }, [properties, profile?.id]);
 
   // 매물별 최근 30일 조회·문의
   const [statsById, setStatsById] = useState(null);
@@ -79,7 +80,7 @@ function AgentMyProperties() {
 
         {error && <p className="form-status error">{error}</p>}
 
-        {mine.length === 0 ? (
+        {loadError ? <PropertyLoadError onRetry={refresh} /> : isLoading ? <p>불러오는 중...</p> : mine.length === 0 ? (
           <div className="agent-empty-state">
             <div className="agent-empty-icon" aria-hidden="true">
               <Plus size={22} />

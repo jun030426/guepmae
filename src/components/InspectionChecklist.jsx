@@ -47,8 +47,8 @@ export default function InspectionChecklist({ property }) {
     };
   }, [property.id]);
 
-  const isOwnListing = profile?.role === 'agent' && property.agent?.email === profile?.email;
-  const canGenerate = canGenerateInspection && (isAdmin || isOwnListing);
+  const isOwnListing = profile?.role === 'agent' && property.createdBy === profile?.id;
+  const canGenerate = canGenerateInspection && !profile?.suspended && (isAdmin || isOwnListing);
 
   const handleGenerate = async () => {
     setIsGenerating(true);
